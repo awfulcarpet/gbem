@@ -1,5 +1,5 @@
 WARNINGS = -Wall -Wextra -Wpedantic -Wno-unused-result -Wwrite-strings -Wcast-align -Wpointer-arith -Wunused-parameter -Wmissing-include-dirs
-CFLAGS = -std=c99 -O0 $(WARNINGS)
+CFLAGS = -std=c11 -O0 $(WARNINGS)
 LDLIBS =
 
 NAME = gbem
