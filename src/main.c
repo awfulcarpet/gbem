@@ -10,6 +10,9 @@ main(int argc, char **argv) {
 	(void)argv;
 
 	struct CPU *cpu = init_cpu();
-	execute(cpu);
+	for (int i = 0; i <= 0xFF; i++) {
+		cpu->memory[i] = i;
+		execute(cpu);
+	}
 	return 0;
 }

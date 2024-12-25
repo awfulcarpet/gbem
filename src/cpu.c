@@ -34,7 +34,8 @@ unimlemented_opcode(uint8_t opcode) {
 
 void
 print_mnemonic(uint8_t *opcode) {
-	switch (*opcode) {
+    printf("->%02x ", *opcode);
+    switch (*opcode) {
 	case 0x00: printf("NOP"); break;
 	case 0x01: printf("LD BC, %02x%02x", opcode[2], opcode[1]); break;
 	case 0x02: printf("LD [BC], A"); break;
@@ -103,216 +104,79 @@ print_mnemonic(uint8_t *opcode) {
 	case 0x3e: printf("LD A, %02x", opcode[1]); break;
 	case 0x3f: printf("CCF"); break;
 
+	case 0x40: printf("LD B, B"); break;
+	case 0x41: printf("LD B, C"); break;
+	case 0x42: printf("LD B, D"); break;
+	case 0x43: printf("LD B, E"); break;
+	case 0x44: printf("LD B, H"); break;
+	case 0x45: printf("LD B, L"); break;
+	case 0x46: printf("LD B, [HL]"); break;
+	case 0x47: printf("LD B, A"); break;
+	case 0x48: printf("LD C, B"); break;
+	case 0x49: printf("LD C, C"); break;
+	case 0x4a: printf("LD C, D"); break;
+	case 0x4b: printf("LD C, E"); break;
+	case 0x4c: printf("LD C, H"); break;
+	case 0x4d: printf("LD C, L"); break;
+	case 0x4e: printf("LD C, [HL]"); break;
+	case 0x4f: printf("LD C, A"); break;
+
+	case 0x50: printf("LD D, B"); break;
+	case 0x51: printf("LD D, C"); break;
+	case 0x52: printf("LD D, D"); break;
+	case 0x53: printf("LD D, E"); break;
+	case 0x54: printf("LD D, H"); break;
+	case 0x55: printf("LD D, L"); break;
+	case 0x56: printf("LD D, [HL]"); break;
+	case 0x57: printf("LD D, A"); break;
+	case 0x58: printf("LD E, B"); break;
+	case 0x59: printf("LD E, C"); break;
+	case 0x5a: printf("LD E, D"); break;
+	case 0x5b: printf("LD E, E"); break;
+	case 0x5c: printf("LD E, H"); break;
+	case 0x5d: printf("LD E, L"); break;
+	case 0x5e: printf("LD E, [HL]"); break;
+	case 0x5f: printf("LD E, A"); break;
+
+	case 0x60: printf("LD H, B"); break;
+	case 0x61: printf("LD H, C"); break;
+	case 0x62: printf("LD H, D"); break;
+	case 0x63: printf("LD H, E"); break;
+	case 0x64: printf("LD H, H"); break;
+	case 0x65: printf("LD H, L"); break;
+	case 0x66: printf("LD H, [HL]"); break;
+	case 0x67: printf("LD H, A"); break;
+	case 0x68: printf("LD L, B"); break;
+	case 0x69: printf("LD L, C"); break;
+	case 0x6a: printf("LD L, D"); break;
+	case 0x6b: printf("LD L, E"); break;
+	case 0x6c: printf("LD L, H"); break;
+	case 0x6d: printf("LD L, L"); break;
+	case 0x6e: printf("LD L, [HL]"); break;
+	case 0x6f: printf("LD L, A"); break;
 
 
-	case 0x40: printf("NOP"); break;
-	case 0x41: printf("NOP"); break;
-	case 0x42: printf("NOP"); break;
-	case 0x43: printf("NOP"); break;
-	case 0x44: printf("NOP"); break;
-	case 0x45: printf("NOP"); break;
-	case 0x46: printf("NOP"); break;
-	case 0x47: printf("NOP"); break;
-	case 0x48: printf("NOP"); break;
-	case 0x49: printf("NOP"); break;
-	case 0x4a: printf("NOP"); break;
-	case 0x4b: printf("NOP"); break;
-	case 0x4c: printf("NOP"); break;
-	case 0x4d: printf("NOP"); break;
-	case 0x4e: printf("NOP"); break;
-	case 0x4f: printf("NOP"); break;
-
-	case 0x50: printf("NOP"); break;
-	case 0x51: printf("NOP"); break;
-	case 0x52: printf("NOP"); break;
-	case 0x53: printf("NOP"); break;
-	case 0x54: printf("NOP"); break;
-	case 0x55: printf("NOP"); break;
-	case 0x56: printf("NOP"); break;
-	case 0x57: printf("NOP"); break;
-	case 0x58: printf("NOP"); break;
-	case 0x59: printf("NOP"); break;
-	case 0x5a: printf("NOP"); break;
-	case 0x5b: printf("NOP"); break;
-	case 0x5c: printf("NOP"); break;
-	case 0x5d: printf("NOP"); break;
-	case 0x5e: printf("NOP"); break;
-	case 0x5f: printf("NOP"); break;
-
-	case 0x60: printf("NOP"); break;
-	case 0x61: printf("NOP"); break;
-	case 0x62: printf("NOP"); break;
-	case 0x63: printf("NOP"); break;
-	case 0x64: printf("NOP"); break;
-	case 0x65: printf("NOP"); break;
-	case 0x66: printf("NOP"); break;
-	case 0x67: printf("NOP"); break;
-	case 0x68: printf("NOP"); break;
-	case 0x69: printf("NOP"); break;
-	case 0x6a: printf("NOP"); break;
-	case 0x6b: printf("NOP"); break;
-	case 0x6c: printf("NOP"); break;
-	case 0x6d: printf("NOP"); break;
-	case 0x6e: printf("NOP"); break;
-	case 0x6f: printf("NOP"); break;
-
-	case 0x70: printf("NOP"); break;
-	case 0x71: printf("NOP"); break;
-	case 0x72: printf("NOP"); break;
-	case 0x73: printf("NOP"); break;
-	case 0x74: printf("NOP"); break;
-	case 0x75: printf("NOP"); break;
-	case 0x76: printf("NOP"); break;
-	case 0x77: printf("NOP"); break;
-	case 0x78: printf("NOP"); break;
-	case 0x79: printf("NOP"); break;
-	case 0x7a: printf("NOP"); break;
-	case 0x7b: printf("NOP"); break;
-	case 0x7c: printf("NOP"); break;
-	case 0x7d: printf("NOP"); break;
-	case 0x7e: printf("NOP"); break;
-	case 0x7f: printf("NOP"); break;
-
-	case 0x80: printf("NOP"); break;
-	case 0x81: printf("NOP"); break;
-	case 0x82: printf("NOP"); break;
-	case 0x83: printf("NOP"); break;
-	case 0x84: printf("NOP"); break;
-	case 0x85: printf("NOP"); break;
-	case 0x86: printf("NOP"); break;
-	case 0x87: printf("NOP"); break;
-	case 0x88: printf("NOP"); break;
-	case 0x89: printf("NOP"); break;
-	case 0x8a: printf("NOP"); break;
-	case 0x8b: printf("NOP"); break;
-	case 0x8c: printf("NOP"); break;
-	case 0x8d: printf("NOP"); break;
-	case 0x8e: printf("NOP"); break;
-	case 0x8f: printf("NOP"); break;
-
-	case 0x90: printf("NOP"); break;
-	case 0x91: printf("NOP"); break;
-	case 0x92: printf("NOP"); break;
-	case 0x93: printf("NOP"); break;
-	case 0x94: printf("NOP"); break;
-	case 0x95: printf("NOP"); break;
-	case 0x96: printf("NOP"); break;
-	case 0x97: printf("NOP"); break;
-	case 0x98: printf("NOP"); break;
-	case 0x99: printf("NOP"); break;
-	case 0x9a: printf("NOP"); break;
-	case 0x9b: printf("NOP"); break;
-	case 0x9c: printf("NOP"); break;
-	case 0x9d: printf("NOP"); break;
-	case 0x9e: printf("NOP"); break;
-	case 0x9f: printf("NOP"); break;
-
-	case 0xa0: printf("NOP"); break;
-	case 0xa1: printf("NOP"); break;
-	case 0xa2: printf("NOP"); break;
-	case 0xa3: printf("NOP"); break;
-	case 0xa4: printf("NOP"); break;
-	case 0xa5: printf("NOP"); break;
-	case 0xa6: printf("NOP"); break;
-	case 0xa7: printf("NOP"); break;
-	case 0xa8: printf("NOP"); break;
-	case 0xa9: printf("NOP"); break;
-	case 0xaa: printf("NOP"); break;
-	case 0xab: printf("NOP"); break;
-	case 0xac: printf("NOP"); break;
-	case 0xad: printf("NOP"); break;
-	case 0xae: printf("NOP"); break;
-	case 0xaf: printf("NOP"); break;
-
-	case 0xb0: printf("NOP"); break;
-	case 0xb1: printf("NOP"); break;
-	case 0xb2: printf("NOP"); break;
-	case 0xb3: printf("NOP"); break;
-	case 0xb4: printf("NOP"); break;
-	case 0xb5: printf("NOP"); break;
-	case 0xb6: printf("NOP"); break;
-	case 0xb7: printf("NOP"); break;
-	case 0xb8: printf("NOP"); break;
-	case 0xb9: printf("NOP"); break;
-	case 0xba: printf("NOP"); break;
-	case 0xbb: printf("NOP"); break;
-	case 0xbc: printf("NOP"); break;
-	case 0xbd: printf("NOP"); break;
-	case 0xbe: printf("NOP"); break;
-	case 0xbf: printf("NOP"); break;
-
-	case 0xc0: printf("NOP"); break;
-	case 0xc1: printf("NOP"); break;
-	case 0xc2: printf("NOP"); break;
-	case 0xc3: printf("NOP"); break;
-	case 0xc4: printf("NOP"); break;
-	case 0xc5: printf("NOP"); break;
-	case 0xc6: printf("NOP"); break;
-	case 0xc7: printf("NOP"); break;
-	case 0xc8: printf("NOP"); break;
-	case 0xc9: printf("NOP"); break;
-	case 0xca: printf("NOP"); break;
-	case 0xcb: printf("NOP"); break;
-	case 0xcc: printf("NOP"); break;
-	case 0xcd: printf("NOP"); break;
-	case 0xce: printf("NOP"); break;
-	case 0xcf: printf("NOP"); break;
-
-	case 0xd0: printf("NOP"); break;
-	case 0xd1: printf("NOP"); break;
-	case 0xd2: printf("NOP"); break;
-	case 0xd3: printf("NOP"); break;
-	case 0xd4: printf("NOP"); break;
-	case 0xd5: printf("NOP"); break;
-	case 0xd6: printf("NOP"); break;
-	case 0xd7: printf("NOP"); break;
-	case 0xd8: printf("NOP"); break;
-	case 0xd9: printf("NOP"); break;
-	case 0xda: printf("NOP"); break;
-	case 0xdb: printf("NOP"); break;
-	case 0xdc: printf("NOP"); break;
-	case 0xdd: printf("NOP"); break;
-	case 0xde: printf("NOP"); break;
-	case 0xdf: printf("NOP"); break;
-
-	case 0xe0: printf("NOP"); break;
-	case 0xe1: printf("NOP"); break;
-	case 0xe2: printf("NOP"); break;
-	case 0xe3: printf("NOP"); break;
-	case 0xe4: printf("NOP"); break;
-	case 0xe5: printf("NOP"); break;
-	case 0xe6: printf("NOP"); break;
-	case 0xe7: printf("NOP"); break;
-	case 0xe8: printf("NOP"); break;
-	case 0xe9: printf("NOP"); break;
-	case 0xea: printf("NOP"); break;
-	case 0xeb: printf("NOP"); break;
-	case 0xec: printf("NOP"); break;
-	case 0xed: printf("NOP"); break;
-	case 0xee: printf("NOP"); break;
-	case 0xef: printf("NOP"); break;
-
-	case 0xf0: printf("NOP"); break;
-	case 0xf1: printf("NOP"); break;
-	case 0xf2: printf("NOP"); break;
-	case 0xf3: printf("NOP"); break;
-	case 0xf4: printf("NOP"); break;
-	case 0xf5: printf("NOP"); break;
-	case 0xf6: printf("NOP"); break;
-	case 0xf7: printf("NOP"); break;
-	case 0xf8: printf("NOP"); break;
-	case 0xf9: printf("NOP"); break;
-	case 0xfa: printf("NOP"); break;
-	case 0xfb: printf("NOP"); break;
-	case 0xfc: printf("NOP"); break;
-	case 0xfd: printf("NOP"); break;
-	case 0xfe: printf("NOP"); break;
-	case 0xff: printf("NOP"); break;
+	case 0x70: printf("LD [HL], B"); break;
+	case 0x71: printf("LD [HL], C"); break;
+	case 0x72: printf("LD [HL], D"); break;
+	case 0x73: printf("LD [HL], E"); break;
+	case 0x74: printf("LD [HL], H"); break;
+	case 0x75: printf("LD [HL], L"); break;
+	case 0x76: printf("HALT"); break;
+	case 0x77: printf("LD [HL], A"); break;
+	case 0x78: printf("LD A, B"); break;
+	case 0x79: printf("LD A, C"); break;
+	case 0x7a: printf("LD A, D"); break;
+	case 0x7b: printf("LD A, E"); break;
+	case 0x7c: printf("LD A, H"); break;
+	case 0x7d: printf("LD A, L"); break;
+	case 0x7e: printf("LD A, [HL]"); break;
+	case 0x7f: printf("LD A, A"); break;
 
 	default:
-		unimlemented_opcode(*opcode);
-		break;
-	}
+	    unimlemented_opcode(*opcode);
+	    break;
+    }
 }
 
 // TODO return cycles later
