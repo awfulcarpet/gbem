@@ -173,6 +173,74 @@ print_mnemonic(uint8_t *opcode) {
 	case 0x7e: printf("LD A, [HL]"); break;
 	case 0x7f: printf("LD A, A"); break;
 
+	case 0x80: printf("ADD A, B"); break;
+	case 0x81: printf("ADD A, C"); break;
+	case 0x82: printf("ADD A, D"); break;
+	case 0x83: printf("ADD A, E"); break;
+	case 0x84: printf("ADD A, H"); break;
+	case 0x85: printf("ADD A, L"); break;
+	case 0x86: printf("ADD A, [HL]"); break;
+	case 0x87: printf("ADD A, A"); break;
+	case 0x88: printf("ADC A, B"); break;
+	case 0x89: printf("ADC A, C"); break;
+	case 0x8a: printf("ADC A, D"); break;
+	case 0x8b: printf("ADC A, E"); break;
+	case 0x8c: printf("ADC A, H"); break;
+	case 0x8d: printf("ADC A, L"); break;
+	case 0x8e: printf("ADC A, [HL]"); break;
+	case 0x8f: printf("ADC A, A"); break;
+
+	case 0x90: printf("SUB A, B"); break;
+	case 0x91: printf("SUB A, C"); break;
+	case 0x92: printf("SUB A, D"); break;
+	case 0x93: printf("SUB A, E"); break;
+	case 0x94: printf("SUB A, H"); break;
+	case 0x95: printf("SUB A, L"); break;
+	case 0x96: printf("SUB A, [HL]"); break;
+	case 0x97: printf("SUB A, A"); break;
+	case 0x98: printf("SBC A, B"); break;
+	case 0x99: printf("SBC A, C"); break;
+	case 0x9a: printf("SBC A, D"); break;
+	case 0x9b: printf("SBC A, E"); break;
+	case 0x9c: printf("SBC A, H"); break;
+	case 0x9d: printf("SBC A, L"); break;
+	case 0x9e: printf("SBC A, [HL]"); break;
+	case 0x9f: printf("SBC A, A"); break;
+
+	case 0xa0: printf("AND A, B"); break;
+	case 0xa1: printf("AND A, C"); break;
+	case 0xa2: printf("AND A, D"); break;
+	case 0xa3: printf("AND A, E"); break;
+	case 0xa4: printf("AND A, H"); break;
+	case 0xa5: printf("AND A, L"); break;
+	case 0xa6: printf("AND A, [HL]"); break;
+	case 0xa7: printf("AND A, A"); break;
+	case 0xa8: printf("XOR A, B"); break;
+	case 0xa9: printf("XOR A, C"); break;
+	case 0xaa: printf("XOR A, D"); break;
+	case 0xab: printf("XOR A, E"); break;
+	case 0xac: printf("XOR A, H"); break;
+	case 0xad: printf("XOR A, L"); break;
+	case 0xae: printf("XOR A, [HL]"); break;
+	case 0xaf: printf("XOR A, A"); break;
+
+	case 0xb0: printf("OR A, B"); break;
+	case 0xb1: printf("OR A, C"); break;
+	case 0xb2: printf("OR A, D"); break;
+	case 0xb3: printf("OR A, E"); break;
+	case 0xb4: printf("OR A, H"); break;
+	case 0xb5: printf("OR A, L"); break;
+	case 0xb6: printf("OR A, [HL]"); break;
+	case 0xb7: printf("OR A, A"); break;
+	case 0xb8: printf("CP A, B"); break;
+	case 0xb9: printf("CP A, C"); break;
+	case 0xba: printf("CP A, D"); break;
+	case 0xbb: printf("CP A, E"); break;
+	case 0xbc: printf("CP A, H"); break;
+	case 0xbd: printf("CP A, L"); break;
+	case 0xbe: printf("CP A, [HL]"); break;
+	case 0xbf: printf("CP A, A"); break;
+
 	default:
 	    unimlemented_opcode(*opcode);
 	    break;
