@@ -36,7 +36,7 @@ void
 print_mnemonic(uint8_t *opcode) {
 	switch (*opcode) {
 	case 0x00: printf("NOP"); break;
-	case 0x01: printf("LD BC,%02x%02x", opcode[2], opcode[1]); break;
+	case 0x01: printf("LD BC, %02x%02x", opcode[2], opcode[1]); break;
 	case 0x02: printf("LD [BC], A"); break;
 	case 0x03: printf("INC BC"); break;
 	case 0x04: printf("INC B"); break;
@@ -51,54 +51,60 @@ print_mnemonic(uint8_t *opcode) {
 	case 0x0d: printf("DEC C"); break;
 	case 0x0e: printf("LD C, %02x", opcode[1]); break;
 	case 0x0f: printf("RRCA"); break;
-	case 0x10: printf("NOP"); break;
-	case 0x11: printf("NOP"); break;
-	case 0x12: printf("NOP"); break;
-	case 0x13: printf("NOP"); break;
-	case 0x14: printf("NOP"); break;
-	case 0x15: printf("NOP"); break;
-	case 0x16: printf("NOP"); break;
-	case 0x17: printf("NOP"); break;
-	case 0x18: printf("NOP"); break;
-	case 0x19: printf("NOP"); break;
-	case 0x1a: printf("NOP"); break;
-	case 0x1b: printf("NOP"); break;
-	case 0x1c: printf("NOP"); break;
-	case 0x1d: printf("NOP"); break;
-	case 0x1e: printf("NOP"); break;
-	case 0x1f: printf("NOP"); break;
-	case 0x20: printf("NOP"); break;
-	case 0x21: printf("NOP"); break;
-	case 0x22: printf("NOP"); break;
-	case 0x23: printf("NOP"); break;
-	case 0x24: printf("NOP"); break;
-	case 0x25: printf("NOP"); break;
-	case 0x26: printf("NOP"); break;
-	case 0x27: printf("NOP"); break;
-	case 0x28: printf("NOP"); break;
-	case 0x29: printf("NOP"); break;
-	case 0x2a: printf("NOP"); break;
-	case 0x2b: printf("NOP"); break;
-	case 0x2c: printf("NOP"); break;
-	case 0x2d: printf("NOP"); break;
-	case 0x2e: printf("NOP"); break;
-	case 0x2f: printf("NOP"); break;
-	case 0x30: printf("NOP"); break;
-	case 0x31: printf("NOP"); break;
-	case 0x32: printf("NOP"); break;
-	case 0x33: printf("NOP"); break;
-	case 0x34: printf("NOP"); break;
-	case 0x35: printf("NOP"); break;
-	case 0x36: printf("NOP"); break;
-	case 0x37: printf("NOP"); break;
-	case 0x38: printf("NOP"); break;
-	case 0x39: printf("NOP"); break;
-	case 0x3a: printf("NOP"); break;
-	case 0x3b: printf("NOP"); break;
-	case 0x3c: printf("NOP"); break;
-	case 0x3d: printf("NOP"); break;
-	case 0x3e: printf("NOP"); break;
-	case 0x3f: printf("NOP"); break;
+
+	case 0x10: printf("STOP %02x", opcode[1]); break;
+	case 0x11: printf("LD DE, %02x%02x", opcode[2], opcode[1]); break;
+	case 0x12: printf("LD [DE], A"); break;
+	case 0x13: printf("INC DE"); break;
+	case 0x14: printf("INC D"); break;
+	case 0x15: printf("DEC D"); break;
+	case 0x16: printf("LD D, %02x", opcode[1]); break;
+	case 0x17: printf("RLA"); break;
+	case 0x18: printf("JR %02x", opcode[1]); break;
+	case 0x19: printf("ADD HL, DE"); break;
+	case 0x1a: printf("LD A, [DE]"); break;
+	case 0x1b: printf("DEC DE"); break;
+	case 0x1c: printf("INC E"); break;
+	case 0x1d: printf("DEC E"); break;
+	case 0x1e: printf("LD E, %02x", opcode[1]); break;
+	case 0x1f: printf("RRA"); break;
+
+	case 0x20: printf("JR NZ, %02x", opcode[1]); break;
+	case 0x21: printf("LD HL, %02x%02x", opcode[2], opcode[1]); break;
+	case 0x22: printf("LD [HL+], A"); break;
+	case 0x23: printf("INC HL"); break;
+	case 0x24: printf("INC H"); break;
+	case 0x25: printf("DEC H"); break;
+	case 0x26: printf("LD H, %02x", opcode[1]); break;
+	case 0x27: printf("DAA"); break;
+	case 0x28: printf("JR Z,%02x", opcode[1]); break;
+	case 0x29: printf("ADD HL, HL"); break;
+	case 0x2a: printf("LD A, [HL+]"); break;
+	case 0x2b: printf("DEC HL"); break;
+	case 0x2c: printf("INC L"); break;
+	case 0x2d: printf("DEC L"); break;
+	case 0x2e: printf("LD L, %02x", opcode[1]); break;
+	case 0x2f: printf("CPL"); break;
+
+	case 0x30: printf("JR NC, %02x", opcode[1]); break;
+	case 0x31: printf("LD SP, %02x%02x", opcode[2], opcode[1]); break;
+	case 0x32: printf("LD [HL-], A"); break;
+	case 0x33: printf("INC SP"); break;
+	case 0x34: printf("INC [HL]"); break;
+	case 0x35: printf("DEC [HL]"); break;
+	case 0x36: printf("LD [HL], %02x", opcode[1]); break;
+	case 0x37: printf("SCF"); break;
+	case 0x38: printf("JR C,%02x", opcode[1]); break;
+	case 0x39: printf("ADD HL, SP"); break;
+	case 0x3a: printf("LD A, [HL-]"); break;
+	case 0x3b: printf("DEC SP"); break;
+	case 0x3c: printf("INC A"); break;
+	case 0x3d: printf("DEC A"); break;
+	case 0x3e: printf("LD A, %02x", opcode[1]); break;
+	case 0x3f: printf("CCF"); break;
+
+
+
 	case 0x40: printf("NOP"); break;
 	case 0x41: printf("NOP"); break;
 	case 0x42: printf("NOP"); break;
@@ -115,6 +121,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0x4d: printf("NOP"); break;
 	case 0x4e: printf("NOP"); break;
 	case 0x4f: printf("NOP"); break;
+
 	case 0x50: printf("NOP"); break;
 	case 0x51: printf("NOP"); break;
 	case 0x52: printf("NOP"); break;
@@ -131,6 +138,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0x5d: printf("NOP"); break;
 	case 0x5e: printf("NOP"); break;
 	case 0x5f: printf("NOP"); break;
+
 	case 0x60: printf("NOP"); break;
 	case 0x61: printf("NOP"); break;
 	case 0x62: printf("NOP"); break;
@@ -147,6 +155,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0x6d: printf("NOP"); break;
 	case 0x6e: printf("NOP"); break;
 	case 0x6f: printf("NOP"); break;
+
 	case 0x70: printf("NOP"); break;
 	case 0x71: printf("NOP"); break;
 	case 0x72: printf("NOP"); break;
@@ -163,6 +172,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0x7d: printf("NOP"); break;
 	case 0x7e: printf("NOP"); break;
 	case 0x7f: printf("NOP"); break;
+
 	case 0x80: printf("NOP"); break;
 	case 0x81: printf("NOP"); break;
 	case 0x82: printf("NOP"); break;
@@ -179,6 +189,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0x8d: printf("NOP"); break;
 	case 0x8e: printf("NOP"); break;
 	case 0x8f: printf("NOP"); break;
+
 	case 0x90: printf("NOP"); break;
 	case 0x91: printf("NOP"); break;
 	case 0x92: printf("NOP"); break;
@@ -195,6 +206,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0x9d: printf("NOP"); break;
 	case 0x9e: printf("NOP"); break;
 	case 0x9f: printf("NOP"); break;
+
 	case 0xa0: printf("NOP"); break;
 	case 0xa1: printf("NOP"); break;
 	case 0xa2: printf("NOP"); break;
@@ -211,6 +223,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0xad: printf("NOP"); break;
 	case 0xae: printf("NOP"); break;
 	case 0xaf: printf("NOP"); break;
+
 	case 0xb0: printf("NOP"); break;
 	case 0xb1: printf("NOP"); break;
 	case 0xb2: printf("NOP"); break;
@@ -227,6 +240,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0xbd: printf("NOP"); break;
 	case 0xbe: printf("NOP"); break;
 	case 0xbf: printf("NOP"); break;
+
 	case 0xc0: printf("NOP"); break;
 	case 0xc1: printf("NOP"); break;
 	case 0xc2: printf("NOP"); break;
@@ -243,6 +257,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0xcd: printf("NOP"); break;
 	case 0xce: printf("NOP"); break;
 	case 0xcf: printf("NOP"); break;
+
 	case 0xd0: printf("NOP"); break;
 	case 0xd1: printf("NOP"); break;
 	case 0xd2: printf("NOP"); break;
@@ -259,6 +274,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0xdd: printf("NOP"); break;
 	case 0xde: printf("NOP"); break;
 	case 0xdf: printf("NOP"); break;
+
 	case 0xe0: printf("NOP"); break;
 	case 0xe1: printf("NOP"); break;
 	case 0xe2: printf("NOP"); break;
@@ -275,6 +291,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0xed: printf("NOP"); break;
 	case 0xee: printf("NOP"); break;
 	case 0xef: printf("NOP"); break;
+
 	case 0xf0: printf("NOP"); break;
 	case 0xf1: printf("NOP"); break;
 	case 0xf2: printf("NOP"); break;
@@ -291,6 +308,7 @@ print_mnemonic(uint8_t *opcode) {
 	case 0xfd: printf("NOP"); break;
 	case 0xfe: printf("NOP"); break;
 	case 0xff: printf("NOP"); break;
+
 	default:
 		unimlemented_opcode(*opcode);
 		break;
