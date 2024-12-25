@@ -7,7 +7,7 @@ read(uint8_t *ram, uint16_t adr) {
 }
 
 void
-write(uint8_t *ram, uint8_t data, uint16_t adr) {
+write(uint8_t *ram, uint16_t adr, uint8_t data) {
 	assert(adr >= 0x8000); // avoid writing ROM
 
 	ram[adr] = data;
