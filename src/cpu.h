@@ -24,7 +24,9 @@ struct CPU {
 	uint8_t ir; // instruction register
 
 	uint8_t memory[0xFFFF + 1];
+	uint32_t mcycles;
 };
 
 struct CPU *init_cpu(void);
 int execute(struct CPU *cpu);
+void print_cpu_state(struct CPU *cpu);

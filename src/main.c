@@ -15,6 +15,7 @@ main(int argc, char **argv) {
 	}
 	for (int i = 0; i <= 0xFF; i++) {
 		execute(cpu);
+		print_cpu_state(cpu);
 	}
 	return 0;
 }
