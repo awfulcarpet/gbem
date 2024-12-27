@@ -241,6 +241,74 @@ print_mnemonic(uint8_t *opcode) {
 	case 0xbe: printf("CP A, [HL]"); break;
 	case 0xbf: printf("CP A, A"); break;
 
+	case 0xc0: printf("RET NZ"); break;
+	case 0xc1: printf("POP BC"); break;
+	case 0xc2: printf("JP NZ, $%02x%02x", opcode[2], opcode[1]); break;
+	case 0xc3: printf("JP $%02x%02x", opcode[2], opcode[1]); break;
+	case 0xc4: printf("CALL NZ, $%02x%02x", opcode[2], opcode[1]); break;
+	case 0xc5: printf("PUSH BC"); break;
+	case 0xc6: printf("ADD A, $%02x", opcode[1]); break;
+	case 0xc7: printf("RST $00"); break;
+	case 0xc8: printf("RET Z"); break;
+	case 0xc9: printf("RET"); break;
+	case 0xca: printf("JP Z"); break;
+	case 0xcb: printf("PREFIX"); break; // TODO: implement
+	case 0xcc: printf("CALL Z, $%02x%02x", opcode[2], opcode[1]); break;
+	case 0xcd: printf("CALL $%02x%02x", opcode[2], opcode[1]); break;
+	case 0xce: printf("ADC A, $%02x", opcode[1]); break;
+	case 0xcf: printf("RST $08"); break;
+
+	case 0xd0: printf("RET NC"); break;
+	case 0xd1: printf("POP DE"); break;
+	case 0xd2: printf("JP NC, $%02x%02x", opcode[2], opcode[1]); break;
+	case 0xd3: printf("0xd3 ILLEGAL"); break;
+	case 0xd4: printf("CALL NC, $%02x%02x", opcode[2], opcode[1]); break;
+	case 0xd5: printf("PUSH DE"); break;
+	case 0xd6: printf("SUB A, $%02x", opcode[1]); break;
+	case 0xd7: printf("RST $10"); break;
+	case 0xd8: printf("RET C"); break;
+	case 0xd9: printf("RETI"); break;
+	case 0xda: printf("JP C"); break;
+	case 0xdb: printf("0xdb ILLEGAL"); break; // TODO: implement
+	case 0xdc: printf("CALL C, %02x%02x", opcode[2], opcode[1]); break;
+	case 0xdd: printf("0xdd ILLEGAL"); break;
+	case 0xde: printf("SBC A, $%02x", opcode[1]); break;
+	case 0xdf: printf("RST $18"); break;
+
+	case 0xe0: printf("LDH [$%02x], A", opcode[1]); break;
+	case 0xe1: printf("POP HL"); break;
+	case 0xe2: printf("LDH [C], A"); break;
+	case 0xe3: printf("0xe3 ILLEGAL"); break;
+	case 0xe4: printf("0xe4 ILLEGAL"); break;
+	case 0xe5: printf("PUSH HL"); break;
+	case 0xe6: printf("AND A, $%02x", opcode[1]); break;
+	case 0xe7: printf("RST $20"); break;
+	case 0xe8: printf("ADD SP, $%02x", opcode[1]); break; // Signed
+	case 0xe9: printf("JP HL"); break;
+	case 0xea: printf("LD [$%02x%02x], A", opcode[2], opcode[1]); break;
+	case 0xeb: printf("0xeb ILLEGAL"); break;
+	case 0xec: printf("0xec ILLEGAL"); break;
+	case 0xed: printf("0xed ILLEGAL"); break;
+	case 0xee: printf("XOR A, %02x", opcode[1]); break;
+	case 0xef: printf("RST $28"); break;
+
+	case 0xf0: printf("LDH A, [$%02x]", opcode[1]); break;
+	case 0xf1: printf("POP AF"); break;
+	case 0xf2: printf("LDH A, [C]"); break;
+	case 0xf3: printf("DI"); break;
+	case 0xf4: printf("0xf4 ILLEGAL"); break;
+	case 0xf5: printf("PUSH AF"); break;
+	case 0xf6: printf("OR A, $%02x", opcode[1]); break;
+	case 0xf7: printf("RST $30"); break;
+	case 0xf8: printf("LD HL, SP + $%02x", opcode[1]); break; // Signed
+	case 0xf9: printf("LD SP, HL"); break;
+	case 0xfa: printf("LD A, [$%02x%02x]", opcode[2], opcode[1]); break;
+	case 0xfb: printf("EI"); break;
+	case 0xfc: printf("0xfc ILLEGAL"); break;
+	case 0xfd: printf("0xfd ILLEGAL"); break;
+	case 0xfe: printf("CP A, %02x", opcode[1]); break;
+	case 0xff: printf("RST $38"); break;
+
 	default:
 	    unimlemented_opcode(*opcode);
 	    break;
