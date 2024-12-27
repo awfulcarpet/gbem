@@ -7,6 +7,7 @@ OUTDIR = .build
 OBJ = \
 	  $(OUTDIR)/main.o \
 	  $(OUTDIR)/cpu.o \
+	  $(OUTDIR)/opcode.o \
 	  $(OUTDIR)/ram.o \
 
 all: $(NAME)
