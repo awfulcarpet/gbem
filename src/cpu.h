@@ -103,11 +103,8 @@ switch (op) { \
 		break; \
 }; \
 
-#define set_regs_r8(mask, shift) \
-int op = (opcode & mask) >> shift; \
-uint8_t *reg = NULL; \
-\
-switch (op) { \
+#define set_regs_r8(reg, mask, shift) \
+switch ((opcode & mask) >> shift) { \
 	case b: \
 		reg = &cpu->b; \
 		break; \

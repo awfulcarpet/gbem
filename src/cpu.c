@@ -82,14 +82,15 @@ set_zn(struct CPU *cpu, uint8_t reg, uint8_t n)
 static int
 dec_r8(struct CPU *cpu, uint8_t opcode)
 {
-	set_regs_r8(0b00111000, 3)
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b00111000, 3)
 
 	(*reg)--;
 
 	set_zn(cpu, *reg, 1);
 	cpu->f.h = (*reg & 0b1111) == 0b1111;
 
-	if (op == m)
+	if (((opcode & 0b00111000) >> 3) == m)
 		return 3;
 	return 1;
 }
@@ -97,14 +98,15 @@ dec_r8(struct CPU *cpu, uint8_t opcode)
 static int
 inc_r8(struct CPU *cpu, uint8_t opcode)
 {
-	set_regs_r8(0b00111000, 3)
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b00111000, 3)
 
 	(*reg)++;
 
 	set_zn(cpu, *reg, 0);
 	cpu->f.h = (*reg & 0b1111) == 0b0000;
 
-	if (op == m)
+	if (((opcode & 0b00111000) >> 3) == m)
 		return 3;
 	return 1;
 }
@@ -162,6 +164,23 @@ ld_imm16_sp(struct CPU *cpu, uint8_t opcode)
 	return 5;
 }
 
+static int
+ld_r8_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *dst = NULL;
+	uint8_t *src = NULL;
+	set_regs_r8(dst, 0b00111000, 3);
+	set_regs_r8(src, 0b00000111, 0);
+
+	*dst = *src;
+
+	if ((opcode & 0b00111000) >> 3 == m)
+		return 2;
+	if ((opcode & 0b00000111) == m)
+		return 2;
+	return 1;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -213,7 +232,18 @@ execute(struct CPU *cpu) {
 			return dec_r8(cpu, *opcode);
 		}
 
-		unimlemented_opcode(*opcode);
+		/*unimlemented_opcode(*opcode);*/
+	}
+
+	/* block 2 */
+	if (*opcode >= 0x40 && *opcode <= 0x7F) {
+
+		/* TODO: halt */
+		if (*opcode == 0x76) {
+			unimlemented_opcode(*opcode);
+		}
+
+		return ld_r8_r8(cpu, *opcode);
 	}
 
 	unimlemented_opcode(*opcode);

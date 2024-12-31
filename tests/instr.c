@@ -34,22 +34,70 @@ read_test(char *filename)
 	return buf;
 }
 
+#define LOG(msg) fprintf(stderr, msg);
+
 int
 is_cpu_same(struct CPU *cpu1, struct CPU *cpu2)
 {
-	if (cpu1->pc != cpu2->pc) return 1;
-	if (cpu1->sp != cpu2->sp) return 1;
-	if (cpu1->a != cpu2->a) return 1;
-	if (cpu1->b != cpu2->b) return 1;
-	if (cpu1->c != cpu2->c) return 1;
-	if (cpu1->d != cpu2->d) return 1;
-	if (cpu1->e != cpu2->e) return 1;
-	if (cpu1->h != cpu2->h) return 1;
-	if (cpu1->l != cpu2->l) return 1;
-	if (cpu1->pc != cpu2->pc) return 1;
-	if (cpu1->f.flags != cpu2->f.flags) return 1;
+	if (cpu1->pc != cpu2->pc) {
+		LOG("pc differ\n")
+		return 1;
+	}
 
-	if (memcmp(cpu1->memory, cpu2->memory, 0xffff + 1) != 0) return 1;
+	if (cpu1->sp != cpu2->sp) {
+		LOG("sp differ\n")
+		return 1;
+	}
+
+	if (cpu1->a != cpu2->a) {
+		LOG("a differ\n")
+		return 1;
+	}
+
+	if (cpu1->b != cpu2->b) {
+		LOG("b differ\n")
+		return 1;
+	}
+
+	if (cpu1->c != cpu2->c) {
+		LOG("c differ\n")
+		return 1;
+	}
+
+	if (cpu1->d != cpu2->d) {
+		LOG("d differ\n")
+		return 1;
+	}
+
+	if (cpu1->e != cpu2->e) {
+		LOG("e differ\n")
+		return 1;
+	}
+
+	if (cpu1->h != cpu2->h) {
+		LOG("h differ\n")
+		return 1;
+	}
+
+	if (cpu1->l != cpu2->l) {
+		LOG("l differ\n")
+		return 1;
+	}
+
+	if (cpu1->pc != cpu2->pc) {
+		LOG("pc differ\n")
+		return 1;
+	}
+
+	if (cpu1->f.flags != cpu2->f.flags) {
+		LOG("f.flags differ\n")
+		return 1;
+	}
+
+	if (memcmp(cpu1->memory, cpu2->memory, 0xffff + 1) != 0) {
+		LOG("mem differ\n")
+		return 1;
+	}
 	return 0;
 }
 
@@ -105,21 +153,20 @@ run_test(cJSON *json)
 	/*printf("test %s: ", test->name);*/
 
 	struct CPU cpu = test->initial;
-	int cycles = 0;
-	while (cycles < test->cycles) {
-		cycles += execute(&cpu);
+	while (cpu.mcycles < test->cycles) {
+		cpu.mcycles += execute(&cpu);
 	}
 
 	if (is_cpu_same(&cpu, &test->final) != 0) {
 		printf("FAIL\ntest %s failed\n\n", test->name);
+		printf("%d\n", test->cycles);
 		printf("initial\n");
 		print_cpu_state(&test->initial);
 		printf("\n");
 
 		struct CPU cpu = test->initial;
-		int cycles = 0;
-		while (cycles < test->cycles) {
-			cycles += execute(&cpu);
+		while (cpu.mcycles < test->cycles) {
+			cpu.mcycles += execute(&cpu);
 			print_cpu_state(&cpu);
 		}
 
@@ -220,6 +267,12 @@ int main(int argc, char *argv[])
 	/* inc r8 */
 	for (int i = 0x04; i <= 0x3c; i += 0x08) {
 			tests[i] = run_opcode(i, "inc r8");
+	}
+
+	/* ld r8 r8 */
+	for (int i = 0x40; i <= 0x7F; i += 0x01) {
+		if (i != 0x76)
+			tests[i] = run_opcode(i, "ld r8 r8");
 	}
 
 	return 0;
