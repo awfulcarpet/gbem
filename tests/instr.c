@@ -136,7 +136,7 @@ run_test(cJSON *json)
 
 /* returns amount of tests failed */
 int
-run_opcode(int opcode)
+run_opcode(int opcode, char *msg)
 {
 	char *filename = calloc(strlen("tests/sm83/v1/00.json") + 1, sizeof(char));
 	sprintf(filename, "tests/sm83/v1/%02x.json", opcode);
@@ -145,7 +145,13 @@ run_opcode(int opcode)
 	cJSON *json = cJSON_Parse(buf);
 	cJSON *test = NULL;
 
-	printf("running tests for %02x: ", opcode);
+	if (msg != NULL) {
+		int len = 15 - strlen(msg);
+		printf("0x%02x: %s%*.*s: ", opcode, msg, len, len, "");
+	} else {
+		printf("%02x%*.*s: ", opcode, 13, 13, "");
+	}
+
 	cJSON_ArrayForEach(test, json)
 	{
 		if (run_test(test)) {
@@ -167,53 +173,53 @@ int main(int argc, char *argv[])
 
 
 	if (argc == 2) {
-		printf("opcode %02x: %d failures\n", atoi(argv[1]), run_opcode(atoi(argv[1])));
+		run_opcode(atoi(argv[1]), NULL);
 		return 0;
 	}
 
 	if (argc > 2) {
 		for (int i = 1; i < argc; i++) {
 			uint8_t opcode = atoi(argv[i]);
-			tests[opcode] = run_opcode(opcode);
+			tests[opcode] = run_opcode(opcode, NULL);
 		}
 	}
 
 	/* ld r16, imm16 */
 	for (int i = 0x01; i <= 0x31; i += 0x10) {
-			tests[i] = run_opcode(i);
+			tests[i] = run_opcode(i, "ld r16, imm16");
 	}
 
 	/* ld [r16mem], a */
 	for (int i = 0x02; i <= 0x32; i += 0x10) {
-			tests[i] = run_opcode(i);
+			tests[i] = run_opcode(i, "ld [r16mem], a");
 	}
 
 	/* ld a, [r16mem] */
 	for (int i = 0x0A; i <= 0x3A; i += 0x10) {
-			tests[i] = run_opcode(i);
+			tests[i] = run_opcode(i, "ld a, [r16mem]");
 	}
 
 	/* ld [imm16], sp */
-	tests[0x08] = run_opcode(0x08);
+	tests[0x08] = run_opcode(0x08, "ld [imm16], sp");
 
 	/* inc r16 */
 	for (int i = 0x03; i <= 0x33; i += 0x10) {
-			tests[i] = run_opcode(i);
+			tests[i] = run_opcode(i, "inc r16");
 	}
 
 	/* dec r16 */
 	for (int i = 0x0b; i <= 0x3b; i += 0x10) {
-			tests[i] = run_opcode(i);
+			tests[i] = run_opcode(i, "dec r16");
 	}
 
 	/* dec r8 */
 	for (int i = 0x05; i <= 0x3c; i += 0x08) {
-			tests[i] = run_opcode(i);
+			tests[i] = run_opcode(i, "dec r8");
 	}
 
 	/* inc r8 */
 	for (int i = 0x04; i <= 0x3c; i += 0x08) {
-			tests[i] = run_opcode(i);
+			tests[i] = run_opcode(i, "inc r8");
 	}
 
 	return 0;
