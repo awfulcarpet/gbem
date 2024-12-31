@@ -46,34 +46,10 @@ print_cpu_state(struct CPU *cpu)
 	printf("\n");
 }
 
-
-
 static int
 inc_r16(struct CPU *cpu, uint8_t *opcode)
 {
-	int op = (opcode[0] & 0b00110000) >> 4;
-	uint16_t reg = 0;
-	uint8_t *high, *low;
-	high = low = NULL;
-
-	switch (op) {
-		case bc:
-			get_r16(cpu->b, cpu->c);
-		break;
-		case de:
-			get_r16(cpu->d, cpu->e);
-		break;
-		case hl:
-			get_r16(cpu->h, cpu->l);
-		break;
-		case sp:
-			reg = cpu->sp;
-		break;
-		default:
-			fprintf(stderr, "incorrect inc instr\n");
-			exit(1);
-		break;
-	};
+	set_regs_r16(0b00110000, 4)
 
 	reg++;
 
@@ -90,29 +66,7 @@ inc_r16(struct CPU *cpu, uint8_t *opcode)
 static int
 dec_r16(struct CPU *cpu, uint8_t *opcode)
 {
-	int op = (opcode[0] & 0b00110000) >> 4;
-	uint16_t reg = 0;
-	uint8_t *high, *low;
-	high = low = NULL;
-
-	switch (op) {
-		case bc:
-			get_r16(cpu->b, cpu->c);
-		break;
-		case de:
-			get_r16(cpu->d, cpu->e);
-		break;
-		case hl:
-			get_r16(cpu->h, cpu->l);
-		break;
-		case sp:
-			reg = cpu->sp;
-		break;
-		default:
-			fprintf(stderr, "incorrect dec instr\n");
-			exit(1);
-		break;
-	};
+	set_regs_r16(0b00110000, 4)
 
 	reg--;
 
@@ -133,43 +87,10 @@ set_zn(struct CPU *cpu, uint8_t reg, uint8_t n)
 	cpu->f.z = (reg == 0);
 }
 
-
 static int
 dec_r8(struct CPU *cpu, uint8_t *opcode)
 {
-	int op = (*opcode & 0b00111000) >> 3;
-	uint8_t *reg = NULL;
-
-	switch (op) {
-		case b:
-			reg = &cpu->b;
-		break;
-		case c:
-			reg = &cpu->c;
-		break;
-		case d:
-			reg = &cpu->d;
-		break;
-		case e:
-			reg = &cpu->e;
-		break;
-		case h:
-			reg = &cpu->h;
-		break;
-		case l:
-			reg = &cpu->l;
-		break;
-		case m:
-			reg = &cpu->memory[cpu->h << 8 | cpu->l];
-		break;
-		case a:
-			reg = &cpu->a;
-		break;
-		default:
-			fprintf(stderr, "incorrect dec r8 instr\n");
-			exit(1);
-		break;
-	};
+	set_regs_r8(0b00111000, 3)
 
 	(*reg)--;
 
@@ -184,39 +105,7 @@ dec_r8(struct CPU *cpu, uint8_t *opcode)
 static int
 inc_r8(struct CPU *cpu, uint8_t *opcode)
 {
-	int op = (*opcode & 0b00111000) >> 3;
-	uint8_t *reg = NULL;
-
-	switch (op) {
-		case b:
-			reg = &cpu->b;
-		break;
-		case c:
-			reg = &cpu->c;
-		break;
-		case d:
-			reg = &cpu->d;
-		break;
-		case e:
-			reg = &cpu->e;
-		break;
-		case h:
-			reg = &cpu->h;
-		break;
-		case l:
-			reg = &cpu->l;
-		break;
-		case m:
-			reg = &cpu->memory[cpu->h << 8 | cpu->l];
-		break;
-		case a:
-			reg = &cpu->a;
-		break;
-		default:
-			fprintf(stderr, "incorrect dec r8 instr\n");
-			exit(1);
-		break;
-	};
+	set_regs_r8(0b00111000, 3)
 
 	(*reg)++;
 
