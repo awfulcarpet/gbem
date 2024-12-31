@@ -180,6 +180,11 @@ int main(int argc, char *argv[])
 			tests[i] = run_opcode(i);
 	}
 
+	/* ld a, [r16mem] */
+	for (int i = 0x0A; i <= 0x3A; i += 0x10) {
+			tests[i] = run_opcode(i);
+	}
+
 	/* inc r16 */
 	for (int i = 0x03; i <= 0x33; i += 0x10) {
 			tests[i] = run_opcode(i);

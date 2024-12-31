@@ -63,6 +63,25 @@ if (op == sp) { \
 	*low = reg & 0xff; \
 } \
 
+#define set_regs_r16mem(mask, shift) \
+int op = (opcode & mask) >> shift; \
+uint16_t reg = 0; \
+uint8_t *high, *low; \
+high = low = NULL; \
+\
+switch (op) { \
+	case bc: \
+		get_r16(cpu->b, cpu->c); \
+		break; \
+	case de: \
+		get_r16(cpu->d, cpu->e); \
+		break; \
+	case hli: \
+	case hld: \
+		get_r16(cpu->h, cpu->l); \
+		break; \
+}; \
+
 #define set_regs_r16(mask, shift) \
 int op = (opcode & mask) >> shift; \
 uint16_t reg = 0; \

@@ -124,23 +124,7 @@ ld_r16_imm16(struct CPU *cpu, uint8_t opcode)
 static int
 ld_r16mem_a(struct CPU *cpu, uint8_t opcode)
 {
-	int op = (opcode & 0b00110000) >> 4; \
-	uint16_t reg = 0; \
-	uint8_t *high, *low; \
-	high = low = NULL; \
-
-	switch (op) {
-		case bc:
-			get_r16(cpu->b, cpu->c);
-			break;
-		case de:
-			get_r16(cpu->d, cpu->e);
-			break;
-		case hli:
-		case hld:
-			get_r16(cpu->h, cpu->l);
-			break;
-	}
+	set_regs_r16mem(0b00110000, 4)
 
 	cpu->memory[reg] = cpu->a;
 
@@ -149,6 +133,20 @@ ld_r16mem_a(struct CPU *cpu, uint8_t opcode)
 	if (op == hld)
 		dec_r16(cpu, 0b00100000);
 
+	return 2;
+}
+
+static int
+ld_a_r16mem(struct CPU *cpu, uint8_t opcode)
+{
+	set_regs_r16mem(0b00110000, 4)
+
+	cpu->a = cpu->memory[reg];
+
+	if (op == hli)
+		inc_r16(cpu, 0b00100000);
+	if (op == hld)
+		dec_r16(cpu, 0b00100000);
 	return 2;
 }
 
@@ -164,14 +162,19 @@ execute(struct CPU *cpu) {
 		if (*opcode == 0x00)
 			return 1;
 
-		/* ld r16 imm16 */
+		/* ld r16,imm16 */
 		if ((*opcode & 0b1111) == 0b0001) {
 			return ld_r16_imm16(cpu, *opcode);
 		}
 
-		/* ld [r16mem] a */
+		/* ld [r16mem],a */
 		if ((*opcode & 0b1111) == 0b0010) {
 			return ld_r16mem_a(cpu, *opcode);
+		}
+
+		/* ld a,[r16mem] */
+		if ((*opcode & 0b1111) == 0b1010) {
+			return ld_a_r16mem(cpu, *opcode);
 		}
 
 		/* inc r16 */
