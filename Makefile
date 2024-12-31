@@ -21,7 +21,7 @@ run: $(NAME)
 	$(OUTDIR)/$(NAME)
 
 tests: make_tests
-	@ $(OUTDIR)/instr 0 255
+	$(OUTDIR)/instr
 
 $(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(OUTDIR)

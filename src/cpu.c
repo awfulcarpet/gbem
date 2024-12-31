@@ -29,10 +29,6 @@ init_cpu(void) {
 	return cpu;
 }
 
-uint8_t m_cycles[] = {
-    1, 3, 2, 2, 1, 1, 2, 1, 5, 2, 2, 2, 1, 1, 2, 1, /* 0x00..0x0f */
-};
-
 void
 print_cpu_state(struct CPU *cpu)
 {
@@ -55,7 +51,7 @@ print_cpu_state(struct CPU *cpu)
 static int
 inc_r16(struct CPU *cpu, uint8_t *opcode)
 {
-	int op = (opcode[1] & 0b00110000) >> 4;
+	int op = (opcode[0] & 0b00110000) >> 4;
 	uint16_t reg = 0;
 	uint8_t *high, *low;
 	high = low = NULL;
@@ -74,7 +70,7 @@ inc_r16(struct CPU *cpu, uint8_t *opcode)
 			reg = cpu->sp;
 		break;
 		default:
-			fprintf(stderr, "incorrect dec instr\n");
+			fprintf(stderr, "incorrect inc instr\n");
 			exit(1);
 		break;
 	};
@@ -94,7 +90,7 @@ inc_r16(struct CPU *cpu, uint8_t *opcode)
 static int
 dec_r16(struct CPU *cpu, uint8_t *opcode)
 {
-	int op = (opcode[1] & 0b00110000) >> 4;
+	int op = (opcode[0] & 0b00110000) >> 4;
 	uint16_t reg = 0;
 	uint8_t *high, *low;
 	high = low = NULL;
@@ -140,30 +136,22 @@ execute(struct CPU *cpu) {
 
 		/* NOP */
 		if (*opcode == 0x00)
-			goto cycles;
+			return 1;
 
 		/* inc r16 */
-		if ((*opcode & 0b1111) == 0b0011) {
-			inc_r16(cpu, opcode);
+		else if ((*opcode & 0b1111) == 0b0011) {
+			return inc_r16(cpu, opcode);
 		}
 
 		/* dec r16 */
-		if ((*opcode & 0b1111) == 0b1011) {
-			dec_r16(cpu, opcode);
-		}
-
-
-		goto cycles;
-	}
-
-	switch (*opcode) {
-		case 0x00: /* NOP */
-			break;
-		default:
+		else if ((*opcode & 0b1111) == 0b1011) {
+			return dec_r16(cpu, opcode);
+		} else {
 			unimlemented_opcode(*opcode);
-			break;
+		}
 	}
 
-cycles:
-	return m_cycles[*opcode];
+	unimlemented_opcode(*opcode);
+
+	return 1;
 }

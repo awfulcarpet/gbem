@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include "../src/cpu.h"
+#include "../src/opcode.h"
 #include "cJSON.h"
 
 struct Test {
@@ -101,15 +102,26 @@ run_test(cJSON *json)
 	struct Test *test = test_from_json(json);
 
 
+	printf("test %s: ", test->name);
+
+	struct CPU cpu = test->initial;
 	int cycles = 0;
 	while (cycles < test->cycles) {
-		cycles += execute(&test->initial);
+		cycles += execute(&cpu);
 	}
 
-	if (is_cpu_same(&test->initial, &test->final) == 0) {
-		/*printf("test %s: success\n", test->name);*/
+	if (is_cpu_same(&cpu, &test->final) == 0) {
+		printf("success\n");
 	} else {
-		printf("test %s: fail\n", test->name);
+		printf("fail\n\n");
+		printf("initial\n");
+		print_cpu_state(&test->initial);
+		printf("cpu\n");
+		print_cpu_state(&cpu);
+		printf("final\n");
+		print_cpu_state(&test->final);
+		printf("\n");
+		exit(1);
 		failed = 1;
 	}
 
@@ -135,26 +147,43 @@ run_opcode(int opcode)
 		failed += run_test(test);
 	}
 
-
 	cJSON_Delete(json);
 	free(buf);
+
 	return failed;
 }
 
 int main(int argc, char *argv[])
 {
-	if (argc < 2) {
-		fprintf(stderr, "please provide at least one opcode\n");
-		return 1;
-	}
+	int tests[256] = {0};
+
 
 	if (argc == 2) {
 		printf("opcode %02x: %d failures\n", atoi(argv[1]), run_opcode(atoi(argv[1])));
 		return 0;
 	}
 
-	for (int i = atoi(argv[1]); i <= atoi(argv[2]); i++) {
-		printf("opcode %02x: %d failures\n", i, run_opcode(i));
+	if (argc > 2) {
+		for (int i = 1; i < argc; i++) {
+			uint8_t opcode = atoi(argv[i]);
+			tests[opcode] = run_opcode(opcode);
+		}
+	}
+
+	/* inc r16 */
+	for (int i = 0x03; i <= 0x33; i += 0x10) {
+			tests[i] = run_opcode(i);
+	}
+
+	/* dec r16 */
+	for (int i = 0x0b; i <= 0x3b; i += 0x10) {
+			tests[i] = run_opcode(i);
+	}
+
+	printf("\nfailed tests:\n");
+	for (int i = 0; i < 255; i++) {
+		if (tests[i] > 0)
+			printf("%02x: %d failures\n", i, tests[i]);
 	}
 
 	return 0;
