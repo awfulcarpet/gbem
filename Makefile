@@ -21,8 +21,7 @@ run: $(NAME)
 	$(OUTDIR)/$(NAME)
 
 tests: make_tests
-	@ $(OUTDIR)/instr tests/test.json
-	# @$(OUTDIR)/instr tests/sm83/v1/00.json
+	@ $(OUTDIR)/instr 0 255
 
 $(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(OUTDIR)

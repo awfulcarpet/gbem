@@ -135,12 +135,12 @@ execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
 	cpu->pc++;
 
-
-	print_mnemonic(opcode);
-	printf("\n");
-
 	/* block 0 opcodes */
 	if (*opcode <= 0x3f && *opcode >= 0x00) {
+
+		/* NOP */
+		if (*opcode == 0x00)
+			goto cycles;
 
 		/* inc r16 */
 		if ((*opcode & 0b1111) == 0b0011) {
@@ -151,6 +151,7 @@ execute(struct CPU *cpu) {
 		if ((*opcode & 0b1111) == 0b1011) {
 			dec_r16(cpu, opcode);
 		}
+
 
 		goto cycles;
 	}
