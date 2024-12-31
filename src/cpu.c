@@ -150,6 +150,16 @@ ld_a_r16mem(struct CPU *cpu, uint8_t opcode)
 	return 2;
 }
 
+static int
+ld_imm16_sp(struct CPU *cpu, uint8_t opcode)
+{
+	uint16_t adr = cpu->memory[cpu->pc + 1] << 8 | cpu->memory[cpu->pc];
+	cpu->memory[adr] = cpu->sp & 0xff;
+	cpu->memory[adr + 1] = cpu->sp >> 8;
+	cpu->pc += 2;
+	return 5;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -175,6 +185,10 @@ execute(struct CPU *cpu) {
 		/* ld a,[r16mem] */
 		if ((*opcode & 0b1111) == 0b1010) {
 			return ld_a_r16mem(cpu, *opcode);
+		}
+
+		if ((*opcode & 0b1111) == 0b1000) {
+			return ld_imm16_sp(cpu, *opcode);
 		}
 
 		/* inc r16 */

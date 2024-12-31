@@ -185,6 +185,9 @@ int main(int argc, char *argv[])
 			tests[i] = run_opcode(i);
 	}
 
+	/* ld [imm16], sp */
+	tests[0x08] = run_opcode(0x08);
+
 	/* inc r16 */
 	for (int i = 0x03; i <= 0x33; i += 0x10) {
 			tests[i] = run_opcode(i);

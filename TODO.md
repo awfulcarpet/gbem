@@ -5,7 +5,7 @@
         - [x] ld r16, imm16
         - [x] ld [r16mem], a
         - [x] ld a, [r16mem]
-        - [ ] ld [imm16], sp
+        - [x] ld [imm16], sp
 
         - [x] inc r16
         - [x] dec r16
