@@ -133,6 +133,11 @@ execute(struct CPU *cpu) {
 		if (*opcode == 0x00)
 			return 1;
 
+		/* ld r16 imm16 */
+		if ((*opcode & 0b0001) == 0b0001) {
+			return ld_r16_imm16(cpu, opcode);
+		}
+
 		/* inc r16 */
 		if ((*opcode & 0b1111) == 0b0011) {
 			return inc_r16(cpu, opcode);
@@ -151,10 +156,6 @@ execute(struct CPU *cpu) {
 		/* dec r8 */
 		if ((*opcode & 0b111) == 0b101) {
 			return dec_r8(cpu, opcode);
-		}
-
-		if ((*opcode & 0b0001) == 0b0001) {
-			return ld_r16_imm16(cpu, opcode);
 		}
 
 		unimlemented_opcode(*opcode);
