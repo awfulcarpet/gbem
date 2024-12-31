@@ -53,12 +53,7 @@ inc_r16(struct CPU *cpu, uint8_t *opcode)
 
 	reg++;
 
-	if (op == sp) {
-		cpu->sp = reg;
-	} else {
-		*high = reg >> 8;
-		*low = reg & 0xff;
-	}
+	set_r8_from_r16()
 
 	return 2;
 }
@@ -70,12 +65,7 @@ dec_r16(struct CPU *cpu, uint8_t *opcode)
 
 	reg--;
 
-	if (op == sp) {
-		cpu->sp = reg;
-	} else {
-		*high = reg >> 8;
-		*low = reg & 0xff;
-	}
+	set_r8_from_r16()
 
 	return 2;
 }
@@ -124,12 +114,8 @@ ld_r16_imm16(struct CPU *cpu, uint8_t *opcode)
 	set_regs_r16(0b00110000, 4)
 	reg = cpu->memory[cpu->pc + 1] << 8 | cpu->memory[cpu->pc];
 
-	if (op == sp) {
-		cpu->sp = reg;
-	} else {
-		*high = reg >> 8;
-		*low = reg & 0xff;
-	}
+
+	set_r8_from_r16()
 	cpu->pc += 2;
 
 	return 3;

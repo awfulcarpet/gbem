@@ -50,6 +50,14 @@ struct CPU {
 	high = &h; \
 	low = &l; \
 
+#define set_r8_from_r16() \
+if (op == sp) { \
+	cpu->sp = reg; \
+} else { \
+	*high = reg >> 8; \
+	*low = reg & 0xff; \
+} \
+
 #define set_regs_r16(mask, shift) \
 int op = (*opcode & mask) >> shift; \
 uint16_t reg = 0; \
