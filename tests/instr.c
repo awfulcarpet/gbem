@@ -170,6 +170,16 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	/* ld r16, imm16 */
+	for (int i = 0x01; i <= 0x31; i += 0x10) {
+			tests[i] = run_opcode(i);
+	}
+
+	/* ld [r16mem], a */
+	for (int i = 0x02; i <= 0x32; i += 0x10) {
+			tests[i] = run_opcode(i);
+	}
+
 	/* inc r16 */
 	for (int i = 0x03; i <= 0x33; i += 0x10) {
 			tests[i] = run_opcode(i);
@@ -190,10 +200,6 @@ int main(int argc, char *argv[])
 			tests[i] = run_opcode(i);
 	}
 
-	/* ld r16, imm16 */
-	for (int i = 0x01; i <= 0x31; i += 0x10) {
-			tests[i] = run_opcode(i);
-	}
 
 	printf("\nfailed tests:\n");
 	for (int i = 0; i < 255; i++) {

@@ -47,7 +47,7 @@ print_cpu_state(struct CPU *cpu)
 }
 
 static int
-inc_r16(struct CPU *cpu, uint8_t *opcode)
+inc_r16(struct CPU *cpu, uint8_t opcode)
 {
 	set_regs_r16(0b00110000, 4)
 
@@ -59,7 +59,7 @@ inc_r16(struct CPU *cpu, uint8_t *opcode)
 }
 
 static int
-dec_r16(struct CPU *cpu, uint8_t *opcode)
+dec_r16(struct CPU *cpu, uint8_t opcode)
 {
 	set_regs_r16(0b00110000, 4)
 
@@ -78,7 +78,7 @@ set_zn(struct CPU *cpu, uint8_t reg, uint8_t n)
 }
 
 static int
-dec_r8(struct CPU *cpu, uint8_t *opcode)
+dec_r8(struct CPU *cpu, uint8_t opcode)
 {
 	set_regs_r8(0b00111000, 3)
 
@@ -93,7 +93,7 @@ dec_r8(struct CPU *cpu, uint8_t *opcode)
 }
 
 static int
-inc_r8(struct CPU *cpu, uint8_t *opcode)
+inc_r8(struct CPU *cpu, uint8_t opcode)
 {
 	set_regs_r8(0b00111000, 3)
 
@@ -108,7 +108,7 @@ inc_r8(struct CPU *cpu, uint8_t *opcode)
 }
 
 static int
-ld_r16_imm16(struct CPU *cpu, uint8_t *opcode)
+ld_r16_imm16(struct CPU *cpu, uint8_t opcode)
 {
 
 	set_regs_r16(0b00110000, 4)
@@ -119,6 +119,37 @@ ld_r16_imm16(struct CPU *cpu, uint8_t *opcode)
 	cpu->pc += 2;
 
 	return 3;
+}
+
+static int
+ld_r16mem_a(struct CPU *cpu, uint8_t opcode)
+{
+	int op = (opcode & 0b00110000) >> 4; \
+	uint16_t reg = 0; \
+	uint8_t *high, *low; \
+	high = low = NULL; \
+
+	switch (op) {
+		case bc:
+			get_r16(cpu->b, cpu->c);
+			break;
+		case de:
+			get_r16(cpu->d, cpu->e);
+			break;
+		case hli:
+		case hld:
+			get_r16(cpu->h, cpu->l);
+			break;
+	}
+
+	cpu->memory[reg] = cpu->a;
+
+	if (op == hli)
+		inc_r16(cpu, 0b00100000);
+	if (op == hld)
+		dec_r16(cpu, 0b00100000);
+
+	return 2;
 }
 
 int
@@ -134,28 +165,33 @@ execute(struct CPU *cpu) {
 			return 1;
 
 		/* ld r16 imm16 */
-		if ((*opcode & 0b0001) == 0b0001) {
-			return ld_r16_imm16(cpu, opcode);
+		if ((*opcode & 0b1111) == 0b0001) {
+			return ld_r16_imm16(cpu, *opcode);
+		}
+
+		/* ld [r16mem] a */
+		if ((*opcode & 0b1111) == 0b0010) {
+			return ld_r16mem_a(cpu, *opcode);
 		}
 
 		/* inc r16 */
 		if ((*opcode & 0b1111) == 0b0011) {
-			return inc_r16(cpu, opcode);
+			return inc_r16(cpu, *opcode);
 		}
 
 		/* dec r16 */
 		if ((*opcode & 0b1111) == 0b1011) {
-			return dec_r16(cpu, opcode);
+			return dec_r16(cpu, *opcode);
 		}
 
 		/* inc r8 */
 		if ((*opcode & 0b111) == 0b100) {
-			return inc_r8(cpu, opcode);
+			return inc_r8(cpu, *opcode);
 		}
 
 		/* dec r8 */
 		if ((*opcode & 0b111) == 0b101) {
-			return dec_r8(cpu, opcode);
+			return dec_r8(cpu, *opcode);
 		}
 
 		unimlemented_opcode(*opcode);

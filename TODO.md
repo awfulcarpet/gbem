@@ -3,7 +3,7 @@
         - [x] nop
 
         - [x] ld r16, imm16
-        - [ ] ld [r16mem], a
+        - [x] ld [r16mem], a
         - [ ] ld a, [r16mem]
         - [ ] ld [imm16], sp
 

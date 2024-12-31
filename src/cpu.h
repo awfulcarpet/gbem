@@ -7,6 +7,11 @@ enum r16 {
 	sp,
 };
 
+enum r16mem {
+	hli = 2,
+	hld = 3,
+};
+
 enum r8 {
 	b,
 	c,
@@ -59,7 +64,7 @@ if (op == sp) { \
 } \
 
 #define set_regs_r16(mask, shift) \
-int op = (*opcode & mask) >> shift; \
+int op = (opcode & mask) >> shift; \
 uint16_t reg = 0; \
 uint8_t *high, *low; \
 high = low = NULL; \
@@ -80,7 +85,7 @@ switch (op) { \
 }; \
 
 #define set_regs_r8(mask, shift) \
-int op = (*opcode & mask) >> shift; \
+int op = (opcode & mask) >> shift; \
 uint8_t *reg = NULL; \
 \
 switch (op) { \
