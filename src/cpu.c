@@ -184,7 +184,9 @@ ld_r8_r8(struct CPU *cpu, uint8_t opcode)
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
-	cpu->pc++;
+
+	if (!cpu->halt)
+		cpu->pc++;
 
 	/* block 0 opcodes */
 	if (*opcode <= 0x3f && *opcode >= 0x00) {
@@ -238,9 +240,11 @@ execute(struct CPU *cpu) {
 	/* block 2 */
 	if (*opcode >= 0x40 && *opcode <= 0x7F) {
 
-		/* TODO: halt */
+		/* halt */
+		/* TODO: implement waking from halt*/
 		if (*opcode == 0x76) {
-			unimlemented_opcode(*opcode);
+			cpu->halt = 1;
+			return 1;
 		}
 
 		return ld_r8_r8(cpu, *opcode);

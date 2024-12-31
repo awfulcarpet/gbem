@@ -46,6 +46,8 @@ struct CPU {
 	uint8_t ie; // interrupt enable
 	uint8_t ir; // instruction register
 
+	uint8_t halt;
+
 	uint8_t memory[0xFFFF + 1];
 	uint32_t mcycles;
 };

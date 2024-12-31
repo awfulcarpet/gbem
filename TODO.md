@@ -29,9 +29,9 @@
         - [ ] jr cond, imm8
         - [ ] stop
 
-    - [ ] block 1
+    - [x] block 1
         - [x] ld r8, r8
-        - [ ] halt (ld [hl] [hl])
+        - [x] halt (ld [hl] [hl])
 
     - [ ] block 2
         - [ ] add a, r8

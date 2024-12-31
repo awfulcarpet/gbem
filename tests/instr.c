@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
 
 	/* ld r8 r8 */
 	for (int i = 0x40; i <= 0x7F; i += 0x01) {
-		if (i != 0x76)
+		/*if (i != 0x76)*/
 			run_opcode(i, "ld r8 r8");
 	}
 
