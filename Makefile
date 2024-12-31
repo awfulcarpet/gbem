@@ -30,7 +30,7 @@ $(OUTDIR)/%.o: src/%.c
 $(NAME): $(OBJ)
 	$(CC) -o $(OUTDIR)/$@ $^ $(LDLIBS)
 
-make_tests: $(TEST_OBJ) tests/instr.c tests/microjson-1.8/mjson.c
+make_tests: $(TEST_OBJ) tests/instr.c tests/cJSON.o
 	$(CC) -o $(OUTDIR)/instr $^ $(LDLIBS)
 
 clean:

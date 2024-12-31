@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "../src/cpu.h"
+#include "cJSON.h"
 
 char *
 read_test(char *filename)
@@ -31,6 +32,11 @@ int main(int argc, char *argv[])
 	}
 	char *buf = read_test(argv[1]);
 
-	printf("%s\n", buf);
+
+	cJSON *json = cJSON_Parse(buf);
+
+	printf("%s\n", cJSON_Print(json));
+
+	cJSON_Delete(json);
 	return 1;
 }
