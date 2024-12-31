@@ -43,6 +43,8 @@ print_cpu_state(struct CPU *cpu)
 	printf("[HL]: %02x Stk: %02x %02x %02x %02x ",
 		cpu->memory[cpu->h << 8 | cpu->l], cpu->memory[cpu->sp], cpu->memory[cpu->sp+1], cpu->memory[cpu->sp+2], cpu->memory[cpu->sp+3]);
 
+	printf("nxt: %02x %02x %02x %02x ", cpu->memory[cpu->pc], cpu->memory[cpu->pc+1], cpu->memory[cpu->pc+2], cpu->memory[cpu->pc+3]);
+
 	printf("\n");
 }
 

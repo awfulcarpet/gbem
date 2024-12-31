@@ -102,7 +102,7 @@ run_test(cJSON *json)
 	struct Test *test = test_from_json(json);
 
 
-	printf("test %s: ", test->name);
+	/*printf("test %s: ", test->name);*/
 
 	struct CPU cpu = test->initial;
 	int cycles = 0;
@@ -110,18 +110,22 @@ run_test(cJSON *json)
 		cycles += execute(&cpu);
 	}
 
-	if (is_cpu_same(&cpu, &test->final) == 0) {
-		printf("success\n");
-	} else {
-		printf("fail\n\n");
+	if (is_cpu_same(&cpu, &test->final) != 0) {
+		printf("FAIL\ntest %s failed\n\n", test->name);
 		printf("initial\n");
 		print_cpu_state(&test->initial);
-		printf("cpu\n");
-		print_cpu_state(&cpu);
-		printf("final\n");
+		printf("\n");
+
+		struct CPU cpu = test->initial;
+		int cycles = 0;
+		while (cycles < test->cycles) {
+			cycles += execute(&cpu);
+			print_cpu_state(&cpu);
+		}
+
+		printf("\nfinal\n");
 		print_cpu_state(&test->final);
 		printf("\n");
-		exit(1);
 		failed = 1;
 	}
 
@@ -134,7 +138,6 @@ run_test(cJSON *json)
 int
 run_opcode(int opcode)
 {
-	int failed = 0;
 	char *filename = calloc(strlen("tests/sm83/v1/00.json") + 1, sizeof(char));
 	sprintf(filename, "tests/sm83/v1/%02x.json", opcode);
 
@@ -142,15 +145,20 @@ run_opcode(int opcode)
 	cJSON *json = cJSON_Parse(buf);
 	cJSON *test = NULL;
 
+	printf("running tests for %02x: ", opcode);
 	cJSON_ArrayForEach(test, json)
 	{
-		failed += run_test(test);
+		if (run_test(test)) {
+			exit(1);
+		}
 	}
+
+	printf("pass\n");
 
 	cJSON_Delete(json);
 	free(buf);
 
-	return failed;
+	return 0;
 }
 
 int main(int argc, char *argv[])
@@ -206,13 +214,6 @@ int main(int argc, char *argv[])
 	/* inc r8 */
 	for (int i = 0x04; i <= 0x3c; i += 0x08) {
 			tests[i] = run_opcode(i);
-	}
-
-
-	printf("\nfailed tests:\n");
-	for (int i = 0; i < 255; i++) {
-		if (tests[i] > 0)
-			printf("%02x: %d failures\n", i, tests[i]);
 	}
 
 	return 0;
