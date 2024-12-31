@@ -180,6 +180,11 @@ int main(int argc, char *argv[])
 			tests[i] = run_opcode(i);
 	}
 
+	/* dec r8 */
+	for (int i = 0x05; i <= 0x3c; i += 0x08) {
+			tests[i] = run_opcode(i);
+	}
+
 	printf("\nfailed tests:\n");
 	for (int i = 0; i < 255; i++) {
 		if (tests[i] > 0)

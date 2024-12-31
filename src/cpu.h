@@ -7,6 +7,17 @@ enum r16 {
 	sp,
 };
 
+enum r8 {
+	b,
+	c,
+	d,
+	e,
+	h,
+	l,
+	m, /* [hl] */
+	a,
+};
+
 union Flags {
 	struct {
 		uint8_t pad:4;
