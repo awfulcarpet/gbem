@@ -30,7 +30,7 @@
         - [ ] stop
 
     - [ ] block 1
-        - [ ] ld r8, r8
+        - [x] ld r8, r8
         - [ ] halt (ld [hl] [hl])
 
     - [ ] block 2
