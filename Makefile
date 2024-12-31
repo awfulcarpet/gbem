@@ -10,10 +10,18 @@ OBJ = \
 	  $(OUTDIR)/opcode.o \
 	  $(OUTDIR)/ram.o \
 
+TEST_OBJ = \
+	  $(OUTDIR)/cpu.o \
+	  $(OUTDIR)/opcode.o \
+	  $(OUTDIR)/ram.o \
+
 all: $(NAME)
 
 run: $(NAME)
 	$(OUTDIR)/$(NAME)
+
+tests: make_tests
+	$(OUTDIR)/instr tests/test.json
 
 $(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(OUTDIR)
@@ -21,6 +29,9 @@ $(OUTDIR)/%.o: src/%.c
 
 $(NAME): $(OBJ)
 	$(CC) -o $(OUTDIR)/$@ $^ $(LDLIBS)
+
+make_tests: $(TEST_OBJ) tests/instr.c tests/microjson-1.8/mjson.c
+	$(CC) -o $(OUTDIR)/instr $^ $(LDLIBS)
 
 clean:
 	rm -rf $(OUTDIR) core
