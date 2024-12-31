@@ -216,9 +216,6 @@ run_opcode(int opcode, char *msg)
 
 int main(int argc, char *argv[])
 {
-	int tests[256] = {0};
-
-
 	if (argc == 2) {
 		run_opcode(atoi(argv[1]), NULL);
 		return 0;
@@ -227,52 +224,52 @@ int main(int argc, char *argv[])
 	if (argc > 2) {
 		for (int i = 1; i < argc; i++) {
 			uint8_t opcode = atoi(argv[i]);
-			tests[opcode] = run_opcode(opcode, NULL);
+			run_opcode(opcode, NULL);
 		}
 	}
 
 	/* ld r16, imm16 */
 	for (int i = 0x01; i <= 0x31; i += 0x10) {
-			tests[i] = run_opcode(i, "ld r16, imm16");
+		run_opcode(i, "ld r16, imm16");
 	}
 
 	/* ld [r16mem], a */
 	for (int i = 0x02; i <= 0x32; i += 0x10) {
-			tests[i] = run_opcode(i, "ld [r16mem], a");
+		run_opcode(i, "ld [r16mem], a");
 	}
 
 	/* ld a, [r16mem] */
 	for (int i = 0x0A; i <= 0x3A; i += 0x10) {
-			tests[i] = run_opcode(i, "ld a, [r16mem]");
+		run_opcode(i, "ld a, [r16mem]");
 	}
 
 	/* ld [imm16], sp */
-	tests[0x08] = run_opcode(0x08, "ld [imm16], sp");
+	run_opcode(0x08, "ld [imm16], sp");
 
 	/* inc r16 */
 	for (int i = 0x03; i <= 0x33; i += 0x10) {
-			tests[i] = run_opcode(i, "inc r16");
+		run_opcode(i, "inc r16");
 	}
 
 	/* dec r16 */
 	for (int i = 0x0b; i <= 0x3b; i += 0x10) {
-			tests[i] = run_opcode(i, "dec r16");
+		run_opcode(i, "dec r16");
 	}
 
 	/* dec r8 */
 	for (int i = 0x05; i <= 0x3c; i += 0x08) {
-			tests[i] = run_opcode(i, "dec r8");
+		run_opcode(i, "dec r8");
 	}
 
 	/* inc r8 */
 	for (int i = 0x04; i <= 0x3c; i += 0x08) {
-			tests[i] = run_opcode(i, "inc r8");
+		run_opcode(i, "inc r8");
 	}
 
 	/* ld r8 r8 */
 	for (int i = 0x40; i <= 0x7F; i += 0x01) {
 		if (i != 0x76)
-			tests[i] = run_opcode(i, "ld r8 r8");
+			run_opcode(i, "ld r8 r8");
 	}
 
 	return 0;
