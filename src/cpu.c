@@ -127,12 +127,10 @@ dec_r16(struct CPU *cpu, uint8_t *opcode)
 }
 
 static void
-set_znh(struct CPU *cpu, uint8_t reg, uint8_t n)
+set_zn(struct CPU *cpu, uint8_t reg, uint8_t n)
 {
 	cpu->f.n = n;
 	cpu->f.z = (reg == 0);
-
-	cpu->f.h = ((reg & 0b1111) == 0b1111);
 }
 
 
@@ -175,7 +173,55 @@ dec_r8(struct CPU *cpu, uint8_t *opcode)
 
 	(*reg)--;
 
-	set_znh(cpu, *reg, 1);
+	set_zn(cpu, *reg, 1);
+	cpu->f.h = (*reg & 0b1111) == 0b1111;
+
+	if (op == m)
+		return 3;
+	return 1;
+}
+
+static int
+inc_r8(struct CPU *cpu, uint8_t *opcode)
+{
+	int op = (*opcode & 0b00111000) >> 3;
+	uint8_t *reg = NULL;
+
+	switch (op) {
+		case b:
+			reg = &cpu->b;
+		break;
+		case c:
+			reg = &cpu->c;
+		break;
+		case d:
+			reg = &cpu->d;
+		break;
+		case e:
+			reg = &cpu->e;
+		break;
+		case h:
+			reg = &cpu->h;
+		break;
+		case l:
+			reg = &cpu->l;
+		break;
+		case m:
+			reg = &cpu->memory[cpu->h << 8 | cpu->l];
+		break;
+		case a:
+			reg = &cpu->a;
+		break;
+		default:
+			fprintf(stderr, "incorrect dec r8 instr\n");
+			exit(1);
+		break;
+	};
+
+	(*reg)++;
+
+	set_zn(cpu, *reg, 0);
+	cpu->f.h = (*reg & 0b1111) == 0b0000;
 
 	if (op == m)
 		return 3;
@@ -202,6 +248,11 @@ execute(struct CPU *cpu) {
 		/* dec r16 */
 		if ((*opcode & 0b1111) == 0b1011) {
 			return dec_r16(cpu, opcode);
+		}
+
+		/* inc r8 */
+		if ((*opcode & 0b111) == 0b100) {
+			return inc_r8(cpu, opcode);
 		}
 
 		/* dec r8 */
