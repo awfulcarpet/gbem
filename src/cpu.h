@@ -1,5 +1,12 @@
 #include <stdint.h>
 
+enum r16 {
+	bc,
+	de,
+	hl,
+	sp,
+};
+
 union Flags {
 	struct {
 		uint8_t pad:4;
@@ -26,6 +33,11 @@ struct CPU {
 	uint8_t memory[0xFFFF + 1];
 	uint32_t mcycles;
 };
+
+#define get_r16(h, l) \
+	reg = (h << 8) | l; \
+	high = &h; \
+	low = &l; \
 
 struct CPU *init_cpu(void);
 int execute(struct CPU *cpu);
