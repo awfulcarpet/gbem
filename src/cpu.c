@@ -117,6 +117,24 @@ inc_r8(struct CPU *cpu, uint8_t *opcode)
 	return 1;
 }
 
+static int
+ld_r16_imm16(struct CPU *cpu, uint8_t *opcode)
+{
+
+	set_regs_r16(0b00110000, 4)
+	reg = cpu->memory[cpu->pc + 1] << 8 | cpu->memory[cpu->pc];
+
+	if (op == sp) {
+		cpu->sp = reg;
+	} else {
+		*high = reg >> 8;
+		*low = reg & 0xff;
+	}
+	cpu->pc += 2;
+
+	return 3;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -147,6 +165,10 @@ execute(struct CPU *cpu) {
 		/* dec r8 */
 		if ((*opcode & 0b111) == 0b101) {
 			return dec_r8(cpu, opcode);
+		}
+
+		if ((*opcode & 0b0001) == 0b0001) {
+			return ld_r16_imm16(cpu, opcode);
 		}
 
 		unimlemented_opcode(*opcode);
