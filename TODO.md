@@ -14,7 +14,7 @@
         - [x] inc r8
         - [x] dec r8
 
-        - [ ] ld r8, imm8
+        - [x] ld r8, imm8
 
         - [ ] rlca
         - [ ] rrca

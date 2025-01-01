@@ -266,10 +266,14 @@ int main(int argc, char *argv[])
 		run_opcode(i, "inc r8");
 	}
 
-	/* ld r8 r8 */
+	/* ld r8 imm8 */
+	for (int i = 0x06; i <= 0x36; i += 0x08) {
+		run_opcode(i, "ld r8 imm8");
+	}
+
+	/* ld r8 r8 + halt */
 	for (int i = 0x40; i <= 0x7F; i += 0x01) {
-		/*if (i != 0x76)*/
-			run_opcode(i, "ld r8 r8");
+		run_opcode(i, "ld r8 r8");
 	}
 
 	return 0;

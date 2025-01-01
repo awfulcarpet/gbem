@@ -181,6 +181,22 @@ ld_r8_r8(struct CPU *cpu, uint8_t opcode)
 	return 1;
 }
 
+static int
+ld_r8_imm8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *dst = NULL;
+	set_regs_r8(dst, 0b00111000, 3);
+
+	*dst = cpu->memory[cpu->pc];
+
+	cpu->pc += 1;
+
+	if ((opcode & 0b00111000) >> 3 == m)
+		return 3;
+
+	return 2;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -234,7 +250,12 @@ execute(struct CPU *cpu) {
 			return dec_r8(cpu, *opcode);
 		}
 
-		/*unimlemented_opcode(*opcode);*/
+		/* ld r8 imm8 */
+		if ((*opcode & 0b111) == 0b110) {
+			return ld_r8_imm8(cpu, *opcode);
+		}
+
+		unimlemented_opcode(*opcode);
 	}
 
 	/* block 2 */
