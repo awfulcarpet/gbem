@@ -1,5 +1,5 @@
 - [ ] finish and pass 100% of sm83 test suite
-    - [ ] block 0
+    - [x] block 0
         - [x] nop
 
         - [x] ld r16, imm16
@@ -27,7 +27,7 @@
 
         - [x] jr imm8
         - [x] jr cond, imm8
-        - [ ] stop
+        - [x] stop
 
     - [x] block 1
         - [x] ld r8, r8

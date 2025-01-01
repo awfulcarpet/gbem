@@ -385,11 +385,19 @@ jmp:
 	return 3;
 }
 
+/* MASSIVE TODO: implement more complex stop based on outside hardware */
+static int
+stop(struct CPU *cpu)
+{
+	cpu->stop = 1;
+	return 1;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
 
-	if (!cpu->halt)
+	if (!cpu->halt && !cpu->stop)
 		cpu->pc++;
 
 	/* block 0 opcodes */
@@ -398,6 +406,7 @@ execute(struct CPU *cpu) {
 		/* NOP */
 		if (*opcode == 0x00)
 			return 1;
+
 
 		/* ld r16,imm16 */
 		if ((*opcode & 0b1111) == 0b0001) {
@@ -456,10 +465,13 @@ execute(struct CPU *cpu) {
 
 		/* jr e8 */
 		/* jr cond, e8 */
-		if (*opcode == 0b00011000 || (*opcode & 0b111) == 0b000) {
+		if (*opcode == 0b00011000 || (*opcode & 0b00100111) == 0b00100000) {
 			return jr_imm8(cpu, *opcode);
 		}
 
+		/* stop */
+		if (*opcode == 0x10)
+			return stop(cpu);
 
 		unimlemented_opcode(*opcode);
 	}

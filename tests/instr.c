@@ -139,6 +139,7 @@ test_from_json(cJSON *json)
 	cpu_from_json(final, &test->final);
 
 	test->cycles = cJSON_GetArraySize(cJSON_GetObjectItem(json, "cycles"));
+	test->final.mcycles = test->cycles;
 
 	return test;
 }
@@ -296,6 +297,8 @@ int main(int argc, char *argv[])
 	run_opcode(0x28, "jr z, e8");
 	run_opcode(0x30, "jr nc, e8");
 	run_opcode(0x38, "jr c, e8");
+
+	run_opcode(0x10, "STOP");
 
 
 	return 0;
