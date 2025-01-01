@@ -48,6 +48,13 @@ print_cpu_state(struct CPU *cpu)
 	printf("\n");
 }
 
+static void
+set_zn(struct CPU *cpu, uint8_t reg, uint8_t n)
+{
+	cpu->f.n = n;
+	cpu->f.z = (reg == 0);
+}
+
 static int
 inc_r16(struct CPU *cpu, uint8_t opcode)
 {
@@ -72,12 +79,24 @@ dec_r16(struct CPU *cpu, uint8_t opcode)
 	return 2;
 }
 
-static void
-set_zn(struct CPU *cpu, uint8_t reg, uint8_t n)
+static int
+add_hl_r16(struct CPU *cpu, uint8_t opcode)
 {
-	cpu->f.n = n;
-	cpu->f.z = (reg == 0);
+	set_regs_r16(0b00110000, 4)
+	uint16_t hl = cpu->h << 8 | cpu->l;
+	/* TODO: do without uint32_t? */
+	uint32_t res = hl + reg;
+
+	cpu->f.n = 0;
+	cpu->f.h = (((hl & 0xfff) + (reg & 0xfff)) & 0x1000) == 0x1000;
+	cpu->f.c = res > 0xffff;
+
+	cpu->h = res >> 8;
+	cpu->l = res & 0xff;
+
+	return 2;
 }
+
 
 static int
 dec_r8(struct CPU *cpu, uint8_t opcode)
@@ -238,6 +257,11 @@ execute(struct CPU *cpu) {
 		/* dec r16 */
 		if ((*opcode & 0b1111) == 0b1011) {
 			return dec_r16(cpu, *opcode);
+		}
+
+		/* add hl, r16 */
+		if ((*opcode & 0b1111) == 0b1001) {
+			return add_hl_r16(cpu, *opcode);
 		}
 
 		/* inc r8 */

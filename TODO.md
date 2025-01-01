@@ -9,7 +9,7 @@
 
         - [x] inc r16
         - [x] dec r16
-        - [ ] add hl, r16
+        - [x] add hl, r16
 
         - [x] inc r8
         - [x] dec r8

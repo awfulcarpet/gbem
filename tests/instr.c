@@ -256,6 +256,11 @@ int main(int argc, char *argv[])
 		run_opcode(i, "dec r16");
 	}
 
+	/* add hl, r16*/
+	for (int i = 0x09; i <= 0x39; i += 0x10) {
+		run_opcode(i, "add hl, r16");
+	}
+
 	/* dec r8 */
 	for (int i = 0x05; i <= 0x3c; i += 0x08) {
 		run_opcode(i, "dec r8");
