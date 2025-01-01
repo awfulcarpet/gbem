@@ -393,6 +393,7 @@ stop(struct CPU *cpu)
 	return 1;
 }
 
+/* TODO: implement 1 cycle delay later */
 static int
 ei(struct CPU *cpu)
 {
