@@ -25,8 +25,8 @@
         - [x] scf
         - [x] ccf
 
-        - [ ] jr imm8
-        - [ ] jr cond, imm8
+        - [x] jr imm8
+        - [x] jr cond, imm8
         - [ ] stop
 
     - [x] block 1

@@ -23,6 +23,13 @@ enum r8 {
 	a,
 };
 
+enum cond {
+	nzero = 0,
+	zero,
+	ncarry,
+	carry = 3,
+};
+
 union Flags {
 	struct {
 		uint8_t pad:4;

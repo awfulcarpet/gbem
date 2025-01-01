@@ -346,9 +346,41 @@ bit_shift(struct CPU *cpu, uint8_t opcode)
 	return 1;
 }
 
-static int
+int
 jr_imm8(struct CPU *cpu, uint8_t opcode)
 {
+	/* jr e8 */
+	if (opcode == 0x18)
+		goto jmp;
+
+	/* other */
+	switch (opcode >> 3 & 0b11) {
+		case nzero:
+			if (cpu->f.z == 0)
+				goto jmp;
+			break;
+		case zero:
+			if (cpu->f.z)
+				goto jmp;
+			break;
+		case ncarry:
+			if (cpu->f.c == 0)
+				goto jmp;
+			break;
+		case carry:
+			if (cpu->f.c)
+				goto jmp;
+			break;
+		default:
+			fprintf(stderr, "incorrect jmp\n");
+			exit(1);
+		break;
+	}
+
+	cpu->pc++;
+	return 2;
+
+jmp:
 	cpu->pc += (int8_t)cpu->memory[cpu->pc] + 1;
 	return 3;
 }
@@ -422,10 +454,12 @@ execute(struct CPU *cpu) {
 			return bit_shift(cpu, *opcode);
 		}
 
-		if (*opcode == 0b00011000
-			|| (*opcode & 0b00100111) == 0b00100000) {
+		/* jr e8 */
+		/* jr cond, e8 */
+		if (*opcode == 0b00011000 || (*opcode & 0b111) == 0b000) {
 			return jr_imm8(cpu, *opcode);
 		}
+
 
 		unimlemented_opcode(*opcode);
 	}
