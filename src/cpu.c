@@ -240,6 +240,32 @@ rrca(struct CPU *cpu)
 	cpu->f.h = 0;
 }
 
+static void
+rla(struct CPU *cpu)
+{
+	uint8_t tmp = cpu->a;
+	cpu->a <<= 1;
+	cpu->a |= cpu->f.c;
+	cpu->f.c = tmp >> 7;
+
+	cpu->f.z = 0;
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+}
+
+static void
+rra(struct CPU *cpu)
+{
+	uint8_t tmp = cpu->a;
+	cpu->a >>= 1;
+	cpu->a |= cpu->f.c << 7;
+	cpu->f.c = tmp & 0x01;
+
+	cpu->f.z = 0;
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+}
+
 static int
 bit_shift(struct CPU *cpu, uint8_t opcode)
 {
@@ -250,15 +276,12 @@ bit_shift(struct CPU *cpu, uint8_t opcode)
 		case 1:
 			rrca(cpu);
 			break;
-		default:
-			unimlemented_opcode(opcode);
-		break;
-	/*	case 2:*/
-	/*		rla(cpu);*/
-	/*		break;*/
-	/*	case 3:*/
-	/*		rra(cpu);*/
-	/*		break;*/
+		case 2:
+			rla(cpu);
+			break;
+		case 3:
+			rra(cpu);
+			break;
 	/*	case 4:*/
 	/*		daa(cpu);*/
 	/*		break;*/
@@ -271,6 +294,9 @@ bit_shift(struct CPU *cpu, uint8_t opcode)
 	/*	case 7:*/
 	/*		ccf(cpu);*/
 	/*		break;*/
+		default:
+			unimlemented_opcode(opcode);
+			break;
 	}
 	return 1;
 }
