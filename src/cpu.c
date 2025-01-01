@@ -407,6 +407,13 @@ di(struct CPU *cpu)
 	return 1;
 }
 
+static int
+halt(struct CPU *cpu)
+{
+	cpu->halt = 1;
+	return 1;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -496,8 +503,7 @@ execute(struct CPU *cpu) {
 		/* halt */
 		/* TODO: implement waking from halt*/
 		if (*opcode == 0x76) {
-			cpu->halt = 1;
-			return 1;
+			return halt(cpu);
 		}
 
 		return ld_r8_r8(cpu, *opcode);
