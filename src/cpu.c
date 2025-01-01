@@ -346,6 +346,13 @@ bit_shift(struct CPU *cpu, uint8_t opcode)
 	return 1;
 }
 
+static int
+jr_imm8(struct CPU *cpu, uint8_t opcode)
+{
+	cpu->pc += (int8_t)cpu->memory[cpu->pc] + 1;
+	return 3;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -375,7 +382,8 @@ execute(struct CPU *cpu) {
 			return ld_a_r16mem(cpu, *opcode);
 		}
 
-		if ((*opcode & 0b1111) == 0b1000) {
+		/* ld [imm16], sp */
+		if (*opcode == 0b00001000) {
 			return ld_imm16_sp(cpu, *opcode);
 		}
 
@@ -412,6 +420,11 @@ execute(struct CPU *cpu) {
 		/* bit shifts */
 		if ((*opcode & 0b111) == 0b111) {
 			return bit_shift(cpu, *opcode);
+		}
+
+		if (*opcode == 0b00011000
+			|| (*opcode & 0b00100111) == 0b00100000) {
+			return jr_imm8(cpu, *opcode);
 		}
 
 		unimlemented_opcode(*opcode);

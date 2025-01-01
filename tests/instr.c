@@ -228,6 +228,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	#if 0
+
 	/* ld r16, imm16 */
 	for (int i = 0x01; i <= 0x31; i += 0x10) {
 		run_opcode(i, "ld r16, imm16");
@@ -290,6 +292,9 @@ int main(int argc, char *argv[])
 	for (int i = 0x40; i <= 0x7F; i += 0x01) {
 		run_opcode(i, "ld r8 r8");
 	}
+	#endif
+
+	run_opcode(0x18, "jr e8");
 
 	return 0;
 }
