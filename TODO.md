@@ -91,5 +91,5 @@
         - [ ] ld hl, sp + imm8
         - [ ] ld sp, hl
 
-        - [ ] di
-        - [ ] ei
+        - [x] di
+        - [x] ei

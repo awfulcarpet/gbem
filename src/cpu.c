@@ -393,6 +393,20 @@ stop(struct CPU *cpu)
 	return 1;
 }
 
+static int
+ei(struct CPU *cpu)
+{
+	cpu->ie = 1;
+	return 1;
+}
+
+static int
+di(struct CPU *cpu)
+{
+	cpu->ie = 0;
+	return 1;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -488,6 +502,13 @@ execute(struct CPU *cpu) {
 
 		return ld_r8_r8(cpu, *opcode);
 	}
+
+	/* block 3 */
+
+	if (*opcode == 0xf3)
+		return ei(cpu);
+	if (*opcode == 0xfb)
+		return di(cpu);
 
 	unimlemented_opcode(*opcode);
 

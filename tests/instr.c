@@ -301,5 +301,9 @@ int main(int argc, char *argv[])
 	run_opcode(0x10, "STOP");
 
 
+	run_opcode(0xf3, "ei");
+	run_opcode(0xfb, "di");
+
+
 	return 0;
 }
