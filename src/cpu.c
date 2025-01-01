@@ -271,25 +271,16 @@ daa(struct CPU *cpu)
 {
 	uint8_t adj = 0;
 
-	if (cpu->f.n) {
-		if (cpu->f.h)
-			adj += 0x06;
-		if (cpu->f.c) {
-			adj += 0x60;
-			cpu->f.c = 1;
-		}
-		cpu->a -= adj;
-	} else {
-		if (cpu->f.h || (cpu->a & 0x0f) > 0x09)
-			adj |= 0x06;
-
-		if (cpu->f.c || (cpu->a > 0x99)) {
-			adj |= 0x60;
-			cpu->f.c = 1;
-		}
-
-		cpu->a += adj;
+	if (cpu->f.h || (!cpu->f.n && (cpu->a & 0x0F) > 0x09)) {
+		adj |= 0x06;
 	}
+
+	if (cpu->f.c || (!cpu->f.n && cpu->a > 0x99)) {
+		adj |= 0x60;
+		cpu->f.c = 1;
+	}
+
+	cpu->a += adj * (cpu->f.n ? -1 : 1);
 
 	cpu->f.z = (cpu->a == 0);
 	cpu->f.h = 0;
