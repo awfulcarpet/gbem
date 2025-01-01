@@ -497,7 +497,7 @@ execute(struct CPU *cpu) {
 		unimlemented_opcode(*opcode);
 	}
 
-	/* block 2 */
+	/* block 1 */
 	if (*opcode >= 0x40 && *opcode <= 0x7F) {
 
 		/* halt */
