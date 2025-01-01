@@ -21,9 +21,9 @@
         - [x] rla
         - [x] rra
         - [x] daa
-        - [ ] cpl
-        - [ ] scf
-        - [ ] ccf
+        - [x] cpl
+        - [x] scf
+        - [x] ccf
 
         - [ ] jr imm8
         - [ ] jr cond, imm8

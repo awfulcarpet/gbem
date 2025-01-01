@@ -287,6 +287,30 @@ daa(struct CPU *cpu)
 	cpu->f.h = 0;
 }
 
+static void
+cpl(struct CPU *cpu)
+{
+	cpu->a = ~cpu->a;
+	cpu->f.n = 1;
+	cpu->f.h = 1;
+}
+
+static void
+scf(struct CPU *cpu)
+{
+	cpu->f.c = 1;
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+}
+
+static void
+ccf(struct CPU *cpu)
+{
+	cpu->f.c = ~cpu->f.c;
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+}
+
 static int
 bit_shift(struct CPU *cpu, uint8_t opcode)
 {
@@ -306,15 +330,15 @@ bit_shift(struct CPU *cpu, uint8_t opcode)
 		case 4:
 			daa(cpu);
 			break;
-	/*	case 5:*/
-	/*		cpl(cpu);*/
-	/*		break;*/
-	/*	case 6:*/
-	/*		scf(cpu);*/
-	/*		break;*/
-	/*	case 7:*/
-	/*		ccf(cpu);*/
-	/*		break;*/
+		case 5:
+			cpl(cpu);
+			break;
+		case 6:
+			scf(cpu);
+			break;
+		case 7:
+			ccf(cpu);
+			break;
 		default:
 			unimlemented_opcode(opcode);
 			break;
