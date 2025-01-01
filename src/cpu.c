@@ -216,6 +216,65 @@ ld_r8_imm8(struct CPU *cpu, uint8_t opcode)
 	return 2;
 }
 
+static void
+rlca(struct CPU *cpu)
+{
+	cpu->f.c = cpu->a >> 7;
+	cpu->a <<= 1;
+	cpu->a |= cpu->f.c;
+
+	cpu->f.z = 0;
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+}
+
+static void
+rrca(struct CPU *cpu)
+{
+	cpu->f.c = cpu->a & 0x01;
+	cpu->a >>= 1;
+	cpu->a |= cpu->f.c << 7;
+
+	cpu->f.z = 0;
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+}
+
+static int
+bit_shift(struct CPU *cpu, uint8_t opcode)
+{
+	switch (opcode >> 3) {
+		case 0:
+			rlca(cpu);
+			break;
+		case 1:
+			rrca(cpu);
+			break;
+		default:
+			unimlemented_opcode(opcode);
+		break;
+	/*	case 2:*/
+	/*		rla(cpu);*/
+	/*		break;*/
+	/*	case 3:*/
+	/*		rra(cpu);*/
+	/*		break;*/
+	/*	case 4:*/
+	/*		daa(cpu);*/
+	/*		break;*/
+	/*	case 5:*/
+	/*		cpl(cpu);*/
+	/*		break;*/
+	/*	case 6:*/
+	/*		scf(cpu);*/
+	/*		break;*/
+	/*	case 7:*/
+	/*		ccf(cpu);*/
+	/*		break;*/
+	}
+	return 1;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -277,6 +336,11 @@ execute(struct CPU *cpu) {
 		/* ld r8 imm8 */
 		if ((*opcode & 0b111) == 0b110) {
 			return ld_r8_imm8(cpu, *opcode);
+		}
+
+		/* bit shifts */
+		if ((*opcode & 0b111) == 0b111) {
+			return bit_shift(cpu, *opcode);
 		}
 
 		unimlemented_opcode(*opcode);

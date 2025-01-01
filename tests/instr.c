@@ -276,6 +276,16 @@ int main(int argc, char *argv[])
 		run_opcode(i, "ld r8 imm8");
 	}
 
+	/* bitshifts */
+	run_opcode(0x07, "RLCA");
+	run_opcode(0x17, "RLA");
+	run_opcode(0x27, "DAA");
+	run_opcode(0x37, "SCF");
+	run_opcode(0x0F, "RRCA");
+	run_opcode(0x1F, "RRA");
+	run_opcode(0x2F, "CPL");
+	run_opcode(0x3F, "CCF");
+
 	/* ld r8 r8 + halt */
 	for (int i = 0x40; i <= 0x7F; i += 0x01) {
 		run_opcode(i, "ld r8 r8");
