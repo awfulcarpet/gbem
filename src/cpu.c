@@ -266,6 +266,7 @@ rra(struct CPU *cpu)
 	cpu->f.h = 0;
 }
 
+/* TODO: might be broken, manually test later */
 static void
 daa(struct CPU *cpu)
 {

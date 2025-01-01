@@ -16,11 +16,11 @@
 
         - [x] ld r8, imm8
 
-        - [ ] rlca
-        - [ ] rrca
-        - [ ] rla
-        - [ ] rra
-        - [ ] daa
+        - [x] rlca
+        - [x] rrca
+        - [x] rla
+        - [x] rra
+        - [x] daa
         - [ ] cpl
         - [ ] scf
         - [ ] ccf
