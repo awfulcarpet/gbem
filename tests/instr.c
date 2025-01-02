@@ -218,7 +218,6 @@ run_opcode(int opcode, char *msg)
 int main(int argc, char *argv[])
 {
 
-	#if 0
 	if (argc == 2) {
 		run_opcode(atoi(argv[1]), NULL);
 		return 0;
@@ -302,20 +301,26 @@ int main(int argc, char *argv[])
 
 	run_opcode(0x10, "STOP");
 
+	/* 8 bit arith */
 	for (int i = 0x80; i <= 0x87; i++)
 		run_opcode(i, "ADD A, r8");
 	for (int i = 0x88; i <= 0x8f; i++)
 		run_opcode(i, "ADC A, r8");
-	#endif
 	for (int i = 0x90; i <= 0x97; i++)
 		run_opcode(i, "SUB A, r8");
 	for (int i = 0x98; i <= 0x9f; i++)
 		run_opcode(i, "SBC A, r8");
+	for (int i = 0xa0; i <= 0xa7; i++)
+		run_opcode(i, "AND A, r8");
+	for (int i = 0xa8; i <= 0xaf; i++)
+		run_opcode(i, "XOR A, r8");
+	for (int i = 0xb0; i <= 0xb7; i++)
+		run_opcode(i, "OR A, r8");
+	for (int i = 0xb8; i <= 0xbf; i++)
+		run_opcode(i, "CP A, r8");
 
 	run_opcode(0xf3, "ei");
 	run_opcode(0xfb, "di");
-
-
 
 	return 0;
 }

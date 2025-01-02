@@ -499,6 +499,81 @@ sbc_r8(struct CPU *cpu, uint8_t opcode)
 	return 1;
 }
 
+static int
+and_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+
+	cpu->a &= *reg;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.n = 0;
+	cpu->f.h = 1;
+	cpu->f.c = 0;
+
+	if ((opcode & 0b111) == m)
+		return 2;
+
+	return 1;
+}
+
+static int
+xor_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+
+	cpu->a ^= *reg;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+	cpu->f.c = 0;
+
+	if ((opcode & 0b111) == m)
+		return 2;
+
+	return 1;
+}
+
+static int
+or_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+
+	cpu->a |= *reg;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+	cpu->f.c = 0;
+
+	if ((opcode & 0b111) == m)
+		return 2;
+
+	return 1;
+}
+
+static int
+cp_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+	uint8_t res = cpu->a - *reg;
+
+	cpu->f.z = (res == 0);
+	cpu->f.n = 1;
+	cpu->f.h = (cpu->a & 0xf) < (*reg & 0xf);
+	cpu->f.c = cpu->a < *reg;
+
+	if ((opcode & 0b111) == m)
+		return 2;
+
+	return 1;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -612,6 +687,22 @@ execute(struct CPU *cpu) {
 
 		if (op == 0b011) {
 			return sbc_r8(cpu, *opcode);
+		}
+
+		if (op == 0b100) {
+			return and_r8(cpu, *opcode);
+		}
+
+		if (op == 0b101) {
+			return xor_r8(cpu, *opcode);
+		}
+
+		if (op == 0b110) {
+			return or_r8(cpu, *opcode);
+		}
+
+		if (op == 0b111) {
+			return cp_r8(cpu, *opcode);
 		}
 
 		unimlemented_opcode(*opcode);

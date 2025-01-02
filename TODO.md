@@ -33,15 +33,15 @@
         - [x] ld r8, r8
         - [x] halt (ld [hl] [hl])
 
-    - [ ] block 2
+    - [x] block 2
         - [x] add a, r8
         - [x] adc a, r8
-        - [ ] sub a, r8
-        - [ ] sbc a, r8
-        - [ ] and a, r8
-        - [ ] xor a, r8
-        - [ ] or a, r8
-        - [ ] cp a, r8
+        - [x] sub a, r8
+        - [x] sbc a, r8
+        - [x] and a, r8
+        - [x] xor a, r8
+        - [x] or a, r8
+        - [x] cp a, r8
 
     - [ ] block 3
         - [ ] add a, imm8
