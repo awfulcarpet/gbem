@@ -123,6 +123,7 @@ inc_r8(struct CPU *cpu, uint8_t opcode)
 	(*reg)++;
 
 	set_zn(cpu, *reg, 0);
+	/* TODO: possible bug? */
 	cpu->f.h = (*reg & 0b1111) == 0b0000;
 
 	if (((opcode & 0b00111000) >> 3) == m)
@@ -415,6 +416,7 @@ halt(struct CPU *cpu)
 	return 1;
 }
 
+/* TODO? fix h flag */
 static int
 add_r8(struct CPU *cpu, uint8_t opcode)
 {
@@ -428,6 +430,28 @@ add_r8(struct CPU *cpu, uint8_t opcode)
 
 	cpu->a += *reg;
 	cpu->f.z = cpu->a == 0;
+
+	if ((opcode & 0b111) == m)
+		return 2;
+
+	return 1;
+}
+
+static int
+adc_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0);
+
+	uint16_t ans = cpu->a + *reg + cpu->f.c;
+	uint8_t half_ans = (cpu->a & 0xf) + (*reg & 0xf) + cpu->f.c;
+
+	cpu->a = ans;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.c = ans > 0xff;
+	cpu->f.n = 0;
+	cpu->f.h = half_ans > 0xf;
 
 	if ((opcode & 0b111) == m)
 		return 2;
@@ -532,9 +556,16 @@ execute(struct CPU *cpu) {
 
 	/* block 2 */
 	if (*opcode >= 0x80 && *opcode <= 0xbf) {
-		if (((*opcode >> 3) & 0b111) == 0b000) {
+		uint8_t op = *opcode >> 3 & 0b111;
+
+		if (op == 0b000) {
 			return add_r8(cpu, *opcode);
 		}
+
+		if (op == 0b001) {
+			return adc_r8(cpu, *opcode);
+		}
+
 		unimlemented_opcode(*opcode);
 	}
 

@@ -35,7 +35,7 @@
 
     - [ ] block 2
         - [x] add a, r8
-        - [ ] adc a, r8
+        - [x] adc a, r8
         - [ ] sub a, r8
         - [ ] sbc a, r8
         - [ ] and a, r8

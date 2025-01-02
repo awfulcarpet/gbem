@@ -217,6 +217,8 @@ run_opcode(int opcode, char *msg)
 
 int main(int argc, char *argv[])
 {
+
+	#if 0
 	if (argc == 2) {
 		run_opcode(atoi(argv[1]), NULL);
 		return 0;
@@ -300,8 +302,11 @@ int main(int argc, char *argv[])
 
 	run_opcode(0x10, "STOP");
 
+	#endif
 	for (int i = 0x80; i <= 0x87; i++)
 		run_opcode(i, "ADD A, r8");
+	for (int i = 0x88; i <= 0x8f; i++)
+		run_opcode(i, "ADC A, r8");
 
 	run_opcode(0xf3, "ei");
 	run_opcode(0xfb, "di");
