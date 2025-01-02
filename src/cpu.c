@@ -29,23 +29,100 @@ init_cpu(void) {
 	return cpu;
 }
 
-void
-print_cpu_state(struct CPU *cpu)
+
+static void
+add(struct CPU *cpu, uint8_t n)
 {
-	printf("CYC: %d ", cpu->mcycles);
+	cpu->f.c = (cpu->a + n) > 0xff;
 
-	printf("%c%c%c%c ",
-		cpu->f.z ? 'z' : '-', cpu->f.n ? 'n' : '-', cpu->f.h ? 'h' : '-', cpu->f.c ? 'c' : '-');
+	cpu->f.h = (cpu->a & 0b1111) + (n & 0b1111) >= 0b10000;
+	cpu->f.n = 0;
 
-	printf("AF: %02x%02x BC: %02x%02x DE: %02x%02x HL: %02x%02x SP: %04x PC: %04x ",
-		cpu->a, cpu->f.flags, cpu->b, cpu->c, cpu->d, cpu->e, cpu->h, cpu->l, cpu->sp, cpu->pc);
+	cpu->a += n;
+	cpu->f.z = cpu->a == 0;
+}
 
-	printf("[HL]: %02x Stk: %02x %02x %02x %02x ",
-		cpu->memory[cpu->h << 8 | cpu->l], cpu->memory[cpu->sp], cpu->memory[cpu->sp+1], cpu->memory[cpu->sp+2], cpu->memory[cpu->sp+3]);
+static void
+adc(struct CPU *cpu, uint8_t n)
+{
+	uint16_t ans = cpu->a + n + cpu->f.c;
+	uint8_t half_ans = (cpu->a & 0xf) + (n & 0xf) + cpu->f.c;
 
-	printf("nxt: %02x %02x %02x %02x ", cpu->memory[cpu->pc], cpu->memory[cpu->pc+1], cpu->memory[cpu->pc+2], cpu->memory[cpu->pc+3]);
+	cpu->a = ans;
 
-	printf("\n");
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.c = ans > 0xff;
+	cpu->f.n = 0;
+	cpu->f.h = half_ans > 0xf;
+}
+
+static void
+sub(struct CPU *cpu, uint8_t n)
+{
+	cpu->f.c = n > cpu->a;
+	cpu->f.n = 1;
+	cpu->f.h = (cpu->a & 0xf) < (n & 0xf);
+
+
+	cpu->a -= n;
+	cpu->f.z = (cpu->a == 0);
+}
+
+static void
+sbc(struct CPU *cpu, uint8_t n)
+{
+	uint8_t res = cpu->a - n - cpu->f.c;
+
+	cpu->f.h = (cpu->a & 0xf) < ((n & 0xf) + (cpu->f.c));
+	cpu->f.c = n + cpu->f.c > cpu->a;
+	cpu->f.n = 1;
+
+	cpu->a = res;
+	cpu->f.z = (cpu->a == 0);
+}
+
+static void
+and(struct CPU *cpu, uint8_t n)
+{
+	cpu->a &= n;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.n = 0;
+	cpu->f.h = 1;
+	cpu->f.c = 0;
+}
+
+static void
+xor(struct CPU *cpu, uint8_t n)
+{
+	cpu->a ^= n;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+	cpu->f.c = 0;
+}
+
+static void
+or(struct CPU *cpu, uint8_t n)
+{
+	cpu->a |= n;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+	cpu->f.c = 0;
+}
+
+static void
+cp(struct CPU *cpu, uint8_t n)
+{
+	uint8_t res = cpu->a - n;
+
+	cpu->f.z = (res == 0);
+	cpu->f.n = 1;
+	cpu->f.h = (cpu->a & 0xf) < (n & 0xf);
+	cpu->f.c = cpu->a < n;
 }
 
 static void
@@ -153,9 +230,9 @@ ld_r16mem_a(struct CPU *cpu, uint8_t opcode)
 	cpu->memory[reg] = cpu->a;
 
 	if (op == hli)
-		inc_r16(cpu, 0b00100000);
+		inc_r16(cpu, hl << 4);
 	if (op == hld)
-		dec_r16(cpu, 0b00100000);
+		dec_r16(cpu, hl << 4);
 
 	return 2;
 }
@@ -168,9 +245,9 @@ ld_a_r16mem(struct CPU *cpu, uint8_t opcode)
 	cpu->a = cpu->memory[reg];
 
 	if (op == hli)
-		inc_r16(cpu, 0b00100000);
+		inc_r16(cpu, hl << 4);
 	if (op == hld)
-		dec_r16(cpu, 0b00100000);
+		dec_r16(cpu, hl << 4);
 	return 2;
 }
 
@@ -347,7 +424,7 @@ bit_shift(struct CPU *cpu, uint8_t opcode)
 	return 1;
 }
 
-int
+static int
 jr_imm8(struct CPU *cpu, uint8_t opcode)
 {
 	/* jr e8 */
@@ -416,100 +493,6 @@ halt(struct CPU *cpu)
 	return 1;
 }
 
-static void
-add(struct CPU *cpu, uint8_t n)
-{
-	cpu->f.c = (cpu->a + n) > 0xff;
-
-	cpu->f.h = (cpu->a & 0b1111) + (n & 0b1111) >= 0b10000;
-	cpu->f.n = 0;
-
-	cpu->a += n;
-	cpu->f.z = cpu->a == 0;
-}
-
-static void
-adc(struct CPU *cpu, uint8_t n)
-{
-	uint16_t ans = cpu->a + n + cpu->f.c;
-	uint8_t half_ans = (cpu->a & 0xf) + (n & 0xf) + cpu->f.c;
-
-	cpu->a = ans;
-
-	cpu->f.z = (cpu->a == 0);
-	cpu->f.c = ans > 0xff;
-	cpu->f.n = 0;
-	cpu->f.h = half_ans > 0xf;
-}
-
-static void
-sub(struct CPU *cpu, uint8_t n)
-{
-	cpu->f.c = n > cpu->a;
-	cpu->f.n = 1;
-	cpu->f.h = (cpu->a & 0xf) < (n & 0xf);
-
-
-	cpu->a -= n;
-	cpu->f.z = (cpu->a == 0);
-}
-
-static void
-sbc(struct CPU *cpu, uint8_t n)
-{
-	uint8_t res = cpu->a - n - cpu->f.c;
-
-	cpu->f.h = (cpu->a & 0xf) < ((n & 0xf) + (cpu->f.c));
-	cpu->f.c = n + cpu->f.c > cpu->a;
-	cpu->f.n = 1;
-
-	cpu->a = res;
-	cpu->f.z = (cpu->a == 0);
-}
-
-static void
-and(struct CPU *cpu, uint8_t n)
-{
-	cpu->a &= n;
-
-	cpu->f.z = (cpu->a == 0);
-	cpu->f.n = 0;
-	cpu->f.h = 1;
-	cpu->f.c = 0;
-}
-
-static void
-xor(struct CPU *cpu, uint8_t n)
-{
-	cpu->a ^= n;
-
-	cpu->f.z = (cpu->a == 0);
-	cpu->f.n = 0;
-	cpu->f.h = 0;
-	cpu->f.c = 0;
-}
-
-static void
-or(struct CPU *cpu, uint8_t n)
-{
-	cpu->a |= n;
-
-	cpu->f.z = (cpu->a == 0);
-	cpu->f.n = 0;
-	cpu->f.h = 0;
-	cpu->f.c = 0;
-}
-
-static void
-cp(struct CPU *cpu, uint8_t n)
-{
-	uint8_t res = cpu->a - n;
-
-	cpu->f.z = (res == 0);
-	cpu->f.n = 1;
-	cpu->f.h = (cpu->a & 0xf) < (n & 0xf);
-	cpu->f.c = cpu->a < n;
-}
 
 /* TODO? fix h flag */
 static int
@@ -870,4 +853,23 @@ execute(struct CPU *cpu) {
 	unimlemented_opcode(*opcode);
 
 	return 1;
+}
+
+void
+print_cpu_state(struct CPU *cpu)
+{
+	printf("CYC: %d ", cpu->mcycles);
+
+	printf("%c%c%c%c ",
+		cpu->f.z ? 'z' : '-', cpu->f.n ? 'n' : '-', cpu->f.h ? 'h' : '-', cpu->f.c ? 'c' : '-');
+
+	printf("AF: %02x%02x BC: %02x%02x DE: %02x%02x HL: %02x%02x SP: %04x PC: %04x ",
+		cpu->a, cpu->f.flags, cpu->b, cpu->c, cpu->d, cpu->e, cpu->h, cpu->l, cpu->sp, cpu->pc);
+
+	printf("[HL]: %02x Stk: %02x %02x %02x %02x ",
+		cpu->memory[cpu->h << 8 | cpu->l], cpu->memory[cpu->sp], cpu->memory[cpu->sp+1], cpu->memory[cpu->sp+2], cpu->memory[cpu->sp+3]);
+
+	printf("nxt: %02x %02x %02x %02x ", cpu->memory[cpu->pc], cpu->memory[cpu->pc+1], cpu->memory[cpu->pc+2], cpu->memory[cpu->pc+3]);
+
+	printf("\n");
 }

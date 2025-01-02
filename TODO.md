@@ -44,14 +44,14 @@
         - [x] cp a, r8
 
     - [ ] block 3
-        - [ ] add a, imm8
-        - [ ] adc a, imm8
-        - [ ] sub a, imm8
-        - [ ] sbc a, imm8
-        - [ ] and a, imm8
-        - [ ] xor a, imm8
-        - [ ] or a, imm8
-        - [ ] cp a, imm8
+        - [x] add a, imm8
+        - [x] adc a, imm8
+        - [x] sub a, imm8
+        - [x] sbc a, imm8
+        - [x] and a, imm8
+        - [x] xor a, imm8
+        - [x] or a, imm8
+        - [x] cp a, imm8
 
         - [ ] ret cond
         - [ ] ret
