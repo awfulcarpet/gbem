@@ -428,6 +428,32 @@ add(struct CPU *cpu, uint8_t n)
 	cpu->f.z = cpu->a == 0;
 }
 
+static void
+adc(struct CPU *cpu, uint8_t n)
+{
+	uint16_t ans = cpu->a + n + cpu->f.c;
+	uint8_t half_ans = (cpu->a & 0xf) + (n & 0xf) + cpu->f.c;
+
+	cpu->a = ans;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.c = ans > 0xff;
+	cpu->f.n = 0;
+	cpu->f.h = half_ans > 0xf;
+}
+
+static void
+sub(struct CPU *cpu, uint8_t n)
+{
+	cpu->f.c = n > cpu->a;
+	cpu->f.n = 1;
+	cpu->f.h = (cpu->a & 0xf) < (n & 0xf);
+
+
+	cpu->a -= n;
+	cpu->f.z = (cpu->a == 0);
+}
+
 /* TODO? fix h flag */
 static int
 add_r8(struct CPU *cpu, uint8_t opcode)
@@ -449,15 +475,7 @@ adc_r8(struct CPU *cpu, uint8_t opcode)
 	uint8_t *reg = NULL;
 	set_regs_r8(reg, 0b111, 0);
 
-	uint16_t ans = cpu->a + *reg + cpu->f.c;
-	uint8_t half_ans = (cpu->a & 0xf) + (*reg & 0xf) + cpu->f.c;
-
-	cpu->a = ans;
-
-	cpu->f.z = (cpu->a == 0);
-	cpu->f.c = ans > 0xff;
-	cpu->f.n = 0;
-	cpu->f.h = half_ans > 0xf;
+	adc(cpu, *reg);
 
 	if ((opcode & 0b111) == m)
 		return 2;
@@ -471,13 +489,7 @@ sub_r8(struct CPU *cpu, uint8_t opcode)
 	uint8_t *reg = NULL;
 	set_regs_r8(reg, 0b111, 0);
 
-	cpu->f.c = *reg > cpu->a;
-	cpu->f.n = 1;
-	cpu->f.h = (cpu->a & 0xf) < (*reg & 0xf);
-
-
-	cpu->a -= *reg;
-	cpu->f.z = (cpu->a == 0);
+	sub(cpu, *reg);
 
 	if ((opcode & 0b111) == m)
 		return 2;
@@ -585,6 +597,24 @@ static int
 add_imm8(struct CPU *cpu, uint8_t n)
 {
 	add(cpu, n);
+
+	cpu->pc++;
+	return 2;
+}
+
+static int
+adc_imm8(struct CPU *cpu, uint8_t n)
+{
+	adc(cpu, n);
+
+	cpu->pc++;
+	return 2;
+}
+
+static int
+sub_imm8(struct CPU *cpu, uint8_t n)
+{
+	sub(cpu, n);
 
 	cpu->pc++;
 	return 2;
@@ -729,8 +759,16 @@ execute(struct CPU *cpu) {
 	if ((*opcode & 0b11000111) == 0b11000110) {
 		uint8_t op = *opcode >> 3 & 0b111;
 
-		if (op == 0b000) {
-			return add_imm8(cpu, cpu->memory[cpu->pc]);
+		switch (op) {
+			case 0:
+				return add_imm8(cpu, cpu->memory[cpu->pc]);
+				break;
+			case 1:
+				return adc_imm8(cpu, cpu->memory[cpu->pc]);
+				break;
+			case 2:
+				return sub_imm8(cpu, cpu->memory[cpu->pc]);
+				break;
 		}
 
 		unimlemented_opcode(*opcode);
