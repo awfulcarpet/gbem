@@ -34,7 +34,7 @@
         - [x] halt (ld [hl] [hl])
 
     - [ ] block 2
-        - [ ] add a, r8
+        - [x] add a, r8
         - [ ] adc a, r8
         - [ ] sub a, r8
         - [ ] sbc a, r8
