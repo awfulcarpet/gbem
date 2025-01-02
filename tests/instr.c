@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-#if 1
+#ifdef TESTALL
 	/* ld r16, imm16 */
 	for (int i = 0x01; i <= 0x31; i += 0x10) {
 		run_opcode(i, "ld r16, imm16");
@@ -333,6 +333,8 @@ int main(int argc, char *argv[])
 	run_opcode(0xf3, "ei");
 	run_opcode(0xfb, "di");
 #endif
+
+	run_opcode(0xc9, "ret");
 
 	return 0;
 }

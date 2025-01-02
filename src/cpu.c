@@ -676,6 +676,14 @@ cp_imm8(struct CPU *cpu, uint8_t n)
 	return 2;
 }
 
+static int
+ret(struct CPU *cpu)
+{
+	cpu->pc = cpu->memory[cpu->sp + 1] << 8 | cpu->memory[cpu->sp];
+	cpu->sp += 2;
+	return 4;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -844,6 +852,9 @@ execute(struct CPU *cpu) {
 
 		unimlemented_opcode(*opcode);
 	}
+
+	if (*opcode == 0xc9)
+		return ret(cpu);
 
 	if (*opcode == 0xf3)
 		return ei(cpu);

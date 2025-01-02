@@ -1,6 +1,7 @@
 WARNINGS = -Wall -Wextra -Wpedantic -Wno-unused-result -Wwrite-strings -Wcast-align -Wpointer-arith -Wunused-parameter -Wmissing-include-dirs
-CFLAGS = -std=c11 -O0 $(WARNINGS)
+CFLAGS = -std=c11 -O0 $(WARNINGS) $(DEFS)
 LDLIBS =
+TESTS ?= TESTALL
 
 NAME = gbem
 OUTDIR = .build
@@ -31,7 +32,7 @@ $(NAME): $(OBJ)
 	$(CC) -o $(OUTDIR)/$@ $^ $(LDLIBS)
 
 make_tests: $(TEST_OBJ) tests/instr.c tests/cJSON.o
-	$(CC) -o $(OUTDIR)/instr $^ $(LDLIBS)
+	$(CC) -o $(OUTDIR)/instr $^ $(LDLIBS) -D$(TESTS)
 
 clean:
 	rm -rf $(OUTDIR) core
