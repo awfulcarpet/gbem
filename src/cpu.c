@@ -416,6 +416,18 @@ halt(struct CPU *cpu)
 	return 1;
 }
 
+static void
+add(struct CPU *cpu, uint8_t n)
+{
+	cpu->f.c = (cpu->a + n) > 0xff;
+
+	cpu->f.h = (cpu->a & 0b1111) + (n & 0b1111) >= 0b10000;
+	cpu->f.n = 0;
+
+	cpu->a += n;
+	cpu->f.z = cpu->a == 0;
+}
+
 /* TODO? fix h flag */
 static int
 add_r8(struct CPU *cpu, uint8_t opcode)
@@ -423,13 +435,7 @@ add_r8(struct CPU *cpu, uint8_t opcode)
 	uint8_t *reg = NULL;
 	set_regs_r8(reg, 0b111, 0)
 
-	cpu->f.c = (cpu->a + *reg) > 0xff;
-
-	cpu->f.h = (cpu->a & 0b1111) + (*reg & 0b1111) >= 0b10000;
-	cpu->f.n = 0;
-
-	cpu->a += *reg;
-	cpu->f.z = cpu->a == 0;
+	add(cpu, *reg);
 
 	if ((opcode & 0b111) == m)
 		return 2;
@@ -574,6 +580,16 @@ cp_r8(struct CPU *cpu, uint8_t opcode)
 	return 1;
 }
 
+/* TODO? fix h flag */
+static int
+add_imm8(struct CPU *cpu, uint8_t n)
+{
+	add(cpu, n);
+
+	cpu->pc++;
+	return 2;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -709,6 +725,16 @@ execute(struct CPU *cpu) {
 	}
 
 	/* block 3 */
+	/* 8bit arith with imm8 */
+	if ((*opcode & 0b11000111) == 0b11000110) {
+		uint8_t op = *opcode >> 3 & 0b111;
+
+		if (op == 0b000) {
+			return add_imm8(cpu, cpu->memory[cpu->pc]);
+		}
+
+		unimlemented_opcode(*opcode);
+	}
 
 	if (*opcode == 0xf3)
 		return ei(cpu);
