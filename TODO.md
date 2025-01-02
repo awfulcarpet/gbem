@@ -53,9 +53,9 @@
         - [x] or a, imm8
         - [x] cp a, imm8
 
-        - [ ] ret cond
-        - [ ] ret
-        - [ ] reti
+        - [x] ret cond
+        - [x] ret
+        - [x] reti
         - [ ] jp cond, imm16
         - [ ] jp imm16
         - [ ] jp hl

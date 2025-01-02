@@ -692,6 +692,33 @@ reti(struct CPU *cpu)
 	return 4;
 }
 
+static int
+ret_cond(struct CPU *cpu, uint8_t opcode)
+{
+	switch (opcode >> 3 & 0b11) {
+		case nzero:
+			if (cpu->f.z == 0) goto ret;
+			break;
+		case zero:
+			if (cpu->f.z == 1) goto ret;
+			break;
+		case ncarry:
+			if (cpu->f.c == 0) goto ret;
+			break;
+		case carry:
+			if (cpu->f.c == 1) goto ret;
+			break;
+		default:
+			break;
+	}
+
+	return 2;
+
+ret:
+	ret(cpu);
+	return 5;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -865,6 +892,10 @@ execute(struct CPU *cpu) {
 		return ret(cpu);
 	if (*opcode == 0xd9)
 		return reti(cpu);
+
+	if ((*opcode & 0b11100111) == 0b11000000) {
+		return ret_cond(cpu, *opcode);
+	}
 
 	if (*opcode == 0xf3)
 		return ei(cpu);

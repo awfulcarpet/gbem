@@ -330,12 +330,18 @@ int main(int argc, char *argv[])
 	run_opcode(0xf6, "OR A, n8");
 	run_opcode(0xfe, "CP A, n8");
 
+	run_opcode(0xc9, "ret");
+	run_opcode(0xd9, "reti");
+
 	run_opcode(0xf3, "ei");
 	run_opcode(0xfb, "di");
 #endif
 
-	run_opcode(0xc9, "ret");
-	run_opcode(0xd9, "reti");
+	run_opcode(0xc0, "RET NZ");
+	run_opcode(0xc8, "RET Z");
+	run_opcode(0xd0, "RET NC");
+	run_opcode(0xd8, "RET C");
+
 
 	return 0;
 }
