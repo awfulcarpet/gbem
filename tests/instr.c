@@ -309,6 +309,8 @@ int main(int argc, char *argv[])
 	#endif
 	for (int i = 0x90; i <= 0x97; i++)
 		run_opcode(i, "SUB A, r8");
+	for (int i = 0x98; i <= 0x9f; i++)
+		run_opcode(i, "SBC A, r8");
 
 	run_opcode(0xf3, "ei");
 	run_opcode(0xfb, "di");

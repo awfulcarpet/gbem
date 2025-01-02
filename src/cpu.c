@@ -479,6 +479,26 @@ sub_r8(struct CPU *cpu, uint8_t opcode)
 	return 1;
 }
 
+static int
+sbc_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0);
+	uint8_t res = cpu->a - *reg - cpu->f.c;
+
+	cpu->f.h = (cpu->a & 0xf) < ((*reg & 0xf) + (cpu->f.c));
+	cpu->f.c = *reg + cpu->f.c > cpu->a;
+	cpu->f.n = 1;
+
+	cpu->a = res;
+	cpu->f.z = (cpu->a == 0);
+
+	if ((opcode & 0b111) == m)
+		return 2;
+
+	return 1;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -588,6 +608,10 @@ execute(struct CPU *cpu) {
 
 		if (op == 0b010) {
 			return sub_r8(cpu, *opcode);
+		}
+
+		if (op == 0b011) {
+			return sbc_r8(cpu, *opcode);
 		}
 
 		unimlemented_opcode(*opcode);
