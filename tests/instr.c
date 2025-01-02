@@ -302,11 +302,13 @@ int main(int argc, char *argv[])
 
 	run_opcode(0x10, "STOP");
 
-	#endif
 	for (int i = 0x80; i <= 0x87; i++)
 		run_opcode(i, "ADD A, r8");
 	for (int i = 0x88; i <= 0x8f; i++)
 		run_opcode(i, "ADC A, r8");
+	#endif
+	for (int i = 0x90; i <= 0x97; i++)
+		run_opcode(i, "SUB A, r8");
 
 	run_opcode(0xf3, "ei");
 	run_opcode(0xfb, "di");
