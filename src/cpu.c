@@ -684,6 +684,14 @@ ret(struct CPU *cpu)
 	return 4;
 }
 
+static int
+reti(struct CPU *cpu)
+{
+	ret(cpu);
+	ei(cpu);
+	return 4;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -855,6 +863,8 @@ execute(struct CPU *cpu) {
 
 	if (*opcode == 0xc9)
 		return ret(cpu);
+	if (*opcode == 0xd9)
+		return reti(cpu);
 
 	if (*opcode == 0xf3)
 		return ei(cpu);

@@ -335,6 +335,7 @@ int main(int argc, char *argv[])
 #endif
 
 	run_opcode(0xc9, "ret");
+	run_opcode(0xd9, "reti");
 
 	return 0;
 }
