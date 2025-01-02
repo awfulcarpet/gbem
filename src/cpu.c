@@ -454,6 +454,63 @@ sub(struct CPU *cpu, uint8_t n)
 	cpu->f.z = (cpu->a == 0);
 }
 
+static void
+sbc(struct CPU *cpu, uint8_t n)
+{
+	uint8_t res = cpu->a - n - cpu->f.c;
+
+	cpu->f.h = (cpu->a & 0xf) < ((n & 0xf) + (cpu->f.c));
+	cpu->f.c = n + cpu->f.c > cpu->a;
+	cpu->f.n = 1;
+
+	cpu->a = res;
+	cpu->f.z = (cpu->a == 0);
+}
+
+static void
+and(struct CPU *cpu, uint8_t n)
+{
+	cpu->a &= n;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.n = 0;
+	cpu->f.h = 1;
+	cpu->f.c = 0;
+}
+
+static void
+xor(struct CPU *cpu, uint8_t n)
+{
+	cpu->a ^= n;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+	cpu->f.c = 0;
+}
+
+static void
+or(struct CPU *cpu, uint8_t n)
+{
+	cpu->a |= n;
+
+	cpu->f.z = (cpu->a == 0);
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+	cpu->f.c = 0;
+}
+
+static void
+cp(struct CPU *cpu, uint8_t n)
+{
+	uint8_t res = cpu->a - n;
+
+	cpu->f.z = (res == 0);
+	cpu->f.n = 1;
+	cpu->f.h = (cpu->a & 0xf) < (n & 0xf);
+	cpu->f.c = cpu->a < n;
+}
+
 /* TODO? fix h flag */
 static int
 add_r8(struct CPU *cpu, uint8_t opcode)
@@ -502,14 +559,8 @@ sbc_r8(struct CPU *cpu, uint8_t opcode)
 {
 	uint8_t *reg = NULL;
 	set_regs_r8(reg, 0b111, 0);
-	uint8_t res = cpu->a - *reg - cpu->f.c;
 
-	cpu->f.h = (cpu->a & 0xf) < ((*reg & 0xf) + (cpu->f.c));
-	cpu->f.c = *reg + cpu->f.c > cpu->a;
-	cpu->f.n = 1;
-
-	cpu->a = res;
-	cpu->f.z = (cpu->a == 0);
+	sbc(cpu, *reg);
 
 	if ((opcode & 0b111) == m)
 		return 2;
@@ -523,12 +574,7 @@ and_r8(struct CPU *cpu, uint8_t opcode)
 	uint8_t *reg = NULL;
 	set_regs_r8(reg, 0b111, 0)
 
-	cpu->a &= *reg;
-
-	cpu->f.z = (cpu->a == 0);
-	cpu->f.n = 0;
-	cpu->f.h = 1;
-	cpu->f.c = 0;
+	and(cpu, *reg);
 
 	if ((opcode & 0b111) == m)
 		return 2;
@@ -542,12 +588,7 @@ xor_r8(struct CPU *cpu, uint8_t opcode)
 	uint8_t *reg = NULL;
 	set_regs_r8(reg, 0b111, 0)
 
-	cpu->a ^= *reg;
-
-	cpu->f.z = (cpu->a == 0);
-	cpu->f.n = 0;
-	cpu->f.h = 0;
-	cpu->f.c = 0;
+	xor(cpu, *reg);
 
 	if ((opcode & 0b111) == m)
 		return 2;
@@ -561,12 +602,7 @@ or_r8(struct CPU *cpu, uint8_t opcode)
 	uint8_t *reg = NULL;
 	set_regs_r8(reg, 0b111, 0)
 
-	cpu->a |= *reg;
-
-	cpu->f.z = (cpu->a == 0);
-	cpu->f.n = 0;
-	cpu->f.h = 0;
-	cpu->f.c = 0;
+	or(cpu, *reg);
 
 	if ((opcode & 0b111) == m)
 		return 2;
@@ -579,12 +615,8 @@ cp_r8(struct CPU *cpu, uint8_t opcode)
 {
 	uint8_t *reg = NULL;
 	set_regs_r8(reg, 0b111, 0)
-	uint8_t res = cpu->a - *reg;
 
-	cpu->f.z = (res == 0);
-	cpu->f.n = 1;
-	cpu->f.h = (cpu->a & 0xf) < (*reg & 0xf);
-	cpu->f.c = cpu->a < *reg;
+	cp(cpu, *reg);
 
 	if ((opcode & 0b111) == m)
 		return 2;
@@ -616,6 +648,47 @@ sub_imm8(struct CPU *cpu, uint8_t n)
 {
 	sub(cpu, n);
 
+	cpu->pc++;
+	return 2;
+}
+
+static int
+sbc_imm8(struct CPU *cpu, uint8_t n)
+{
+	sbc(cpu, n);
+
+	cpu->pc++;
+	return 2;
+}
+
+static int
+and_imm8(struct CPU *cpu, uint8_t n)
+{
+	and(cpu, n);
+	cpu->pc++;
+	return 2;
+}
+
+static int
+xor_imm8(struct CPU *cpu, uint8_t n)
+{
+	xor(cpu, n);
+	cpu->pc++;
+	return 2;
+}
+
+static int
+or_imm8(struct CPU *cpu, uint8_t n)
+{
+	or(cpu, n);
+	cpu->pc++;
+	return 2;
+}
+
+static int
+cp_imm8(struct CPU *cpu, uint8_t n)
+{
+	cp(cpu, n);
 	cpu->pc++;
 	return 2;
 }
@@ -768,6 +841,21 @@ execute(struct CPU *cpu) {
 				break;
 			case 2:
 				return sub_imm8(cpu, cpu->memory[cpu->pc]);
+				break;
+			case 3:
+				return sbc_imm8(cpu, cpu->memory[cpu->pc]);
+				break;
+			case 4:
+				return and_imm8(cpu, cpu->memory[cpu->pc]);
+				break;
+			case 5:
+				return xor_imm8(cpu, cpu->memory[cpu->pc]);
+				break;
+			case 6:
+				return or_imm8(cpu, cpu->memory[cpu->pc]);
+				break;
+			case 7:
+				return cp_imm8(cpu, cpu->memory[cpu->pc]);
 				break;
 		}
 

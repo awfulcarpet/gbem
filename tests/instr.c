@@ -320,20 +320,19 @@ int main(int argc, char *argv[])
 	for (int i = 0xb8; i <= 0xbf; i++)
 		run_opcode(i, "CP A, r8");
 
-	run_opcode(0xf3, "ei");
-	run_opcode(0xfb, "di");
-#endif
-
 	/* 8 bit arith imm8 */
 	run_opcode(0xc6, "ADD A, n8");
 	run_opcode(0xce, "ADC A, n8");
 	run_opcode(0xd6, "SUB A, n8");
-	/*run_opcode(0xde, "SBC A, n8");*/
-	/*run_opcode(0xe6, "AND A, n8");*/
-	/*run_opcode(0xee, "XOR A, n8");*/
-	/*run_opcode(0xf6, "OR A, n8");*/
-	/*run_opcode(0xfe, "CP A, n8");*/
+	run_opcode(0xde, "SBC A, n8");
+	run_opcode(0xe6, "AND A, n8");
+	run_opcode(0xee, "XOR A, n8");
+	run_opcode(0xf6, "OR A, n8");
+	run_opcode(0xfe, "CP A, n8");
 
+	run_opcode(0xf3, "ei");
+	run_opcode(0xfb, "di");
+#endif
 
 	return 0;
 }
