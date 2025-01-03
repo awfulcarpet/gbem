@@ -313,7 +313,6 @@ int main(int argc, char *argv[])
 			run_opcode(i, "ld r8 r8");
 	}
 
-
 	/* 8 bit arith */
 	for (int i = 0x80; i <= 0x87; i++)
 		run_opcode(i, "ADD A, r8");
@@ -358,7 +357,20 @@ int main(int argc, char *argv[])
 	run_opcode(0xd2, "JP NC");
 	run_opcode(0xda, "JP C");
 
+	run_opcode(0xcd, "CALL a16");
 
+	run_opcode(0xc4, "CALL NZ");
+	run_opcode(0xcc, "CALL Z");
+	run_opcode(0xd4, "CALL NC");
+	run_opcode(0xdc, "CALL C");
 
+	run_opcode(0xc6, "RST $00");
+	run_opcode(0xcf, "RST $08");
+	run_opcode(0xd6, "RST $10");
+	run_opcode(0xdf, "RST $18");
+	run_opcode(0xe6, "RST $20");
+	run_opcode(0xef, "RST $28");
+	run_opcode(0xf6, "RST $30");
+	run_opcode(0xff, "RST $38");
 	return 0;
 }

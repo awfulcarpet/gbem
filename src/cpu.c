@@ -138,6 +138,17 @@ jp(struct CPU *cpu, uint8_t h, uint8_t l)
 	cpu->pc = h << 8 | l;
 }
 
+static void
+call(struct CPU *cpu, uint8_t h, uint8_t l)
+{
+	cpu->pc += 2;
+	cpu->memory[cpu->sp - 1] = cpu->pc >> 8;
+	cpu->memory[cpu->sp - 2] = cpu->pc & 0xff;
+	cpu->sp -= 2;
+
+	cpu->pc = h << 8 | l;
+}
+
 static int
 inc_r16(struct CPU *cpu, uint8_t opcode)
 {
@@ -742,11 +753,6 @@ jp_hl(struct CPU *cpu)
 static int
 jp_cond(struct CPU *cpu, uint8_t opcode)
 {
-	/* jr e8 */
-	if (opcode == 0x18)
-		goto jmp;
-
-	/* other */
 	switch (opcode >> 3 & 0b11) {
 		case nzero:
 			if (cpu->f.z == 0)
@@ -775,6 +781,59 @@ jp_cond(struct CPU *cpu, uint8_t opcode)
 
 jmp:
 	jp(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc]);
+	return 4;
+}
+
+static int
+call_a16(struct CPU *cpu)
+{
+	call(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc]);
+	return 6;
+}
+
+static int
+call_cond(struct CPU *cpu, uint8_t opcode)
+{
+	switch (opcode >> 3 & 0b11) {
+		case nzero:
+			if (cpu->f.z == 0)
+				goto call;
+			break;
+		case zero:
+			if (cpu->f.z)
+				goto call;
+			break;
+		case ncarry:
+			if (cpu->f.c == 0)
+				goto call;
+			break;
+		case carry:
+			if (cpu->f.c)
+				goto call;
+			break;
+		default:
+			fprintf(stderr, "incorrect call\n");
+			exit(1);
+		break;
+	}
+
+	cpu->pc += 2;
+	return 3;
+
+call:
+	call(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc]);
+	return 6;
+}
+
+static int
+rst(struct CPU *cpu, uint8_t opcode)
+{
+	uint16_t adr = (opcode >> 3 & 0b111) * 8;
+	cpu->memory[cpu->sp - 1] = cpu->pc >> 8;
+	cpu->memory[cpu->sp - 2] = cpu->pc & 0xff;
+	cpu->sp -= 2;
+
+	jp(cpu, adr >> 8, adr & 0xff);
 	return 4;
 }
 
@@ -962,6 +1021,16 @@ execute(struct CPU *cpu) {
 		return jp_hl(cpu);
 	if ((*opcode & 0b11100111) == 0b11000010) {
 		return jp_cond(cpu, *opcode);
+	}
+
+	if (*opcode == 0xcd)
+		return call_a16(cpu);
+	if ((*opcode & 0b11100111) == 0b11000100) {
+		return call_cond(cpu, *opcode);
+	}
+
+	if ((*opcode & 0b11000111) == 0b11000111) {
+		return rst(cpu, *opcode);
 	}
 
 	if (*opcode == 0xf3)

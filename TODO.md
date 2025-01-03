@@ -59,9 +59,9 @@
         - [x] jp cond, imm16
         - [x] jp imm16
         - [x] jp hl
-        - [ ] call cond, imm16
-        - [ ] call imm16
-        - [ ] rst tgt3
+        - [x] call cond, imm16
+        - [x] call imm16
+        - [x] rst tgt3
 
         - [ ] pop r16stk
         - [ ] push r16stk
