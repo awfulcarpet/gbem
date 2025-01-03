@@ -187,7 +187,7 @@ run_test(cJSON *json)
 
 /* returns amount of tests failed */
 int
-run_opcode(int opcode, char *msg)
+run_opcode(int opcode)
 {
 #ifdef sm83
 	char *filename = calloc(strlen("tests/sm83/v1/00.json") + 1, sizeof(char));
@@ -202,12 +202,10 @@ run_opcode(int opcode, char *msg)
 	cJSON *json = cJSON_Parse(buf);
 	cJSON *test = NULL;
 
-	if (msg != NULL) {
-		int len = 15 - strlen(msg);
-		printf("0x%02x: %s%*.*s", opcode, msg, len, len, "................");
-	} else {
-		printf("%02x%*.*s", opcode, 13, 13, ".............................");
-	}
+	char *mnemonic = get_mnemonic(opcode);
+	int len = 20 - strlen(mnemonic);
+	printf("%02x: %s%*.*s", opcode, mnemonic, len, len, "...........................");
+	free(mnemonic);
 
 	cJSON_ArrayForEach(test, json)
 	{
@@ -228,14 +226,14 @@ int main(int argc, char *argv[])
 {
 
 	if (argc == 2) {
-		run_opcode(atoi(argv[1]), NULL);
+		run_opcode(atoi(argv[1]));
 		return 0;
 	}
 
 	if (argc > 2) {
 		for (int i = 1; i < argc; i++) {
 			uint8_t opcode = atoi(argv[i]);
-			run_opcode(opcode, NULL);
+			run_opcode(opcode);
 		}
 		return 0;
 	}
@@ -247,130 +245,130 @@ int main(int argc, char *argv[])
 #endif
 
 	/* does not test EI, DI, STOP, or HALT */
-	run_opcode(0x00, "NOP");
+	run_opcode(0x00);
 
 	/* ld r16, imm16 */
 	for (int i = 0x01; i <= 0x31; i += 0x10) {
-		run_opcode(i, "ld r16, imm16");
+		run_opcode(i);
 	}
 
 	/* ld [r16mem], a */
 	for (int i = 0x02; i <= 0x32; i += 0x10) {
-		run_opcode(i, "ld [r16mem], a");
+		run_opcode(i);
 	}
 
 	/* ld a, [r16mem] */
 	for (int i = 0x0A; i <= 0x3A; i += 0x10) {
-		run_opcode(i, "ld a, [r16mem]");
+		run_opcode(i);
 	}
 
 	/* ld [imm16], sp */
-	run_opcode(0x08, "ld [imm16], sp");
+	run_opcode(0x08);
 
 	/* inc r16 */
 	for (int i = 0x03; i <= 0x33; i += 0x10) {
-		run_opcode(i, "inc r16");
+		run_opcode(i);
 	}
 
 	/* dec r16 */
 	for (int i = 0x0b; i <= 0x3b; i += 0x10) {
-		run_opcode(i, "dec r16");
+		run_opcode(i);
 	}
 
 	/* add hl, r16*/
 	for (int i = 0x09; i <= 0x39; i += 0x10) {
-		run_opcode(i, "add hl, r16");
+		run_opcode(i);
 	}
 
 	/* dec r8 */
 	for (int i = 0x05; i <= 0x3c; i += 0x08) {
-		run_opcode(i, "dec r8");
+		run_opcode(i);
 	}
 
 	/* inc r8 */
 	for (int i = 0x04; i <= 0x3c; i += 0x08) {
-		run_opcode(i, "inc r8");
+		run_opcode(i);
 	}
 
 	/* ld r8 imm8 */
 	for (int i = 0x06; i <= 0x36; i += 0x08) {
-		run_opcode(i, "ld r8 imm8");
+		run_opcode(i);
 	}
 
 	/* bitshifts */
-	run_opcode(0x07, "RLCA");
-	run_opcode(0x0F, "RRCA");
-	run_opcode(0x17, "RLA");
-	run_opcode(0x1F, "RRA");
-	run_opcode(0x27, "DAA");
-	run_opcode(0x2F, "CPL");
-	run_opcode(0x37, "SCF");
-	run_opcode(0x3F, "CCF");
+	run_opcode(0x07);
+	run_opcode(0x0F);
+	run_opcode(0x17);
+	run_opcode(0x1F);
+	run_opcode(0x27);
+	run_opcode(0x2F);
+	run_opcode(0x37);
+	run_opcode(0x3F);
 
 	/* ld r8 r8 */
 	for (int i = 0x40; i <= 0x7F; i += 0x01) {
 		if (i != 0x76)
-			run_opcode(i, "ld r8 r8");
+			run_opcode(i);
 	}
 
 	/* 8 bit arith */
 	for (int i = 0x80; i <= 0x87; i++)
-		run_opcode(i, "ADD A, r8");
+		run_opcode(i);
 	for (int i = 0x88; i <= 0x8f; i++)
-		run_opcode(i, "ADC A, r8");
+		run_opcode(i);
 	for (int i = 0x90; i <= 0x97; i++)
-		run_opcode(i, "SUB A, r8");
+		run_opcode(i);
 	for (int i = 0x98; i <= 0x9f; i++)
-		run_opcode(i, "SBC A, r8");
+		run_opcode(i);
 	for (int i = 0xa0; i <= 0xa7; i++)
-		run_opcode(i, "AND A, r8");
+		run_opcode(i);
 	for (int i = 0xa8; i <= 0xaf; i++)
-		run_opcode(i, "XOR A, r8");
+		run_opcode(i);
 	for (int i = 0xb0; i <= 0xb7; i++)
-		run_opcode(i, "OR A, r8");
+		run_opcode(i);
 	for (int i = 0xb8; i <= 0xbf; i++)
-		run_opcode(i, "CP A, r8");
+		run_opcode(i);
 
 	/* 8 bit arith imm8 */
-	run_opcode(0xc6, "ADD A, n8");
-	run_opcode(0xce, "ADC A, n8");
-	run_opcode(0xd6, "SUB A, n8");
-	run_opcode(0xde, "SBC A, n8");
-	run_opcode(0xe6, "AND A, n8");
-	run_opcode(0xee, "XOR A, n8");
-	run_opcode(0xf6, "OR A, n8");
-	run_opcode(0xfe, "CP A, n8");
+	run_opcode(0xc6);
+	run_opcode(0xce);
+	run_opcode(0xd6);
+	run_opcode(0xde);
+	run_opcode(0xe6);
+	run_opcode(0xee);
+	run_opcode(0xf6);
+	run_opcode(0xfe);
 
-	run_opcode(0xc9, "ret");
-	run_opcode(0xd9, "reti");
+	run_opcode(0xc9);
+	run_opcode(0xd9);
 
-	run_opcode(0xc0, "RET NZ");
-	run_opcode(0xc8, "RET Z");
-	run_opcode(0xd0, "RET NC");
-	run_opcode(0xd8, "RET C");
+	run_opcode(0xc0);
+	run_opcode(0xc8);
+	run_opcode(0xd0);
+	run_opcode(0xd8);
 
-	run_opcode(0xc3, "JP a16");
-	run_opcode(0xe9, "JP HL");
+	run_opcode(0xc3);
+	run_opcode(0xe9);
 
-	run_opcode(0xc2, "JP NZ");
-	run_opcode(0xca, "JP Z");
-	run_opcode(0xd2, "JP NC");
-	run_opcode(0xda, "JP C");
+	run_opcode(0xc2);
+	run_opcode(0xca);
+	run_opcode(0xd2);
+	run_opcode(0xda);
 
-	run_opcode(0xcd, "CALL a16");
+	run_opcode(0xcd);
 
-	run_opcode(0xc4, "CALL NZ");
-	run_opcode(0xcc, "CALL Z");
-	run_opcode(0xd4, "CALL NC");
-	run_opcode(0xdc, "CALL C");
+	run_opcode(0xc4);
+	run_opcode(0xcc);
+	run_opcode(0xd4);
+	run_opcode(0xdc);
 
-	run_opcode(0xc6, "RST $00");
-	run_opcode(0xcf, "RST $08");
-	run_opcode(0xd6, "RST $10");
-	run_opcode(0xdf, "RST $18");
-	run_opcode(0xe6, "RST $20");
-	run_opcode(0xef, "RST $28");
-	run_opcode(0xf6, "RST $30");
-	run_opcode(0xff, "RST $38");
+	run_opcode(0xc6);
+	run_opcode(0xcf);
+	run_opcode(0xd6);
+	run_opcode(0xdf);
+	run_opcode(0xe6);
+	run_opcode(0xef);
+	run_opcode(0xf6);
+	run_opcode(0xff);
 	return 0;
 }
