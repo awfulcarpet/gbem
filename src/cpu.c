@@ -132,6 +132,12 @@ set_zn(struct CPU *cpu, uint8_t reg, uint8_t n)
 	cpu->f.z = (reg == 0);
 }
 
+static void
+jp(struct CPU *cpu, uint8_t h, uint8_t l)
+{
+	cpu->pc = h << 8 | l;
+}
+
 static int
 inc_r16(struct CPU *cpu, uint8_t opcode)
 {
@@ -719,6 +725,59 @@ ret:
 	return 5;
 }
 
+static int
+jp_a16(struct CPU *cpu)
+{
+	jp(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc]);
+	return 4;
+}
+
+static int
+jp_hl(struct CPU *cpu)
+{
+	jp(cpu, cpu->h, cpu->l);
+	return 4;
+}
+
+static int
+jp_cond(struct CPU *cpu, uint8_t opcode)
+{
+	/* jr e8 */
+	if (opcode == 0x18)
+		goto jmp;
+
+	/* other */
+	switch (opcode >> 3 & 0b11) {
+		case nzero:
+			if (cpu->f.z == 0)
+				goto jmp;
+			break;
+		case zero:
+			if (cpu->f.z)
+				goto jmp;
+			break;
+		case ncarry:
+			if (cpu->f.c == 0)
+				goto jmp;
+			break;
+		case carry:
+			if (cpu->f.c)
+				goto jmp;
+			break;
+		default:
+			fprintf(stderr, "incorrect jmp\n");
+			exit(1);
+		break;
+	}
+
+	cpu->pc += 2;
+	return 3;
+
+jmp:
+	jp(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc]);
+	return 4;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -895,6 +954,14 @@ execute(struct CPU *cpu) {
 
 	if ((*opcode & 0b11100111) == 0b11000000) {
 		return ret_cond(cpu, *opcode);
+	}
+
+	if (*opcode == 0xc3)
+		return jp_a16(cpu);
+	if (*opcode == 0xe9)
+		return jp_hl(cpu);
+	if ((*opcode & 0b11100111) == 0b11000010) {
+		return jp_cond(cpu, *opcode);
 	}
 
 	if (*opcode == 0xf3)

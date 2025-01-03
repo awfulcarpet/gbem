@@ -337,6 +337,15 @@ int main(int argc, char *argv[])
 	run_opcode(0xd0, "RET NC");
 	run_opcode(0xd8, "RET C");
 
+	run_opcode(0xc3, "JP a16");
+	run_opcode(0xe9, "JP HL");
+
+	run_opcode(0xc2, "JP NZ");
+	run_opcode(0xca, "JP Z");
+	run_opcode(0xd2, "JP NC");
+	run_opcode(0xda, "JP C");
+
+
 
 	return 0;
 }
