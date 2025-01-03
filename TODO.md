@@ -1,4 +1,4 @@
-- [ ] finish and pass 100% of sm83 test suite
+- [ ] finish and pass 100% of sm83 + gameboycputests test suite
     - [x] block 0
         - [x] nop
 
@@ -56,9 +56,9 @@
         - [x] ret cond
         - [x] ret
         - [x] reti
-        - [ ] jp cond, imm16
-        - [ ] jp imm16
-        - [ ] jp hl
+        - [x] jp cond, imm16
+        - [x] jp imm16
+        - [x] jp hl
         - [ ] call cond, imm16
         - [ ] call imm16
         - [ ] rst tgt3

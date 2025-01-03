@@ -104,8 +104,12 @@ is_cpu_same(struct CPU *cpu1, struct CPU *cpu2)
 void
 cpu_from_json(const cJSON *json, struct CPU *cpu)
 {
+#ifdef sm83
+	cpu->pc = cJSON_GetObjectItem(json, "pc")->valueint;
+#else
 	/* why gbcputests is pc = pc + 1 */
 	cpu->pc = cJSON_GetObjectItem(json, "pc")->valueint - 1;
+#endif
 	cpu->sp = cJSON_GetObjectItem(json, "sp")->valueint;
 	cpu->a = cJSON_GetObjectItem(json, "a")->valueint;
 	cpu->b = cJSON_GetObjectItem(json, "b")->valueint;
@@ -185,10 +189,13 @@ run_test(cJSON *json)
 int
 run_opcode(int opcode, char *msg)
 {
-	/*char *filename = calloc(strlen("tests/sm83/v1/00.json") + 1, sizeof(char));*/
-	/*sprintf(filename, "tests/sm83/v1/%02x.json", opcode);*/
+#ifdef sm83
+	char *filename = calloc(strlen("tests/sm83/v1/00.json") + 1, sizeof(char));
+	sprintf(filename, "tests/sm83/v1/%02x.json", opcode);
+#else
 	char *filename = calloc(strlen("tests/GameboyCPUTests/v2/00.json") + 1, sizeof(char));
 	sprintf(filename, "tests/GameboyCPUTests/v2/%02x.json", opcode);
+#endif
 
 	char *buf = read_test(filename);
 
@@ -232,6 +239,12 @@ int main(int argc, char *argv[])
 		}
 		return 0;
 	}
+
+#ifdef sm83
+	printf("running sm83 tests\n");
+#else
+	printf("running GameboyCPUTests tests\n");
+#endif
 
 	/* does not test EI, DI, STOP, or HALT */
 	run_opcode(0x00, "NOP");
