@@ -22,7 +22,7 @@ read_test(char *filename)
 	char *buf = NULL;
 	FILE *f = fopen(filename, "r");
 	if (f == NULL) {
-		fprintf(stderr, "unable to open test file\n");
+		fprintf(stderr, "unable to open test file: %s\n", filename);
 		return NULL;
 	}
 	fseek(f, 0, SEEK_END);
@@ -104,7 +104,8 @@ is_cpu_same(struct CPU *cpu1, struct CPU *cpu2)
 void
 cpu_from_json(const cJSON *json, struct CPU *cpu)
 {
-	cpu->pc = cJSON_GetObjectItem(json, "pc")->valueint;
+	/* why gbcputests is pc = pc + 1 */
+	cpu->pc = cJSON_GetObjectItem(json, "pc")->valueint - 1;
 	cpu->sp = cJSON_GetObjectItem(json, "sp")->valueint;
 	cpu->a = cJSON_GetObjectItem(json, "a")->valueint;
 	cpu->b = cJSON_GetObjectItem(json, "b")->valueint;
@@ -151,8 +152,6 @@ run_test(cJSON *json)
 	struct Test *test = test_from_json(json);
 
 
-	/*printf("test %s: ", test->name);*/
-
 	struct CPU cpu = test->initial;
 	while (cpu.mcycles < test->cycles) {
 		cpu.mcycles += execute(&cpu);
@@ -186,18 +185,21 @@ run_test(cJSON *json)
 int
 run_opcode(int opcode, char *msg)
 {
-	char *filename = calloc(strlen("tests/sm83/v1/00.json") + 1, sizeof(char));
-	sprintf(filename, "tests/sm83/v1/%02x.json", opcode);
+	/*char *filename = calloc(strlen("tests/sm83/v1/00.json") + 1, sizeof(char));*/
+	/*sprintf(filename, "tests/sm83/v1/%02x.json", opcode);*/
+	char *filename = calloc(strlen("tests/GameboyCPUTests/v2/00.json") + 1, sizeof(char));
+	sprintf(filename, "tests/GameboyCPUTests/v2/%02x.json", opcode);
 
 	char *buf = read_test(filename);
+
 	cJSON *json = cJSON_Parse(buf);
 	cJSON *test = NULL;
 
 	if (msg != NULL) {
 		int len = 15 - strlen(msg);
-		printf("0x%02x: %s%*.*s: ", opcode, msg, len, len, "");
+		printf("0x%02x: %s%*.*s", opcode, msg, len, len, "................");
 	} else {
-		printf("%02x%*.*s: ", opcode, 13, 13, "");
+		printf("%02x%*.*s", opcode, 13, 13, ".............................");
 	}
 
 	cJSON_ArrayForEach(test, json)
@@ -228,9 +230,12 @@ int main(int argc, char *argv[])
 			uint8_t opcode = atoi(argv[i]);
 			run_opcode(opcode, NULL);
 		}
+		return 0;
 	}
 
-#ifdef TESTALL
+	/* does not test EI, DI, STOP, or HALT */
+	run_opcode(0x00, "NOP");
+
 	/* ld r16, imm16 */
 	for (int i = 0x01; i <= 0x31; i += 0x10) {
 		run_opcode(i, "ld r16, imm16");
@@ -289,18 +294,12 @@ int main(int argc, char *argv[])
 	run_opcode(0x37, "SCF");
 	run_opcode(0x3F, "CCF");
 
-	/* ld r8 r8 + halt */
+	/* ld r8 r8 */
 	for (int i = 0x40; i <= 0x7F; i += 0x01) {
-		run_opcode(i, "ld r8 r8");
+		if (i != 0x76)
+			run_opcode(i, "ld r8 r8");
 	}
 
-	run_opcode(0x18, "jr e8");
-	run_opcode(0x20, "jr nz, e8");
-	run_opcode(0x28, "jr z, e8");
-	run_opcode(0x30, "jr nc, e8");
-	run_opcode(0x38, "jr c, e8");
-
-	run_opcode(0x10, "STOP");
 
 	/* 8 bit arith */
 	for (int i = 0x80; i <= 0x87; i++)
@@ -332,10 +331,6 @@ int main(int argc, char *argv[])
 
 	run_opcode(0xc9, "ret");
 	run_opcode(0xd9, "reti");
-
-	run_opcode(0xf3, "ei");
-	run_opcode(0xfb, "di");
-#endif
 
 	run_opcode(0xc0, "RET NZ");
 	run_opcode(0xc8, "RET Z");
