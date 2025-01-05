@@ -89,7 +89,7 @@
 
         - [ ] add sp, imm8
         - [ ] ld hl, sp + imm8
-        - [ ] ld sp, hl
+        - [x] ld sp, hl
 
         - [x] di
         - [x] ei
