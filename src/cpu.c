@@ -29,6 +29,17 @@ init_cpu(void) {
 	return cpu;
 }
 
+static uint16_t
+pop(struct CPU *cpu, uint8_t *h, uint8_t *l)
+{
+	cpu->sp += 2;
+	if (h != NULL)
+		*h = cpu->memory[cpu->sp - 1];
+	if (l != NULL)
+		*l = cpu->memory[cpu->sp - 2];
+	return cpu->memory[cpu->sp - 1] << 8 | cpu->memory[cpu->sp - 2];
+}
+
 
 static void
 add(struct CPU *cpu, uint8_t n)
@@ -696,8 +707,7 @@ cp_imm8(struct CPU *cpu, uint8_t n)
 static int
 ret(struct CPU *cpu)
 {
-	cpu->pc = cpu->memory[cpu->sp + 1] << 8 | cpu->memory[cpu->sp];
-	cpu->sp += 2;
+	cpu->pc = pop(cpu, NULL, NULL);
 	return 4;
 }
 
@@ -845,7 +855,7 @@ ld_sp_hl(struct CPU *cpu)
 }
 
 static int
-pop(struct CPU *cpu, uint8_t opcode)
+pop_r16stk(struct CPU *cpu, uint8_t opcode)
 {
 	int op = (opcode & 0b00110000) >> 4;
 	uint16_t reg = 0;
@@ -867,17 +877,15 @@ pop(struct CPU *cpu, uint8_t opcode)
 			break;
 	};
 
-	*high = cpu->memory[cpu->sp + 1];
-	*low = cpu->memory[cpu->sp];
+	pop(cpu, high, low);
 
 	if (op == s_af)
 		*low &= 0xf0;
-	cpu->sp += 2;
 	return 3;
 }
 
 static int
-push(struct CPU *cpu, uint8_t opcode)
+push_r16stk(struct CPU *cpu, uint8_t opcode)
 {
 	int op = (opcode & 0b00110000) >> 4;
 	uint16_t reg = 0;
@@ -1107,11 +1115,11 @@ execute(struct CPU *cpu) {
 	}
 
 	if ((*opcode & 0b11001111) == 0b11000001) {
-		return pop(cpu, *opcode);
+		return pop_r16stk(cpu, *opcode);
 	}
 
 	if ((*opcode & 0b11001111) == 0b11000101) {
-		return push(cpu, *opcode);
+		return push_r16stk(cpu, *opcode);
 	}
 
 	if (*opcode == 0xf9) {

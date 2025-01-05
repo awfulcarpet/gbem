@@ -12,7 +12,7 @@ enum r16mem {
 	hld = 3,
 };
 
-enum r16stack {
+enum r16stck {
 	s_bc,
 	s_de,
 	s_hl,
