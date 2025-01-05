@@ -374,9 +374,16 @@ int main(int argc, char *argv[])
 	run_opcode(0xf9);
 
 
+	/* pop */
 	run_opcode(0xc1);
 	run_opcode(0xd1);
 	run_opcode(0xe1);
 	run_opcode(0xf1);
+
+	/* push */
+	run_opcode(0xc5);
+	run_opcode(0xd5);
+	run_opcode(0xe5);
+	run_opcode(0xf5);
 	return 0;
 }
