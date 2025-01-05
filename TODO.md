@@ -63,8 +63,8 @@
         - [x] call imm16
         - [x] rst tgt3
 
-        - [ ] pop r16stk
-        - [ ] push r16stk
+        - [x] pop r16stk
+        - [x] push r16stk
 
         - [ ] cb prefixes
             - [ ] rlc r8
