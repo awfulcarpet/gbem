@@ -844,6 +844,38 @@ ld_sp_hl(struct CPU *cpu)
 	return 2;
 }
 
+static int
+pop(struct CPU *cpu, uint8_t opcode)
+{
+	int op = (opcode & 0b00110000) >> 4;
+	uint16_t reg = 0;
+	uint8_t *high, *low;
+	high = low = NULL;
+
+	switch (op) {
+		case s_bc:
+			get_r16(cpu->b, cpu->c);
+			break;
+		case s_de:
+			get_r16(cpu->d, cpu->e);
+			break;
+		case s_hl:
+			get_r16(cpu->h, cpu->l);
+			break;
+		case s_af:
+			get_r16(cpu->a, cpu->f.flags);
+			break;
+	};
+
+	*high = cpu->memory[cpu->sp + 1];
+	*low = cpu->memory[cpu->sp];
+
+	if (op == s_af)
+		*low &= 0xf0;
+	cpu->sp += 2;
+	return 3;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -1038,6 +1070,10 @@ execute(struct CPU *cpu) {
 
 	if ((*opcode & 0b11000111) == 0b11000111) {
 		return rst(cpu, *opcode);
+	}
+
+	if ((*opcode & 0b11001111) == 0b11000001) {
+		return pop(cpu, *opcode);
 	}
 
 	if (*opcode == 0xf9) {

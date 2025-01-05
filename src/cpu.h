@@ -12,6 +12,13 @@ enum r16mem {
 	hld = 3,
 };
 
+enum r16stack {
+	s_bc,
+	s_de,
+	s_hl,
+	s_af,
+};
+
 enum r8 {
 	b,
 	c,
