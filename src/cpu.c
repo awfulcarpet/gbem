@@ -837,6 +837,13 @@ rst(struct CPU *cpu, uint8_t opcode)
 	return 4;
 }
 
+static int
+ld_sp_hl(struct CPU *cpu)
+{
+	cpu->sp = cpu->h << 8 | cpu->l;
+	return 2;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -1031,6 +1038,10 @@ execute(struct CPU *cpu) {
 
 	if ((*opcode & 0b11000111) == 0b11000111) {
 		return rst(cpu, *opcode);
+	}
+
+	if (*opcode == 0xf9) {
+		return ld_sp_hl(cpu);
 	}
 
 	if (*opcode == 0xf3)

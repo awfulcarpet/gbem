@@ -370,5 +370,7 @@ int main(int argc, char *argv[])
 	run_opcode(0xef);
 	run_opcode(0xf6);
 	run_opcode(0xff);
+
+	run_opcode(0xf9);
 	return 0;
 }
