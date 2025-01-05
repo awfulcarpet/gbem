@@ -40,6 +40,13 @@ pop(struct CPU *cpu, uint8_t *h, uint8_t *l)
 	return cpu->memory[cpu->sp - 1] << 8 | cpu->memory[cpu->sp - 2];
 }
 
+static void
+push(struct CPU *cpu, uint8_t h, uint8_t l)
+{
+	cpu->memory[--cpu->sp] = h;
+	cpu->memory[--cpu->sp] = l;
+}
+
 
 static void
 add(struct CPU *cpu, uint8_t n)
@@ -153,9 +160,7 @@ static void
 call(struct CPU *cpu, uint8_t h, uint8_t l)
 {
 	cpu->pc += 2;
-	cpu->memory[cpu->sp - 1] = cpu->pc >> 8;
-	cpu->memory[cpu->sp - 2] = cpu->pc & 0xff;
-	cpu->sp -= 2;
+	push(cpu, cpu->pc >> 8, cpu->pc & 0xff);
 
 	cpu->pc = h << 8 | l;
 }
@@ -839,9 +844,7 @@ static int
 rst(struct CPU *cpu, uint8_t opcode)
 {
 	uint16_t adr = (opcode >> 3 & 0b111) * 8;
-	cpu->memory[cpu->sp - 1] = cpu->pc >> 8;
-	cpu->memory[cpu->sp - 2] = cpu->pc & 0xff;
-	cpu->sp -= 2;
+	push(cpu, cpu->pc >> 8, cpu->pc & 0xff);
 
 	jp(cpu, adr >> 8, adr & 0xff);
 	return 4;
