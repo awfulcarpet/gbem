@@ -933,6 +933,10 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 			cpu->memory[0xFF00 + cpu->c] = cpu->a;
 			return 2;
 		break;
+		case 0xEA:
+			cpu->memory[cpu->memory[cpu->pc++] | cpu->memory[cpu->pc++] << 8] = cpu->a;
+			return 4;
+		break;
 	}
 
 	return 3;
