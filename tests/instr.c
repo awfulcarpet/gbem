@@ -244,6 +244,13 @@ int main(int argc, char *argv[])
 	printf("running GameboyCPUTests tests\n");
 #endif
 
+	for (int i = 0x00; i <= 0xFF; i++) {
+		if (i != 0xCB)
+			run_opcode(i);
+	}
+
+	return 0;
+
 	/* does not test EI, DI, STOP, or HALT */
 	run_opcode(0x00);
 

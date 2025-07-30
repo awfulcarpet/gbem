@@ -921,6 +921,23 @@ push_r16stk(struct CPU *cpu, uint8_t opcode)
 	return 4;
 }
 
+static int
+ldh(struct CPU *cpu, const uint8_t opcode)
+{
+	switch (opcode) {
+		case 0xE0:
+			cpu->memory[0xFF00 + cpu->memory[cpu->pc++]] = cpu->a;
+			return 3;
+		break;
+		case 0xE2:
+			cpu->memory[0xFF00 + cpu->c] = cpu->a;
+			return 2;
+		break;
+	}
+
+	return 3;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -1123,6 +1140,11 @@ execute(struct CPU *cpu) {
 
 	if ((*opcode & 0b11001111) == 0b11000101) {
 		return push_r16stk(cpu, *opcode);
+	}
+
+	if ((*opcode & 0b11100101) == 0b11100000
+			|| (*opcode & 0b111100101) == 0b11110000) {
+		return ldh(cpu, *opcode);
 	}
 
 	if (*opcode == 0xf9) {

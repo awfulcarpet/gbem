@@ -17,10 +17,10 @@ main(int argc, char **argv) {
 
 	cpu->memory[0] = 0x2b;
 
-	/*for (int i = 0; i <= 0xFF; i++) {*/
+	for (int i = 0; i <= 0xFF; i++) {
 		print_cpu_state(cpu);
 		cpu->mcycles += execute(cpu);
 		print_cpu_state(cpu);
-	/*}*/
+	}
 	return 0;
 }
