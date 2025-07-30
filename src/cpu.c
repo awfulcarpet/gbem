@@ -938,6 +938,22 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 	return 3;
 }
 
+static int
+add_sp_imm8(struct CPU *cpu)
+{
+	uint8_t e = cpu->memory[cpu->pc++];
+
+	cpu->f.z = 0;
+	cpu->f.n = 0;
+
+	cpu->f.h = (((e & 0xF) + (cpu->sp & 0xF)) & 0x10) == 0x10;
+	cpu->f.c = (((e & 0xFF) + (cpu->sp & 0xFF)) & 0x100) == 0x100;
+
+	cpu->sp += (int8_t)e;
+
+	return 4;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -1142,6 +1158,10 @@ execute(struct CPU *cpu) {
 		return push_r16stk(cpu, *opcode);
 	}
 
+	if (*opcode == 0xE8) {
+		return add_sp_imm8(cpu);
+	}
+
 	if ((*opcode & 0b11100101) == 0b11100000
 			|| (*opcode & 0b111100101) == 0b11110000) {
 		return ldh(cpu, *opcode);
@@ -1150,6 +1170,7 @@ execute(struct CPU *cpu) {
 	if (*opcode == 0xf9) {
 		return ld_sp_hl(cpu);
 	}
+
 
 	if (*opcode == 0xf3)
 		return ei(cpu);

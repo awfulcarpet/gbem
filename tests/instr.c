@@ -94,6 +94,7 @@ is_cpu_same(struct CPU *cpu1, struct CPU *cpu2)
 		return 1;
 	}
 
+
 	if (memcmp(cpu1->memory, cpu2->memory, 0xffff + 1) != 0) {
 		LOG("mem differ\n")
 		return 1;
@@ -189,13 +190,8 @@ run_test(cJSON *json)
 int
 run_opcode(int opcode)
 {
-#ifdef sm83
-	char *filename = calloc(strlen("tests/sm83/v1/00.json") + 1, sizeof(char));
-	sprintf(filename, "tests/sm83/v1/%02x.json", opcode);
-#else
 	char *filename = calloc(strlen("tests/GameboyCPUTests/v2/00.json") + 1, sizeof(char));
 	sprintf(filename, "tests/GameboyCPUTests/v2/%02x.json", opcode);
-#endif
 
 	char *buf = read_test(filename);
 
