@@ -29,6 +29,13 @@ init_cpu(void) {
 	return cpu;
 }
 
+static void
+set_hc(struct CPU *cpu, uint8_t a, uint8_t b)
+{
+	cpu->f.h = (((a & 0xF) + (b & 0xF)) & 0x10) == 0x10;
+	cpu->f.c = (((a & 0xFF) + (b & 0xFF)) & 0x100) == 0x100;
+}
+
 static uint16_t
 pop(struct CPU *cpu, uint8_t *h, uint8_t *l)
 {
@@ -51,9 +58,7 @@ push(struct CPU *cpu, uint8_t h, uint8_t l)
 static void
 add(struct CPU *cpu, uint8_t n)
 {
-	cpu->f.c = (cpu->a + n) > 0xff;
-
-	cpu->f.h = (cpu->a & 0b1111) + (n & 0b1111) >= 0b10000;
+	set_hc(cpu, cpu->a, n);
 	cpu->f.n = 0;
 
 	cpu->a += n;
@@ -198,6 +203,7 @@ add_hl_r16(struct CPU *cpu, uint8_t opcode)
 	uint32_t res = hl + reg;
 
 	cpu->f.n = 0;
+
 	cpu->f.h = (((hl & 0xfff) + (reg & 0xfff)) & 0x1000) == 0x1000;
 	cpu->f.c = res > 0xffff;
 
@@ -951,8 +957,7 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 			cpu->f.z = 0;
 			cpu->f.n = 0;
 
-			cpu->f.h = (((e & 0xF) + (cpu->sp & 0xF)) & 0x10) == 0x10;
-			cpu->f.c = (((e & 0xFF) + (cpu->sp & 0xFF)) & 0x100) == 0x100;
+			set_hc(cpu, e, cpu->sp);
 
 			cpu->h = ((cpu->sp + (int8_t)e) & 0xFF00) >> 8;
 			cpu->l = (cpu->sp + (int8_t)e) & 0xFF;
@@ -979,8 +984,7 @@ add_sp_imm8(struct CPU *cpu)
 	cpu->f.z = 0;
 	cpu->f.n = 0;
 
-	cpu->f.h = (((e & 0xF) + (cpu->sp & 0xF)) & 0x10) == 0x10;
-	cpu->f.c = (((e & 0xFF) + (cpu->sp & 0xFF)) & 0x100) == 0x100;
+	set_hc(cpu, e, cpu->sp);
 
 	cpu->sp += (int8_t)e;
 
