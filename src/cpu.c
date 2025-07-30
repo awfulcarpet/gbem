@@ -937,6 +937,35 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 			cpu->memory[cpu->memory[cpu->pc++] | cpu->memory[cpu->pc++] << 8] = cpu->a;
 			return 4;
 		break;
+		case 0xf0:
+			cpu->a = cpu->memory[0xFF00 + cpu->memory[cpu->pc++]];
+			return 3;
+		break;
+		case 0xf2:
+			cpu->a = cpu->memory[0xFF00 + cpu->c];
+			return 2;
+		break;
+		case 0xf8: {
+			uint8_t e = cpu->memory[cpu->pc++];
+
+			cpu->f.z = 0;
+			cpu->f.n = 0;
+
+			cpu->f.h = (((e & 0xF) + (cpu->sp & 0xF)) & 0x10) == 0x10;
+			cpu->f.c = (((e & 0xFF) + (cpu->sp & 0xFF)) & 0x100) == 0x100;
+
+			cpu->h = ((cpu->sp + (int8_t)e) & 0xFF00) >> 8;
+			cpu->l = (cpu->sp + (int8_t)e) & 0xFF;
+			return 3;
+			break;
+		}
+		case 0xfa:
+			 cpu->a = cpu->memory[cpu->memory[cpu->pc++] | cpu->memory[cpu->pc++] << 8];
+			return 4;
+		break;
+		default:
+			unimlemented_opcode(opcode);
+		break;
 	}
 
 	return 3;

@@ -80,15 +80,15 @@
             - [ ] res b3, r8
             - [ ] set b3, r8
 
-        - [ ] ldh [c], a
-        - [ ] ldh [imm8], a
-        - [ ] ld [imm16], a
-        - [ ] ldh a, [c]
-        - [ ] ldh a, [imm8]
-        - [ ] ldh a, [imm16]
+        - [x] ldh [c], a
+        - [x] ldh [imm8], a
+        - [x] ld [imm16], a
+        - [x] ldh a, [c]
+        - [x] ldh a, [imm8]
+        - [x] ldh a, [imm16]
 
-        - [ ] add sp, imm8
-        - [ ] ld hl, sp + imm8
+        - [x] add sp, imm8
+        - [x] ld hl, sp + imm8
         - [x] ld sp, hl
 
         - [x] di
