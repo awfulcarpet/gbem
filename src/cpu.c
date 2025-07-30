@@ -1222,18 +1222,18 @@ execute(struct CPU *cpu) {
 void
 print_cpu_state(struct CPU *cpu)
 {
-	printf("CYC: %d ", cpu->mcycles);
+	fprintf(stderr, "CYC: %d ", cpu->mcycles);
 
-	printf("%c%c%c%c ",
+	fprintf(stderr, "%c%c%c%c ",
 		cpu->f.z ? 'z' : '-', cpu->f.n ? 'n' : '-', cpu->f.h ? 'h' : '-', cpu->f.c ? 'c' : '-');
 
-	printf("AF: %02x%02x BC: %02x%02x DE: %02x%02x HL: %02x%02x SP: %04x PC: %04x ",
+	fprintf(stderr, "AF: %02x%02x BC: %02x%02x DE: %02x%02x HL: %02x%02x SP: %04x PC: %04x ",
 		cpu->a, cpu->f.flags, cpu->b, cpu->c, cpu->d, cpu->e, cpu->h, cpu->l, cpu->sp, cpu->pc);
 
-	printf("[HL]: %02x Stk: %02x %02x %02x %02x ",
+	fprintf(stderr, "[HL]: %02x Stk: %02x %02x %02x %02x ",
 		cpu->memory[cpu->h << 8 | cpu->l], cpu->memory[cpu->sp], cpu->memory[cpu->sp+1], cpu->memory[cpu->sp+2], cpu->memory[cpu->sp+3]);
 
-	printf("nxt: %02x %02x %02x %02x ", cpu->memory[cpu->pc], cpu->memory[cpu->pc+1], cpu->memory[cpu->pc+2], cpu->memory[cpu->pc+3]);
+	fprintf(stderr, "nxt: %02x %02x %02x %02x ", cpu->memory[cpu->pc], cpu->memory[cpu->pc+1], cpu->memory[cpu->pc+2], cpu->memory[cpu->pc+3]);
 
-	printf("\n");
+	fprintf(stderr, "\n");
 }

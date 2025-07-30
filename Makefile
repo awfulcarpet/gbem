@@ -1,5 +1,5 @@
 WARNINGS = -Wall -Wextra -Wpedantic -Wno-unused-result -Wwrite-strings -Wcast-align -Wpointer-arith -Wunused-parameter -Wmissing-include-dirs
-CFLAGS = -std=c11 -O0 $(WARNINGS) $(DEFS)
+CFLAGS = -std=c99 -O0 $(WARNINGS) $(DEFS)
 LDLIBS =
 TESTS ?= TESTALL
 
@@ -22,7 +22,7 @@ run: $(NAME)
 	$(OUTDIR)/$(NAME)
 
 tests: make_tests
-	$(OUTDIR)/instr
+	$(OUTDIR)/instr > /dev/null
 
 $(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(OUTDIR)

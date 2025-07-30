@@ -163,11 +163,11 @@ run_test(cJSON *json)
 	}
 
 	if (is_cpu_same(&cpu, &test->final) != 0) {
-		printf("FAIL\ntest %s failed\n\n", test->name);
-		printf("%d\n", test->cycles);
-		printf("initial\n");
+		fprintf(stderr, "FAIL\ntest %s failed\n\n", test->name);
+		fprintf(stderr, "%d\n", test->cycles);
+		fprintf(stderr, "initial\n");
 		print_cpu_state(&test->initial);
-		printf("\n");
+		fprintf(stderr, "\n");
 
 		struct CPU cpu = test->initial;
 		while (cpu.mcycles < test->cycles) {
@@ -175,9 +175,9 @@ run_test(cJSON *json)
 			print_cpu_state(&cpu);
 		}
 
-		printf("\nfinal\n");
+		fprintf(stderr, "\nfinal\n");
 		print_cpu_state(&test->final);
-		printf("\n");
+		fprintf(stderr, "\n");
 		failed = 1;
 	}
 
@@ -186,7 +186,6 @@ run_test(cJSON *json)
 	return failed;
 }
 
-/* returns amount of tests failed */
 int
 run_opcode(int opcode)
 {
@@ -201,14 +200,19 @@ run_opcode(int opcode)
 	char *mnemonic = get_mnemonic(opcode);
 	int len = 20 - strlen(mnemonic);
 	printf("%02x: %s%*.*s", opcode, mnemonic, len, len, "...........................");
-	free(mnemonic);
 
 	cJSON_ArrayForEach(test, json)
 	{
 		if (run_test(test)) {
-			exit(1);
+			printf("fail\n");
+			fprintf(stderr, "%02x: %s%*.*sfail\n", opcode, mnemonic, len, len, "...........................");
+			cJSON_Delete(json);
+			free(buf);
+			free(mnemonic);
+			return 1;
 		}
 	}
+	free(mnemonic);
 
 	printf("pass\n");
 
@@ -234,6 +238,8 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
+	int tests = 0;
+	int passed = 0;
 	for (int i = 0x00; i <= 0xFF; i++) {
 		/* illegal opcodes */
 		if (i == 0xD3 || i == 0xDB || i == 0xDD
@@ -245,9 +251,14 @@ int main(int argc, char *argv[])
 		if (i == 0x10 || i == 0x76 || i == 0xf3 || i == 0xfb)
 			continue;
 
-		if (i != 0xCB)
-			run_opcode(i);
+		if (i == 0xCB)
+			continue;
+
+		tests++;
+		passed += !run_opcode(i);
 	}
+
+	fprintf(stderr, "passed %d/%d tests\n", passed, tests);
 
 	return 0;
 }
