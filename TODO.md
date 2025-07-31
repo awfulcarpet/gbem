@@ -67,12 +67,12 @@
         - [x] push r16stk
 
         - [ ] cb prefixes
-            - [ ] rlc r8
-            - [ ] rrc r8
-            - [ ] rl r8
-            - [ ] rr r8
-            - [ ] sla r8
-            - [ ] sra r8
+            - [x] rlc r8
+            - [x] rrc r8
+            - [x] rl r8
+            - [x] rr r8
+            - [x] sla r8
+            - [x] sra r8
             - [ ] swap r8
             - [ ] srl r8
 
