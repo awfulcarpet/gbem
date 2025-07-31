@@ -76,7 +76,7 @@
             - [x] swap r8
             - [x] srl r8
 
-            - [ ] bit b3, r8
+            - [x] bit b3, r8
             - [ ] res b3, r8
             - [ ] set b3, r8
 
