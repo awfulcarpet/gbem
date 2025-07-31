@@ -1150,6 +1150,27 @@ swap_r8(struct CPU *cpu, uint8_t opcode)
 }
 
 static int
+srl_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+
+	cpu->f.c = *reg & 1;
+	*reg >>= 1;
+
+	cpu->f.z = *reg == 0;
+
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+
+	/* [hl] */
+	if (opcode == 0x3e)
+		return 4;
+
+	return 2;
+}
+
+static int
 prefix(struct CPU *cpu)
 {
 	uint8_t opcode = cpu->memory[cpu->pc++];
@@ -1180,6 +1201,10 @@ prefix(struct CPU *cpu)
 
 	if ((opcode & 0b11111000) == 0b110000) {
 		return swap_r8(cpu, opcode);
+	}
+
+	if ((opcode & 0b11111000) == 0b111000) {
+		return srl_r8(cpu, opcode);
 	}
 
 	unimlemented_opcode(opcode);
