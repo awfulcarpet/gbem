@@ -251,9 +251,6 @@ int main(int argc, char *argv[])
 		if (i == 0x10 || i == 0x76 || i == 0xf3 || i == 0xfb)
 			continue;
 
-		if (i == 0xCB)
-			continue;
-
 		tests++;
 		passed += !run_opcode(i);
 	}

@@ -991,6 +991,37 @@ add_sp_imm8(struct CPU *cpu)
 	return 4;
 }
 
+static int
+rlc_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+
+
+	cpu->f.c = *reg >> 7;
+	*reg <<= 1;
+	*reg |= cpu->f.c;
+
+	cpu->f.z = *reg == 0;
+
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+
+	return 2;
+}
+
+static int
+prefix(struct CPU *cpu)
+{
+	uint8_t opcode = cpu->memory[cpu->pc++];
+
+	/* rlc r8 */
+	if ((opcode & 0b11111000) == 0) {
+		rlc_r8(cpu, opcode);
+	}
+	return 2;
+}
+
 int
 execute(struct CPU *cpu) {
 	uint8_t *opcode = &cpu->memory[cpu->pc];
@@ -1208,11 +1239,13 @@ execute(struct CPU *cpu) {
 		return ld_sp_hl(cpu);
 	}
 
-
 	if (*opcode == 0xf3)
 		return ei(cpu);
 	if (*opcode == 0xfb)
 		return di(cpu);
+
+	if (*opcode == 0xcb)
+		return prefix(cpu);
 
 	unimlemented_opcode(*opcode);
 
