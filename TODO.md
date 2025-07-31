@@ -73,7 +73,7 @@
             - [x] rr r8
             - [x] sla r8
             - [x] sra r8
-            - [ ] swap r8
+            - [x] swap r8
             - [ ] srl r8
 
             - [ ] bit b3, r8
