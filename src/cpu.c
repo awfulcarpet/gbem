@@ -1189,6 +1189,22 @@ bit_b3_r8(struct CPU *cpu, uint8_t opcode)
 }
 
 static int
+res_b3_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+
+	uint8_t bit = (opcode >> 3) & 0b111;
+
+	*reg &= ~(1 << bit);
+
+	if ((opcode & 0b111) == m)
+		return 4;
+
+	return 2;
+}
+
+static int
 prefix(struct CPU *cpu)
 {
 	uint8_t opcode = cpu->memory[cpu->pc++];
@@ -1227,6 +1243,10 @@ prefix(struct CPU *cpu)
 
 	if (opcode >> 6 == 1) {
 		return bit_b3_r8(cpu, opcode);
+	}
+
+	if (opcode >> 6 == 0b10) {
+		return res_b3_r8(cpu, opcode);
 	}
 
 	unimlemented_opcode(opcode);

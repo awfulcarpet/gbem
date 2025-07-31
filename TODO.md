@@ -77,7 +77,7 @@
             - [x] srl r8
 
             - [x] bit b3, r8
-            - [ ] res b3, r8
+            - [x] res b3, r8
             - [ ] set b3, r8
 
         - [x] ldh [c], a
