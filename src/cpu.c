@@ -1007,6 +1007,33 @@ rlc_r8(struct CPU *cpu, uint8_t opcode)
 	cpu->f.n = 0;
 	cpu->f.h = 0;
 
+	/* [hl] */
+	if (opcode == 0x06)
+		return 4;
+
+	return 2;
+}
+
+static int
+rrc_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+
+
+	cpu->f.c = *reg & 1;
+	*reg >>= 1;
+	*reg |= cpu->f.c << 7;
+
+	cpu->f.z = *reg == 0;
+
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+
+	/* [hl] */
+	if (opcode == 0x0e)
+		return 4;
+
 	return 2;
 }
 
@@ -1015,11 +1042,17 @@ prefix(struct CPU *cpu)
 {
 	uint8_t opcode = cpu->memory[cpu->pc++];
 
-	/* rlc r8 */
 	if ((opcode & 0b11111000) == 0) {
-		rlc_r8(cpu, opcode);
+		return rlc_r8(cpu, opcode);
 	}
-	return 2;
+
+	if ((opcode & 0b11111000) == 0b1000) {
+		return rrc_r8(cpu, opcode);
+	}
+
+	unimlemented_opcode(opcode);
+
+	return 100;
 }
 
 int
