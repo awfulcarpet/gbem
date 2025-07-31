@@ -1,4 +1,4 @@
-- [ ] finish and pass 100% of sm83 + gameboycputests test suite
+- [x] finish and pass 100% of sm83 + gameboycputests test suite
     - [x] block 0
         - [x] nop
 
@@ -43,7 +43,7 @@
         - [x] or a, r8
         - [x] cp a, r8
 
-    - [ ] block 3
+    - [x] block 3
         - [x] add a, imm8
         - [x] adc a, imm8
         - [x] sub a, imm8
@@ -66,7 +66,7 @@
         - [x] pop r16stk
         - [x] push r16stk
 
-        - [ ] cb prefixes
+        - [x] cb prefixes
             - [x] rlc r8
             - [x] rrc r8
             - [x] rl r8
@@ -78,7 +78,7 @@
 
             - [x] bit b3, r8
             - [x] res b3, r8
-            - [ ] set b3, r8
+            - [x] set b3, r8
 
         - [x] ldh [c], a
         - [x] ldh [imm8], a
