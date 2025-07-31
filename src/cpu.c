@@ -1038,6 +1038,54 @@ rrc_r8(struct CPU *cpu, uint8_t opcode)
 }
 
 static int
+rl_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+
+	uint8_t tmp = *reg >> 7;
+
+	*reg <<= 1;
+	*reg |= cpu->f.c;
+	cpu->f.c = tmp;
+
+	cpu->f.z = *reg == 0;
+
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+
+	/* [hl] */
+	if (opcode == 0x16)
+		return 4;
+
+	return 2;
+}
+
+static int
+rr_r8(struct CPU *cpu, uint8_t opcode)
+{
+	uint8_t *reg = NULL;
+	set_regs_r8(reg, 0b111, 0)
+
+	uint8_t tmp = *reg & 1;
+
+	*reg >>= 1;
+	*reg |= cpu->f.c << 7;
+	cpu->f.c = tmp;
+
+	cpu->f.z = *reg == 0;
+
+	cpu->f.n = 0;
+	cpu->f.h = 0;
+
+	/* [hl] */
+	if (opcode == 0x1e)
+		return 4;
+
+	return 2;
+}
+
+static int
 prefix(struct CPU *cpu)
 {
 	uint8_t opcode = cpu->memory[cpu->pc++];
@@ -1048,6 +1096,14 @@ prefix(struct CPU *cpu)
 
 	if ((opcode & 0b11111000) == 0b1000) {
 		return rrc_r8(cpu, opcode);
+	}
+
+	if ((opcode & 0b11111000) == 0b10000) {
+		return rl_r8(cpu, opcode);
+	}
+
+	if ((opcode & 0b11111000) == 0b11000) {
+		return rr_r8(cpu, opcode);
 	}
 
 	unimlemented_opcode(opcode);
