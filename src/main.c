@@ -1,7 +1,9 @@
+#include <stdio.h>
 #include <sys/types.h>
 
-#include "ram.h"
 #include "cpu.h"
+#include "ram.h"
+#include "opcode.h"
 
 int
 main(int argc, char **argv) {
@@ -26,8 +28,11 @@ main(int argc, char **argv) {
 	cpu->memory[9] = 0x79;
 	cpu->memory[10] = 0x4b;
 	cpu->memory[11] = 0x5f;
+	cpu->memory[12] = 0xe0;
+	cpu->memory[13] = 0x01;
 
-	cpu->memory[12] = 0x10; /* STOP */
+	cpu->memory[15] = 0x10; /* STOP */
+
 
 	print_cpu_state(cpu);
 	while (1) {
