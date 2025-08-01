@@ -1,14 +1,18 @@
 #include <assert.h>
+#include "cpu.h"
 #include "ram.h"
 
 uint8_t
-read(uint8_t *ram, uint16_t adr) {
-	return ram[adr];
+read(struct CPU *cpu, uint16_t adr) {
+	return cpu->memory[adr];
 }
 
 void
-write(uint8_t *ram, uint16_t adr, uint8_t data) {
-	assert(adr >= 0x8000); // avoid writing ROM
+write(struct CPU *cpu, uint16_t adr, uint8_t data) {
+	#ifdef TEST
+		assert(adr >= 0x8000); // avoid writing ROM
+	#endif
 
-	ram[adr] = data;
+
+	cpu->memory[adr] = data;
 }

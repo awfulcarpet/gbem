@@ -1,7 +1,7 @@
 WARNINGS = -Wall -Wextra -Wpedantic -Wno-unused-result -Wwrite-strings -Wcast-align -Wpointer-arith -Wunused-parameter -Wmissing-include-dirs
 CFLAGS = -std=c99 -O0 $(WARNINGS) $(DEFS)
 LDLIBS =
-TESTS ?= TESTALL
+TESTS ?= TEST
 
 NAME = gbem
 OUTDIR = .build

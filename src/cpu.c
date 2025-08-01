@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "cpu.h"
+#include "ram.h"
 #include "opcode.h"
 
 struct CPU *
@@ -78,17 +79,18 @@ pop(struct CPU *cpu, uint8_t *h, uint8_t *l)
 {
 	cpu->sp += 2;
 	if (h != NULL)
-		*h = cpu->memory[cpu->sp - 1];
+		*h = read(cpu, cpu->sp - 1);
 	if (l != NULL)
-		*l = cpu->memory[cpu->sp - 2];
-	return cpu->memory[cpu->sp - 1] << 8 | cpu->memory[cpu->sp - 2];
+		*l = read(cpu, cpu->sp - 2);
+
+	return read(cpu, cpu->sp - 1) << 8 | read(cpu, cpu->sp - 2);
 }
 
 static void
 push(struct CPU *cpu, uint8_t h, uint8_t l)
 {
-	cpu->memory[--cpu->sp] = h;
-	cpu->memory[--cpu->sp] = l;
+	write(cpu, --cpu->sp, h);
+	write(cpu, --cpu->sp, l);
 }
 
 
@@ -287,8 +289,8 @@ ld_r16_imm16(struct CPU *cpu, uint8_t opcode)
 {
 
 	set_regs_r16(0b00110000, 4)
-	reg = cpu->memory[cpu->pc + 1] << 8 | cpu->memory[cpu->pc];
 
+	reg = read(cpu, cpu->pc + 1) << 8 | read(cpu, cpu->pc);
 
 	set_r8_from_r16()
 	cpu->pc += 2;
@@ -301,7 +303,7 @@ ld_r16mem_a(struct CPU *cpu, uint8_t opcode)
 {
 	set_regs_r16mem(0b00110000, 4)
 
-	cpu->memory[reg] = cpu->a;
+	write(cpu, reg, cpu->a);
 
 	if (op == hli)
 		inc_r16(cpu, hl << 4);
@@ -316,7 +318,7 @@ ld_a_r16mem(struct CPU *cpu, uint8_t opcode)
 {
 	set_regs_r16mem(0b00110000, 4)
 
-	cpu->a = cpu->memory[reg];
+	cpu->a = read(cpu, reg);
 
 	if (op == hli)
 		inc_r16(cpu, hl << 4);
@@ -328,9 +330,10 @@ ld_a_r16mem(struct CPU *cpu, uint8_t opcode)
 static int
 ld_imm16_sp(struct CPU *cpu, uint8_t opcode)
 {
-	uint16_t adr = cpu->memory[cpu->pc + 1] << 8 | cpu->memory[cpu->pc];
-	cpu->memory[adr] = cpu->sp & 0xff;
-	cpu->memory[adr + 1] = cpu->sp >> 8;
+	uint16_t adr = read(cpu, cpu->pc + 1) << 8 | read(cpu, cpu->pc);
+
+	write(cpu, adr, cpu->sp & 0xff);
+	write(cpu, adr + 1, cpu->sp >> 8);
 	cpu->pc += 2;
 	return 5;
 }
@@ -355,7 +358,7 @@ ld_r8_imm8(struct CPU *cpu, uint8_t opcode)
 {
 	uint8_t *dst = parse_r8(cpu, opcode, 3);
 
-	*dst = cpu->memory[cpu->pc];
+	*dst = read(cpu, cpu->pc);
 
 	cpu->pc += 1;
 
@@ -530,7 +533,7 @@ jr_imm8(struct CPU *cpu, uint8_t opcode)
 	return 2;
 
 jmp:
-	cpu->pc += (int8_t)cpu->memory[cpu->pc] + 1;
+	cpu->pc += (int8_t)read(cpu, cpu->pc) + 1;
 	return 3;
 }
 
@@ -784,7 +787,7 @@ ret:
 static int
 jp_a16(struct CPU *cpu)
 {
-	jp(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc]);
+	jp(cpu, read(cpu, cpu->pc + 1), read(cpu, cpu->pc));
 	return 4;
 }
 
@@ -825,14 +828,14 @@ jp_cond(struct CPU *cpu, uint8_t opcode)
 	return 3;
 
 jmp:
-	jp(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc]);
+	jp(cpu, read(cpu, cpu->pc + 1), read(cpu, cpu->pc));
 	return 4;
 }
 
 static int
 call_a16(struct CPU *cpu)
 {
-	call(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc]);
+	call(cpu, read(cpu, cpu->pc + 1), read(cpu, cpu->pc));
 	return 6;
 }
 
@@ -866,7 +869,7 @@ call_cond(struct CPU *cpu, uint8_t opcode)
 	return 3;
 
 call:
-	call(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc]);
+	call(cpu, read(cpu, cpu->pc + 1), read(cpu, cpu->pc));
 	return 6;
 }
 
@@ -940,13 +943,8 @@ push_r16stk(struct CPU *cpu, uint8_t opcode)
 			break;
 	};
 
-	/*if (op == s_af)*/
-	/*	*low &= 0xf0;*/
-
-	cpu->memory[cpu->sp - 1] = *high;
-	cpu->memory[cpu->sp - 2] = *low;
-
-	cpu->sp -= 2;
+	write(cpu, --cpu->sp, *high);
+	write(cpu, --cpu->sp, *low);
 
 	return 4;
 }
@@ -956,27 +954,27 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 {
 	switch (opcode) {
 		case 0xE0:
-			cpu->memory[0xFF00 + cpu->memory[cpu->pc++]] = cpu->a;
+			write(cpu, 0xFF00 + read(cpu, cpu->pc++), cpu->a);
 			return 3;
 		break;
 		case 0xE2:
-			cpu->memory[0xFF00 + cpu->c] = cpu->a;
+			write(cpu, 0xFF00 + cpu->c, cpu->a);
 			return 2;
 		break;
 		case 0xEA:
-			cpu->memory[cpu->memory[cpu->pc++] | cpu->memory[cpu->pc++] << 8] = cpu->a;
+			write(cpu, read(cpu, cpu->pc++) | read(cpu, cpu->pc++) << 8, cpu->a);
 			return 4;
 		break;
 		case 0xf0:
-			cpu->a = cpu->memory[0xFF00 + cpu->memory[cpu->pc++]];
+			cpu->a = read(cpu, 0xFF00 + read(cpu, cpu->pc++));
 			return 3;
 		break;
 		case 0xf2:
-			cpu->a = cpu->memory[0xFF00 + cpu->c];
+			cpu->a = read(cpu, 0xFF00 + cpu->c);
 			return 2;
 		break;
 		case 0xf8: {
-			uint8_t e = cpu->memory[cpu->pc++];
+			uint8_t e = read(cpu, cpu->pc++);
 
 			cpu->f.z = 0;
 			cpu->f.n = 0;
@@ -989,7 +987,7 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 			break;
 		}
 		case 0xfa:
-			 cpu->a = cpu->memory[cpu->memory[cpu->pc++] | cpu->memory[cpu->pc++] << 8];
+			 cpu->a = read(cpu, read(cpu, cpu->pc++) | read(cpu, cpu->pc++) << 8);
 			return 4;
 		break;
 		default:
@@ -1003,7 +1001,7 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 static int
 add_sp_imm8(struct CPU *cpu)
 {
-	uint8_t e = cpu->memory[cpu->pc++];
+	uint8_t e = read(cpu, cpu->pc++);
 
 	cpu->f.z = 0;
 	cpu->f.n = 0;
@@ -1236,7 +1234,7 @@ set_b3_r8(struct CPU *cpu, uint8_t opcode)
 static int
 prefix(struct CPU *cpu)
 {
-	uint8_t opcode = cpu->memory[cpu->pc++];
+	uint8_t opcode = read(cpu, cpu->pc++);
 
 	if ((opcode & 0b11111000) == 0) {
 		return rlc_r8(cpu, opcode);
@@ -1289,230 +1287,230 @@ prefix(struct CPU *cpu)
 
 int
 execute(struct CPU *cpu) {
-	uint8_t *opcode = &cpu->memory[cpu->pc];
+	uint8_t opcode = read(cpu, cpu->pc);
 
 	if (!cpu->halt && !cpu->stop)
 		cpu->pc++;
 
 	/* block 0 opcodes */
-	if (*opcode <= 0x3f && *opcode >= 0x00) {
+	if (opcode <= 0x3f && opcode >= 0x00) {
 
 		/* NOP */
-		if (*opcode == 0x00)
+		if (opcode == 0x00)
 			return 1;
 
 
 		/* ld r16,imm16 */
-		if ((*opcode & 0b1111) == 0b0001) {
-			return ld_r16_imm16(cpu, *opcode);
+		if ((opcode & 0b1111) == 0b0001) {
+			return ld_r16_imm16(cpu, opcode);
 		}
 
 		/* ld [r16mem],a */
-		if ((*opcode & 0b1111) == 0b0010) {
-			return ld_r16mem_a(cpu, *opcode);
+		if ((opcode & 0b1111) == 0b0010) {
+			return ld_r16mem_a(cpu, opcode);
 		}
 
 		/* ld a,[r16mem] */
-		if ((*opcode & 0b1111) == 0b1010) {
-			return ld_a_r16mem(cpu, *opcode);
+		if ((opcode & 0b1111) == 0b1010) {
+			return ld_a_r16mem(cpu, opcode);
 		}
 
 		/* ld [imm16], sp */
-		if (*opcode == 0b00001000) {
-			return ld_imm16_sp(cpu, *opcode);
+		if (opcode == 0b00001000) {
+			return ld_imm16_sp(cpu, opcode);
 		}
 
 		/* inc r16 */
-		if ((*opcode & 0b1111) == 0b0011) {
-			return inc_r16(cpu, *opcode);
+		if ((opcode & 0b1111) == 0b0011) {
+			return inc_r16(cpu, opcode);
 		}
 
 		/* dec r16 */
-		if ((*opcode & 0b1111) == 0b1011) {
-			return dec_r16(cpu, *opcode);
+		if ((opcode & 0b1111) == 0b1011) {
+			return dec_r16(cpu, opcode);
 		}
 
 		/* add hl, r16 */
-		if ((*opcode & 0b1111) == 0b1001) {
-			return add_hl_r16(cpu, *opcode);
+		if ((opcode & 0b1111) == 0b1001) {
+			return add_hl_r16(cpu, opcode);
 		}
 
 		/* inc r8 */
-		if ((*opcode & 0b111) == 0b100) {
-			return inc_r8(cpu, *opcode);
+		if ((opcode & 0b111) == 0b100) {
+			return inc_r8(cpu, opcode);
 		}
 
 		/* dec r8 */
-		if ((*opcode & 0b111) == 0b101) {
-			return dec_r8(cpu, *opcode);
+		if ((opcode & 0b111) == 0b101) {
+			return dec_r8(cpu, opcode);
 		}
 
 		/* ld r8 imm8 */
-		if ((*opcode & 0b111) == 0b110) {
-			return ld_r8_imm8(cpu, *opcode);
+		if ((opcode & 0b111) == 0b110) {
+			return ld_r8_imm8(cpu, opcode);
 		}
 
 		/* bit shifts */
-		if ((*opcode & 0b111) == 0b111) {
-			return bit_shift(cpu, *opcode);
+		if ((opcode & 0b111) == 0b111) {
+			return bit_shift(cpu, opcode);
 		}
 
 		/* jr e8 */
 		/* jr cond, e8 */
-		if (*opcode == 0b00011000 || (*opcode & 0b00100111) == 0b00100000) {
-			return jr_imm8(cpu, *opcode);
+		if (opcode == 0b00011000 || (opcode & 0b00100111) == 0b00100000) {
+			return jr_imm8(cpu, opcode);
 		}
 
 		/* stop */
-		if (*opcode == 0x10)
+		if (opcode == 0x10)
 			return stop(cpu);
 
-		unimlemented_opcode(*opcode);
+		unimlemented_opcode(opcode);
 	}
 
 	/* block 1 */
-	if (*opcode >= 0x40 && *opcode <= 0x7F) {
+	if (opcode >= 0x40 && opcode <= 0x7F) {
 
 		/* halt */
 		/* TODO: implement waking from halt*/
-		if (*opcode == 0x76) {
+		if (opcode == 0x76) {
 			return halt(cpu);
 		}
 
-		return ld_r8_r8(cpu, *opcode);
+		return ld_r8_r8(cpu, opcode);
 	}
 
 	/* block 2 */
-	if (*opcode >= 0x80 && *opcode <= 0xbf) {
-		uint8_t op = *opcode >> 3 & 0b111;
+	if (opcode >= 0x80 && opcode <= 0xbf) {
+		uint8_t op = opcode >> 3 & 0b111;
 
 		if (op == 0b000) {
-			return add_r8(cpu, *opcode);
+			return add_r8(cpu, opcode);
 		}
 
 		if (op == 0b001) {
-			return adc_r8(cpu, *opcode);
+			return adc_r8(cpu, opcode);
 		}
 
 		if (op == 0b010) {
-			return sub_r8(cpu, *opcode);
+			return sub_r8(cpu, opcode);
 		}
 
 		if (op == 0b011) {
-			return sbc_r8(cpu, *opcode);
+			return sbc_r8(cpu, opcode);
 		}
 
 		if (op == 0b100) {
-			return and_r8(cpu, *opcode);
+			return and_r8(cpu, opcode);
 		}
 
 		if (op == 0b101) {
-			return xor_r8(cpu, *opcode);
+			return xor_r8(cpu, opcode);
 		}
 
 		if (op == 0b110) {
-			return or_r8(cpu, *opcode);
+			return or_r8(cpu, opcode);
 		}
 
 		if (op == 0b111) {
-			return cp_r8(cpu, *opcode);
+			return cp_r8(cpu, opcode);
 		}
 
-		unimlemented_opcode(*opcode);
+		unimlemented_opcode(opcode);
 	}
 
 	/* block 3 */
 	/* 8bit arith with imm8 */
-	if ((*opcode & 0b11000111) == 0b11000110) {
-		uint8_t op = *opcode >> 3 & 0b111;
+	if ((opcode & 0b11000111) == 0b11000110) {
+		uint8_t op = opcode >> 3 & 0b111;
 
 		switch (op) {
 			case 0:
-				return add_imm8(cpu, cpu->memory[cpu->pc]);
+				return add_imm8(cpu, read(cpu, cpu->pc));
 				break;
 			case 1:
-				return adc_imm8(cpu, cpu->memory[cpu->pc]);
+				return adc_imm8(cpu, read(cpu, cpu->pc));
 				break;
 			case 2:
-				return sub_imm8(cpu, cpu->memory[cpu->pc]);
+				return sub_imm8(cpu, read(cpu, cpu->pc));
 				break;
 			case 3:
-				return sbc_imm8(cpu, cpu->memory[cpu->pc]);
+				return sbc_imm8(cpu, read(cpu, cpu->pc));
 				break;
 			case 4:
-				return and_imm8(cpu, cpu->memory[cpu->pc]);
+				return and_imm8(cpu, read(cpu, cpu->pc));
 				break;
 			case 5:
-				return xor_imm8(cpu, cpu->memory[cpu->pc]);
+				return xor_imm8(cpu, read(cpu, cpu->pc));
 				break;
 			case 6:
-				return or_imm8(cpu, cpu->memory[cpu->pc]);
+				return or_imm8(cpu, read(cpu, cpu->pc));
 				break;
 			case 7:
-				return cp_imm8(cpu, cpu->memory[cpu->pc]);
+				return cp_imm8(cpu, read(cpu, cpu->pc));
 				break;
 		}
 
-		unimlemented_opcode(*opcode);
+		unimlemented_opcode(opcode);
 	}
 
-	if (*opcode == 0xc9)
+	if (opcode == 0xc9)
 		return ret(cpu);
-	if (*opcode == 0xd9)
+	if (opcode == 0xd9)
 		return reti(cpu);
 
-	if ((*opcode & 0b11100111) == 0b11000000) {
-		return ret_cond(cpu, *opcode);
+	if ((opcode & 0b11100111) == 0b11000000) {
+		return ret_cond(cpu, opcode);
 	}
 
-	if (*opcode == 0xc3)
+	if (opcode == 0xc3)
 		return jp_a16(cpu);
-	if (*opcode == 0xe9)
+	if (opcode == 0xe9)
 		return jp_hl(cpu);
-	if ((*opcode & 0b11100111) == 0b11000010) {
-		return jp_cond(cpu, *opcode);
+	if ((opcode & 0b11100111) == 0b11000010) {
+		return jp_cond(cpu, opcode);
 	}
 
-	if (*opcode == 0xcd)
+	if (opcode == 0xcd)
 		return call_a16(cpu);
-	if ((*opcode & 0b11100111) == 0b11000100) {
-		return call_cond(cpu, *opcode);
+	if ((opcode & 0b11100111) == 0b11000100) {
+		return call_cond(cpu, opcode);
 	}
 
-	if ((*opcode & 0b11000111) == 0b11000111) {
-		return rst(cpu, *opcode);
+	if ((opcode & 0b11000111) == 0b11000111) {
+		return rst(cpu, opcode);
 	}
 
-	if ((*opcode & 0b11001111) == 0b11000001) {
-		return pop_r16stk(cpu, *opcode);
+	if ((opcode & 0b11001111) == 0b11000001) {
+		return pop_r16stk(cpu, opcode);
 	}
 
-	if ((*opcode & 0b11001111) == 0b11000101) {
-		return push_r16stk(cpu, *opcode);
+	if ((opcode & 0b11001111) == 0b11000101) {
+		return push_r16stk(cpu, opcode);
 	}
 
-	if (*opcode == 0xE8) {
+	if (opcode == 0xE8) {
 		return add_sp_imm8(cpu);
 	}
 
-	if ((*opcode & 0b11100101) == 0b11100000
-			|| (*opcode & 0b111100101) == 0b11110000) {
-		return ldh(cpu, *opcode);
+	if ((opcode & 0b11100101) == 0b11100000
+			|| (opcode & 0b111100101) == 0b11110000) {
+		return ldh(cpu, opcode);
 	}
 
-	if (*opcode == 0xf9) {
+	if (opcode == 0xf9) {
 		return ld_sp_hl(cpu);
 	}
 
-	if (*opcode == 0xf3)
+	if (opcode == 0xf3)
 		return ei(cpu);
-	if (*opcode == 0xfb)
+	if (opcode == 0xfb)
 		return di(cpu);
 
-	if (*opcode == 0xcb)
+	if (opcode == 0xcb)
 		return prefix(cpu);
 
-	unimlemented_opcode(*opcode);
+	unimlemented_opcode(opcode);
 
 	return 1;
 }
@@ -1529,9 +1527,9 @@ print_cpu_state(struct CPU *cpu)
 		cpu->a, cpu->f.flags, cpu->b, cpu->c, cpu->d, cpu->e, cpu->h, cpu->l, cpu->sp, cpu->pc);
 
 	fprintf(stderr, "[HL]: %02x Stk: %02x %02x %02x %02x ",
-		cpu->memory[cpu->h << 8 | cpu->l], cpu->memory[cpu->sp], cpu->memory[cpu->sp+1], cpu->memory[cpu->sp+2], cpu->memory[cpu->sp+3]);
+		read(cpu, cpu->h << 8 | cpu->l), read(cpu, cpu->sp), read(cpu, cpu->sp+1), read(cpu, cpu->sp+2), read(cpu, cpu->sp+3));
 
-	fprintf(stderr, "nxt: %02x %02x %02x %02x ", cpu->memory[cpu->pc], cpu->memory[cpu->pc+1], cpu->memory[cpu->pc+2], cpu->memory[cpu->pc+3]);
+	fprintf(stderr, "nxt: %02x %02x %02x %02x ", read(cpu, cpu->pc), read(cpu, cpu->pc+1), read(cpu, cpu->pc+2), read(cpu, cpu->pc+3));
 
 	fprintf(stderr, "\n");
 }
