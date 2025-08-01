@@ -120,34 +120,6 @@ switch (op) { \
 		break; \
 }; \
 
-#define set_regs_r8(reg, mask, shift) \
-switch ((opcode & mask) >> shift) { \
-	case b: \
-		reg = &cpu->b; \
-		break; \
-	case c: \
-		reg = &cpu->c; \
-		break; \
-	case d: \
-		reg = &cpu->d; \
-		break; \
-	case e: \
-		reg = &cpu->e; \
-		break; \
-	case h: \
-		reg = &cpu->h; \
-		break; \
-	case l: \
-		reg = &cpu->l; \
-		break; \
-	case m: \
-		reg = &cpu->memory[cpu->h << 8 | cpu->l]; \
-		break; \
-	case a: \
-		reg = &cpu->a; \
-		break; \
-}; \
-
 struct CPU *init_cpu(void);
 int execute(struct CPU *cpu);
 void print_cpu_state(struct CPU *cpu);

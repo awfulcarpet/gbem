@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +29,42 @@ init_cpu(void) {
 
 	return cpu;
 }
+
+/* parse r8 used from lowest bit position */
+static uint8_t *
+parse_r8(struct CPU *cpu, uint8_t opcode, uint8_t bit)
+{
+	switch ((opcode >> bit) & 7) {
+		case b:
+			return &cpu->b;
+			break;
+		case c:
+			return &cpu->c;
+			break;
+		case d:
+			return &cpu->d;
+			break;
+		case e:
+			return &cpu->e;
+			break;
+		case h:
+			return &cpu->h;
+			break;
+		case l:
+			return &cpu->l;
+			break;
+		case m:
+			return &cpu->memory[cpu->h << 8 | cpu->l];
+			break;
+		case a:
+			return &cpu->a;
+			break;
+		default: /* should be unreachable */
+			assert(NULL);
+			break;
+	};
+}
+
 
 static void
 set_hc(struct CPU *cpu, uint8_t a, uint8_t b)
@@ -217,8 +254,7 @@ add_hl_r16(struct CPU *cpu, uint8_t opcode)
 static int
 dec_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b00111000, 3)
+	uint8_t *reg = parse_r8(cpu, opcode, 3);
 
 	(*reg)--;
 
@@ -233,8 +269,7 @@ dec_r8(struct CPU *cpu, uint8_t opcode)
 static int
 inc_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b00111000, 3)
+	uint8_t *reg = parse_r8(cpu, opcode, 3);
 
 	(*reg)++;
 
@@ -303,10 +338,8 @@ ld_imm16_sp(struct CPU *cpu, uint8_t opcode)
 static int
 ld_r8_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *dst = NULL;
-	uint8_t *src = NULL;
-	set_regs_r8(dst, 0b00111000, 3);
-	set_regs_r8(src, 0b00000111, 0);
+	uint8_t *dst = parse_r8(cpu, opcode, 3);
+	uint8_t *src = parse_r8(cpu, opcode, 0);
 
 	*dst = *src;
 
@@ -320,8 +353,7 @@ ld_r8_r8(struct CPU *cpu, uint8_t opcode)
 static int
 ld_r8_imm8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *dst = NULL;
-	set_regs_r8(dst, 0b00111000, 3);
+	uint8_t *dst = parse_r8(cpu, opcode, 3);
 
 	*dst = cpu->memory[cpu->pc];
 
@@ -537,8 +569,7 @@ halt(struct CPU *cpu)
 static int
 add_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	add(cpu, *reg);
 
@@ -551,8 +582,7 @@ add_r8(struct CPU *cpu, uint8_t opcode)
 static int
 adc_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0);
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	adc(cpu, *reg);
 
@@ -565,8 +595,7 @@ adc_r8(struct CPU *cpu, uint8_t opcode)
 static int
 sub_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0);
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	sub(cpu, *reg);
 
@@ -579,8 +608,7 @@ sub_r8(struct CPU *cpu, uint8_t opcode)
 static int
 sbc_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0);
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	sbc(cpu, *reg);
 
@@ -593,8 +621,7 @@ sbc_r8(struct CPU *cpu, uint8_t opcode)
 static int
 and_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	and(cpu, *reg);
 
@@ -607,8 +634,7 @@ and_r8(struct CPU *cpu, uint8_t opcode)
 static int
 xor_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	xor(cpu, *reg);
 
@@ -621,8 +647,7 @@ xor_r8(struct CPU *cpu, uint8_t opcode)
 static int
 or_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	or(cpu, *reg);
 
@@ -635,8 +660,7 @@ or_r8(struct CPU *cpu, uint8_t opcode)
 static int
 cp_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	cp(cpu, *reg);
 
@@ -994,8 +1018,7 @@ add_sp_imm8(struct CPU *cpu)
 static int
 rlc_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 
 	cpu->f.c = *reg >> 7;
@@ -1017,8 +1040,7 @@ rlc_r8(struct CPU *cpu, uint8_t opcode)
 static int
 rrc_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 
 	cpu->f.c = *reg & 1;
@@ -1040,8 +1062,7 @@ rrc_r8(struct CPU *cpu, uint8_t opcode)
 static int
 rl_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	uint8_t tmp = *reg >> 7;
 
@@ -1064,8 +1085,7 @@ rl_r8(struct CPU *cpu, uint8_t opcode)
 static int
 rr_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	uint8_t tmp = *reg & 1;
 
@@ -1088,8 +1108,7 @@ rr_r8(struct CPU *cpu, uint8_t opcode)
 static int
 sla_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	cpu->f.c = *reg >> 7;
 	*reg <<= 1;
@@ -1109,8 +1128,7 @@ sla_r8(struct CPU *cpu, uint8_t opcode)
 static int
 sra_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	cpu->f.c = *reg & 1;
 	*reg >>= 1;
@@ -1131,8 +1149,7 @@ sra_r8(struct CPU *cpu, uint8_t opcode)
 static int
 swap_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	/* TODO: XOR? */
 	uint8_t tmp = *reg & 0x0f;
@@ -1152,8 +1169,7 @@ swap_r8(struct CPU *cpu, uint8_t opcode)
 static int
 srl_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	cpu->f.c = *reg & 1;
 	*reg >>= 1;
@@ -1173,8 +1189,7 @@ srl_r8(struct CPU *cpu, uint8_t opcode)
 static int
 bit_b3_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	uint8_t bit = (opcode >> 3) & 0b111;
 
@@ -1191,8 +1206,7 @@ bit_b3_r8(struct CPU *cpu, uint8_t opcode)
 static int
 res_b3_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	uint8_t bit = (opcode >> 3) & 0b111;
 
@@ -1207,8 +1221,7 @@ res_b3_r8(struct CPU *cpu, uint8_t opcode)
 static int
 set_b3_r8(struct CPU *cpu, uint8_t opcode)
 {
-	uint8_t *reg = NULL;
-	set_regs_r8(reg, 0b111, 0)
+	uint8_t *reg = parse_r8(cpu, opcode, 0);
 
 	uint8_t bit = (opcode >> 3) & 0b111;
 
