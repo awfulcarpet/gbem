@@ -21,8 +21,11 @@ all: $(NAME)
 run: $(NAME)
 	$(OUTDIR)/$(NAME)
 
-tests: make_tests
+tests: make_tests blargg
 	$(OUTDIR)/instr > /dev/null
+
+blargg: $(TEST_OBJ) tests/blargg.c
+	$(CC) -o $(OUTDIR)/blargg $^ -D$(TESTS)
 
 $(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(OUTDIR)

@@ -1,9 +1,9 @@
-#include <stdio.h>
 #include <sys/types.h>
 
 #include "cpu.h"
 #include "ram.h"
 #include "opcode.h"
+
 
 int
 main(int argc, char **argv) {
@@ -13,7 +13,7 @@ main(int argc, char **argv) {
 
 	struct CPU *cpu = init_cpu();
 
-	/* load CAFE into DE and BABE into BC and swap them */
+	// /* load CAFE into DE and BABE into BC and swap them */
 	cpu->memory[0] = 0x11;
 	cpu->memory[1] = 0xFE;
 	cpu->memory[2] = 0xCA;
@@ -29,12 +29,12 @@ main(int argc, char **argv) {
 	cpu->memory[10] = 0x4b;
 	cpu->memory[11] = 0x5f;
 	cpu->memory[12] = 0xe0;
-	cpu->memory[13] = 0x01;
+	cpu->memory[13] = 0x02;
+	cpu->memory[0xff01] = 'c';
 
 	cpu->memory[15] = 0x10; /* STOP */
 
 
-	print_cpu_state(cpu);
 	while (1) {
 		cpu->mcycles += execute(cpu);
 		print_cpu_state(cpu);
