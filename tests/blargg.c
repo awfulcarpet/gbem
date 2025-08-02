@@ -21,6 +21,8 @@ main(int argc, char **argv)
 		"tests/blargg/cpu_instrs/individual/09-op r,r.gb",
 		"tests/blargg/cpu_instrs/individual/10-bit ops.gb",
 		"tests/blargg/cpu_instrs/individual/11-op a,(hl).gb",
+
+		"tests/blargg/halt_bug.gb",
 	};
 
 	if (argc < 2) {

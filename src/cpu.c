@@ -1361,13 +1361,16 @@ execute_opcode(struct CPU *cpu) {
 	uint8_t opcode = read(cpu, cpu->pc);
 
 	if (cpu->halt) {
-		if (read(cpu, IE) & read(cpu, IF))
+		if (read(cpu, IE) & read(cpu, IF)) {
 			cpu->halt = 0;
-		return 0;
+			if (cpu->ime == 0)
+				goto halt_bug; /* TODO: actually test halt bug */
+		}
 	}
 
 	if (!cpu->halt && !cpu->stop)
 		cpu->pc++;
+halt_bug:
 
 	/* block 0 opcodes */
 	if (opcode <= 0x3f && opcode >= 0x00) {

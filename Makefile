@@ -19,7 +19,7 @@ run: $(NAME)
 tests: make_tests blargg
 	# $(OUTDIR)/instr > /dev/null
 	rm -f /tmp/log
-	$(OUTDIR)/blargg 2 & watch -g cat /tmp/log && pkill blargg
+	$(OUTDIR)/blargg 12 & watch -g cat /tmp/log && pkill blargg
 
 blargg: $(OBJ) tests/blargg.c
 	$(CC) -o $(OUTDIR)/blargg $^ -D$(TESTS)
