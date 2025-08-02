@@ -7,6 +7,7 @@
 #include "cpu.h"
 #include "ram.h"
 #include "opcode.h"
+#include "timer.h"
 
 static FILE *log = NULL;
 
@@ -29,12 +30,20 @@ init_cpu(void) {
 
 	cpu->mcycles = 0;
 
+	cpu->div_sum = cpu->tima_sum = 0;
+
 	ram_init(cpu);
 	memset(cpu->memory, 0, 0xFFFF + 1);
 
 	log = fopen("log", "w");
 
 	return cpu;
+}
+
+void
+request_interrupt(struct CPU *cpu, enum INTERRUPT interrupt)
+{
+	write(cpu, IF, interrupt);
 }
 
 /* parse r8 used from lowest bit position */
@@ -1580,6 +1589,7 @@ execute_opcode(struct CPU *cpu) {
 void
 execute(struct CPU *cpu)
 {
+	timer_incr(cpu);
 	if (cpu->ime == IME_NEXT)
 		cpu->ime = IME_SET;
 
@@ -1604,7 +1614,9 @@ cpu_log(struct CPU *cpu)
 void
 print_cpu_state(struct CPU *cpu)
 {
+	fprintf(log, "->%s ", get_mnemonic(read(cpu, cpu->pc)));
 	fprintf(log, "CYC: %05d ", cpu->mcycles);
+	fprintf(log, "TAC: %08b TIMA: %02x ", read(cpu, TAC), read(cpu, TIMA));
 
 	fprintf(log, "%c%c%c%c ",
 		cpu->f.z ? 'z' : '-', cpu->f.n ? 'n' : '-', cpu->f.h ? 'h' : '-', cpu->f.c ? 'c' : '-');
@@ -1616,7 +1628,7 @@ print_cpu_state(struct CPU *cpu)
 	fprintf(log, "[HL]: %02x Stk: %02x %02x %02x %02x ",
 		read(cpu, cpu->h << 8 | cpu->l), read(cpu, cpu->sp), read(cpu, cpu->sp+1), read(cpu, cpu->sp+2), read(cpu, cpu->sp+3));
 
-	fprintf(log, "nxt: %02x %02x %02x %02x ", read(cpu, cpu->pc), read(cpu, cpu->pc+1), read(cpu, cpu->pc+2), read(cpu, cpu->pc+3));
+	fprintf(log, "(%02x %02x %02x %02x)", read(cpu, cpu->pc), read(cpu, cpu->pc+1), read(cpu, cpu->pc+2), read(cpu, cpu->pc+3));
 
 	fprintf(log, "\n");
 }

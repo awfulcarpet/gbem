@@ -6,15 +6,10 @@ TESTS ?= TEST
 NAME = gbem
 OUTDIR = .build
 OBJ = \
-	  $(OUTDIR)/main.o \
 	  $(OUTDIR)/cpu.o \
 	  $(OUTDIR)/opcode.o \
 	  $(OUTDIR)/ram.o \
-
-TEST_OBJ = \
-	  $(OUTDIR)/cpu.o \
-	  $(OUTDIR)/opcode.o \
-	  $(OUTDIR)/ram.o \
+	  $(OUTDIR)/timer.o \
 
 all: $(NAME)
 
@@ -22,19 +17,21 @@ run: $(NAME)
 	$(OUTDIR)/$(NAME)
 
 tests: make_tests blargg
-	$(OUTDIR)/instr > /dev/null
+	# $(OUTDIR)/instr > /dev/null
+	rm -f /tmp/log
+	$(OUTDIR)/blargg 2 & watch -g cat /tmp/log && pkill blargg
 
-blargg: $(TEST_OBJ) tests/blargg.c
+blargg: $(OBJ) tests/blargg.c
 	$(CC) -o $(OUTDIR)/blargg $^ -D$(TESTS)
 
 $(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(OUTDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(NAME): $(OBJ)
+$(NAME): $(OBJ) $(OUTDIR)/main.o
 	$(CC) -o $(OUTDIR)/$@ $^ $(LDLIBS)
 
-make_tests: $(TEST_OBJ) tests/instr.c tests/cJSON.o
+make_tests: $(OBJ) tests/instr.c tests/cJSON.o
 	$(CC) -o $(OUTDIR)/instr $^ $(LDLIBS) -D$(TESTS)
 
 clean:

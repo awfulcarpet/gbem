@@ -1,5 +1,6 @@
 #include "../src/cpu.h"
 #include "../src/ram.h"
+#include "../src/opcode.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -43,8 +44,8 @@ main(int argc, char **argv)
 	cpu->sp = 0xFFFE;
 
 	while (1) {
-		cpu_log(cpu);
-		// print_cpu_state(cpu);
+		// cpu_log(cpu);
+		print_cpu_state(cpu);
 		execute(cpu);
 
 		if (cpu->stop == 1)

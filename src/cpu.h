@@ -56,7 +56,7 @@ enum {
 	SC = 0xFF02,
 };
 
-enum INTERRUPTS {
+enum INTERRUPT {
 	INTERRUPT_VBLANK = 1 << 0,
 	INTERRUPT_LCD    = 1 << 1,
 	INTERRUPT_TIMER  = 1 << 2,
@@ -87,7 +87,11 @@ struct CPU {
 
 	uint8_t memory[0xFFFF + 1];
 	uint32_t mcycles;
+
+	uint32_t tima_sum;
+	uint16_t div_sum;
 };
+
 
 #define get_r16(h, l) \
 	reg = (h << 8) | l; \
@@ -143,6 +147,7 @@ switch (op) { \
 }; \
 
 struct CPU *init_cpu(void);
+void request_interrupt(struct CPU *cpu, enum INTERRUPT interrupt);
 void execute(struct CPU *cpu);
 void cpu_log(struct CPU *cpu);
 void print_cpu_state(struct CPU *cpu);
