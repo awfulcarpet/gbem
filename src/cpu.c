@@ -1360,6 +1360,12 @@ static int
 execute_opcode(struct CPU *cpu) {
 	uint8_t opcode = read(cpu, cpu->pc);
 
+	if (cpu->halt) {
+		if (read(cpu, IE) & read(cpu, IF))
+			cpu->halt = 0;
+		return 0;
+	}
+
 	if (!cpu->halt && !cpu->stop)
 		cpu->pc++;
 
