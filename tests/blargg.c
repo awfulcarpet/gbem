@@ -32,10 +32,20 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	cpu->pc = 0x100;
+	cpu->pc = 0x101;
+
+	cpu->a = 1;
+	cpu->f.flags = 0xb0;
+	cpu->c = 0x13;
+	cpu->e = 0xd8;
+	cpu->h = 1;
+	cpu->l = 0x4d;
+	cpu->sp = 0xFFFE;
 
 	while (1) {
-		cpu->mcycles += execute(cpu);
+		cpu_log(cpu);
+		// print_cpu_state(cpu);
+		execute(cpu);
 
 		if (cpu->stop == 1)
 			break;

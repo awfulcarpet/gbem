@@ -34,10 +34,9 @@ main(int argc, char **argv) {
 
 	cpu->memory[15] = 0x10; /* STOP */
 
-
 	while (1) {
-		cpu->mcycles += execute(cpu);
 		print_cpu_state(cpu);
+		execute(cpu);
 
 		if (cpu->stop == 1)
 			break;

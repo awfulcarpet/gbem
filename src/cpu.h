@@ -48,6 +48,29 @@ union Flags {
 	uint8_t flags;
 };
 
+enum {
+	IE = 0xFFFF,
+	IF = 0xFF0F,
+
+	SB = 0xFF01,
+	SC = 0xFF02,
+};
+
+enum INTERRUPTS {
+	INTERRUPT_VBLANK = 1 << 0,
+	INTERRUPT_LCD    = 1 << 1,
+	INTERRUPT_TIMER  = 1 << 2,
+	INTERRUPT_SERIAL = 1 << 3,
+	INTERRUPT_JOYPAD = 1 << 4,
+};
+
+enum IME_STATE {
+	IME_NEXT = -1, /* have ime set on next cycle */
+	IME_SET = 1,
+	IME_UNSET = 0,
+};
+
+
 struct CPU {
 	// registers
 	uint8_t a;
@@ -57,8 +80,7 @@ struct CPU {
 	uint8_t h,l;
 	uint16_t sp, pc;
 
-	uint8_t ie; // interrupt enable
-	uint8_t ir; // instruction register
+	int8_t ime;
 
 	uint8_t halt;
 	uint8_t stop;
@@ -121,5 +143,6 @@ switch (op) { \
 }; \
 
 struct CPU *init_cpu(void);
-int execute(struct CPU *cpu);
+void execute(struct CPU *cpu);
+void cpu_log(struct CPU *cpu);
 void print_cpu_state(struct CPU *cpu);

@@ -43,8 +43,8 @@ write(struct CPU *cpu, uint16_t adr, uint8_t data) {
 	if (f == NULL)
 		exit(5);
 
-	if (adr == 0xff02 && data == 0x81) {
-		fprintf(f, "%c", read(cpu, 0xff01));
+	if (adr == SC && data == 0x81) {
+		fprintf(f, "%c", read(cpu, SB));
 	}
 	fclose(f);
 

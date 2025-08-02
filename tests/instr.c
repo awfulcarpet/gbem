@@ -159,7 +159,7 @@ run_test(cJSON *json)
 
 	struct CPU cpu = test->initial;
 	while (cpu.mcycles < test->cycles) {
-		cpu.mcycles += execute(&cpu);
+		execute(&cpu);
 	}
 
 	if (is_cpu_same(&cpu, &test->final) != 0) {
@@ -171,7 +171,7 @@ run_test(cJSON *json)
 
 		struct CPU cpu = test->initial;
 		while (cpu.mcycles < test->cycles) {
-			cpu.mcycles += execute(&cpu);
+			execute(&cpu);
 			print_cpu_state(&cpu);
 		}
 
