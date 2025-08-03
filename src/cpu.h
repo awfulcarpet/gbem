@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 enum r16 {
 	bc,
@@ -88,8 +89,9 @@ struct CPU {
 	uint8_t memory[0xFFFF + 1];
 	uint32_t mcycles;
 
-	uint32_t tima_sum;
-	uint16_t div_sum;
+	uint16_t div;
+
+	FILE *log;
 };
 
 

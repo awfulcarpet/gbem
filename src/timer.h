@@ -1,4 +1,5 @@
 enum {
+	DIV = 0xFF04,
 	TIMA = 0xFF05,
 	TMA = 0xFF06,
 	TAC = 0xFF07,
@@ -9,4 +10,4 @@ enum {
 	TAC_ENABLE = 1 << 2,
 };
 
-void timer_incr(struct CPU *cpu);
+void timer_incr(struct CPU *cpu, int cycles);

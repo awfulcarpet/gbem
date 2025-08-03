@@ -4,6 +4,7 @@
 #include <string.h>
 #include "cpu.h"
 #include "ram.h"
+#include "timer.h"
 
 static FILE *f = NULL;
 
@@ -39,6 +40,7 @@ write(struct CPU *cpu, uint16_t adr, uint8_t data) {
 #ifdef TEST
 	assert(adr >= 0x8000); // avoid writing ROM
 #endif
+
 	f = fopen("/tmp/log", "a");
 	if (f == NULL)
 		exit(5);
@@ -47,6 +49,9 @@ write(struct CPU *cpu, uint16_t adr, uint8_t data) {
 		fprintf(f, "%c", read(cpu, SB));
 	}
 	fclose(f);
+
+	if (adr == DIV)
+		data = 0x00;
 
 	cpu->memory[adr] = data;
 }

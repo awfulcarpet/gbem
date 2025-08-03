@@ -9,7 +9,6 @@
 #include "opcode.h"
 #include "timer.h"
 
-static FILE *log = NULL;
 
 struct CPU *
 init_cpu(void) {
@@ -30,12 +29,12 @@ init_cpu(void) {
 
 	cpu->mcycles = 0;
 
-	cpu->div_sum = cpu->tima_sum = 0;
+	cpu->div = 0;
 
 	ram_init(cpu);
 	memset(cpu->memory, 0, 0xFFFF + 1);
 
-	log = fopen("log", "w");
+	cpu->log = fopen("log", "w");
 
 	return cpu;
 }
@@ -1308,7 +1307,7 @@ handle_interrupt(struct CPU *cpu)
 	uint8_t enable = read(cpu, IE);
 
 	if (flag & INTERRUPT_VBLANK && enable & INTERRUPT_VBLANK) {
-		fprintf(log, "int %d ", INTERRUPT_VBLANK);
+		fprintf(cpu->log, "int %d ", INTERRUPT_VBLANK);
 		write(cpu, IF, flag & ~INTERRUPT_VBLANK);
 		cpu->ime = IME_UNSET;
 		cpu->pc -= 2;
@@ -1317,7 +1316,7 @@ handle_interrupt(struct CPU *cpu)
 	}
 
 	if (flag & INTERRUPT_LCD && enable & INTERRUPT_LCD) {
-		fprintf(log, "int %d ", INTERRUPT_LCD);
+		fprintf(cpu->log, "int %d ", INTERRUPT_LCD);
 		write(cpu, IF, flag & ~INTERRUPT_LCD);
 		cpu->ime = IME_UNSET;
 		cpu->pc -= 2;
@@ -1326,7 +1325,7 @@ handle_interrupt(struct CPU *cpu)
 	}
 
 	if (flag & INTERRUPT_TIMER && enable & INTERRUPT_TIMER) {
-		fprintf(log, "int %d ", INTERRUPT_TIMER);
+		fprintf(cpu->log, "int %d ", INTERRUPT_TIMER);
 		write(cpu, IF, flag & ~INTERRUPT_TIMER);
 		cpu->ime = IME_UNSET;
 		cpu->pc -= 2;
@@ -1335,7 +1334,7 @@ handle_interrupt(struct CPU *cpu)
 	}
 
 	if (flag & INTERRUPT_SERIAL && enable & INTERRUPT_SERIAL) {
-		fprintf(log, "int %d ", INTERRUPT_SERIAL);
+		fprintf(cpu->log, "int %d ", INTERRUPT_SERIAL);
 		write(cpu, IF, flag & ~INTERRUPT_SERIAL);
 		cpu->ime = IME_UNSET;
 
@@ -1345,7 +1344,7 @@ handle_interrupt(struct CPU *cpu)
 	}
 
 	if (flag & INTERRUPT_JOYPAD && enable & INTERRUPT_JOYPAD) {
-		fprintf(log, "int %d ", INTERRUPT_JOYPAD);
+		fprintf(cpu->log, "int %d ", INTERRUPT_JOYPAD);
 		write(cpu, IF, flag & ~INTERRUPT_JOYPAD);
 		cpu->ime = IME_UNSET;
 		cpu->pc -= 2;
@@ -1592,17 +1591,18 @@ halt_bug:
 
 	unimlemented_opcode(opcode);
 
-	return 1;
+	return 0;
 }
 
 void
 execute(struct CPU *cpu)
 {
-	timer_incr(cpu);
 	if (cpu->ime == IME_NEXT)
 		cpu->ime = IME_SET;
 
-	cpu->mcycles += execute_opcode(cpu);
+	uint8_t cycles = execute_opcode(cpu);
+	cpu->mcycles += cycles;
+	timer_incr(cpu, cycles);
 
 	if (cpu->ime == IME_SET) {
 		if (handle_interrupt(cpu))
@@ -1613,7 +1613,7 @@ execute(struct CPU *cpu)
 void
 cpu_log(struct CPU *cpu)
 {
-	fprintf(log, "A: %02X F: %02X B: %02X C: %02X D: %02X E: %02X H: %02X "
+	fprintf(cpu->log, "A: %02X F: %02X B: %02X C: %02X D: %02X E: %02X H: %02X "
 		 "L: %02X SP: %04X PC: 00:%04X (%02X %02X %02X %02X)\n",
 		cpu->a, cpu->f.flags, cpu->b, cpu->c, cpu->d, cpu->e, cpu->h, cpu->l,
 		cpu->sp, cpu->pc, cpu->memory[cpu->pc], cpu->memory[cpu->pc+1],
@@ -1623,21 +1623,27 @@ cpu_log(struct CPU *cpu)
 void
 print_cpu_state(struct CPU *cpu)
 {
-	fprintf(log, "->%s ", get_mnemonic(read(cpu, cpu->pc)));
-	fprintf(log, "CYC: %05d ", cpu->mcycles);
-	fprintf(log, "TAC: %08b TIMA: %02x ", read(cpu, TAC), read(cpu, TIMA));
+	// fprintf(cpu->log, "%s ", get_mnemonic(read(cpu, cpu->pc)));
+	fprintf(cpu->log, "DIV: %08d ", read(cpu, DIV));
+	fprintf(cpu->log, "CYC: %05d ", cpu->mcycles);
+	fprintf(cpu->log, "TAC: %03b TIMA: %02x ", read(cpu, TAC), read(cpu, TIMA));
 
-	fprintf(log, "%c%c%c%c ",
-		cpu->f.z ? 'z' : '-', cpu->f.n ? 'n' : '-', cpu->f.h ? 'h' : '-', cpu->f.c ? 'c' : '-');
-	fprintf(log, "IME: %d IF: %08b IE: %08b ", cpu->ime, read(cpu, IF), read(cpu, IE));
+	fprintf(cpu->log, "%c%c%c%c ",
+		 cpu->f.z ? 'z' : '-', cpu->f.n ? 'n' : '-', cpu->f.h ? 'h' : '-',
+		 cpu->f.c ? 'c' : '-');
+	fprintf(cpu->log, "IME: %d IF: %05b IE: %05b ", cpu->ime, read(cpu, IF),
+		 read(cpu, IE));
 
-	fprintf(log, "AF: %02x%02x BC: %02x%02x DE: %02x%02x HL: %02x%02x SP: %04x PC: %04x ",
-		cpu->a, cpu->f.flags, cpu->b, cpu->c, cpu->d, cpu->e, cpu->h, cpu->l, cpu->sp, cpu->pc);
+	fprintf(cpu->log, "AF: %02x%02x BC: %02x%02x DE: %02x%02x HL: %02x%02x "
+		 "SP: %04x PC: %04x ", cpu->a, cpu->f.flags, cpu->b, cpu->c, cpu->d,
+		 cpu->e, cpu->h, cpu->l, cpu->sp, cpu->pc);
 
-	fprintf(log, "[HL]: %02x Stk: %02x %02x %02x %02x ",
-		read(cpu, cpu->h << 8 | cpu->l), read(cpu, cpu->sp), read(cpu, cpu->sp+1), read(cpu, cpu->sp+2), read(cpu, cpu->sp+3));
+	fprintf(cpu->log, "[HL]: %02x ", read(cpu, cpu->h << 8 | cpu->l));
+	fprintf(cpu->log, "[%02x %02x %02x %02x] ", read(cpu, cpu->sp),
+		 read(cpu, cpu->sp+1), read(cpu, cpu->sp+2), read(cpu, cpu->sp+3));
 
-	fprintf(log, "(%02x %02x %02x %02x)", read(cpu, cpu->pc), read(cpu, cpu->pc+1), read(cpu, cpu->pc+2), read(cpu, cpu->pc+3));
+	fprintf(cpu->log, "(%02x %02x %02x %02x)", read(cpu, cpu->pc),
+		 read(cpu, cpu->pc+1), read(cpu, cpu->pc+2), read(cpu, cpu->pc+3));
 
-	fprintf(log, "\n");
+	fprintf(cpu->log, "\n");
 }

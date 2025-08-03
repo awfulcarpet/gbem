@@ -19,7 +19,11 @@ run: $(NAME)
 tests: make_tests blargg
 	# $(OUTDIR)/instr > /dev/null
 	rm -f /tmp/log
-	$(OUTDIR)/blargg 12 & watch -g cat /tmp/log && pkill blargg
+	$(OUTDIR)/blargg 2 & watch -g cat /tmp/log && pkill blargg && cat /tmp/log
+	$(OUTDIR)/blargg 13 & watch -g cat /tmp/log && pkill blargg && cat /tmp/log
+	$(OUTDIR)/blargg 14 & watch -g cat /tmp/log && pkill blargg && cat /tmp/log
+	$(OUTDIR)/blargg 15 & watch -g cat /tmp/log && pkill blargg && cat /tmp/log
+	$(OUTDIR)/blargg 16 & watch -g cat /tmp/log && pkill blargg && cat /tmp/log
 
 blargg: $(OBJ) tests/blargg.c
 	$(CC) -o $(OUTDIR)/blargg $^ -D$(TESTS)
