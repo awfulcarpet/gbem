@@ -809,7 +809,7 @@ static int
 jp_hl(struct CPU *cpu)
 {
 	jp(cpu, cpu->h, cpu->l);
-	return 4;
+	return 1;
 }
 
 static int
