@@ -97,6 +97,11 @@ is_cpu_same(struct CPU *cpu1, struct CPU *cpu2)
 
 	if (memcmp(cpu1->memory, cpu2->memory, 0xffff + 1) != 0) {
 		LOG("mem differ\n")
+		for (int i = 0; i <= 0xffff; i++) {
+			if (cpu1->memory[i] != cpu2->memory[i]) {
+				fprintf(stderr, "%d: %d %d\n", i, cpu1->memory[i], cpu2->memory[i]);
+			}
+		}
 		return 1;
 	}
 	return 0;
@@ -155,11 +160,13 @@ run_test(cJSON *json)
 {
 	int failed = 0;
 	struct Test *test = test_from_json(json);
+	test->initial.log = stderr;
+	test->final.log = stderr;
 
 
 	struct CPU cpu = test->initial;
 	while (cpu.mcycles < test->cycles) {
-		execute(&cpu);
+		cpu.mcycles += execute_opcode(&cpu);
 	}
 
 	if (is_cpu_same(&cpu, &test->final) != 0) {
@@ -171,7 +178,7 @@ run_test(cJSON *json)
 
 		struct CPU cpu = test->initial;
 		while (cpu.mcycles < test->cycles) {
-			execute(&cpu);
+			cpu.mcycles += execute_opcode(&cpu);
 			print_cpu_state(&cpu);
 		}
 

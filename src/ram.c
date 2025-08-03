@@ -37,7 +37,7 @@ read(struct CPU *cpu, uint16_t adr) {
 
 void
 write(struct CPU *cpu, uint16_t adr, uint8_t data) {
-#ifdef TEST
+#ifndef TEST
 	assert(adr >= 0x8000); // avoid writing ROM
 #endif
 
@@ -50,8 +50,10 @@ write(struct CPU *cpu, uint16_t adr, uint8_t data) {
 	}
 	fclose(f);
 
+#ifndef TEST
 	if (adr == DIV)
 		data = 0x00;
+#endif
 
 	cpu->memory[adr] = data;
 }

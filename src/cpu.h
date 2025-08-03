@@ -151,5 +151,6 @@ switch (op) { \
 struct CPU *init_cpu(void);
 void request_interrupt(struct CPU *cpu, enum INTERRUPT interrupt);
 void execute(struct CPU *cpu);
+int execute_opcode(struct CPU *cpu);
 void cpu_log(struct CPU *cpu);
 void print_cpu_state(struct CPU *cpu);

@@ -17,16 +17,17 @@ run: $(NAME)
 	$(OUTDIR)/$(NAME)
 
 tests: make_tests blargg
-	# $(OUTDIR)/instr > /dev/null
+	$(OUTDIR)/instr
 	rm -f /tmp/log
-	$(OUTDIR)/blargg 13 & watch -g cat /tmp/log && pkill blargg && cat /tmp/log
+	$(OUTDIR)/blargg 1 & watch -g /tmp/log && pkill blargg
+	$(OUTDIR)/blargg 2 & watch -g /tmp/log && pkill blargg
 
 blargg: $(OBJ) tests/blargg.c
 	$(CC) -o $(OUTDIR)/blargg $^ -D$(TESTS)
 
 $(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(OUTDIR)
-	$(CC) -c $(CFLAGS) -o $@ $<
+	$(CC) -c $(CFLAGS) -o $@ $< -D$(TESTS)
 
 $(NAME): $(OBJ) $(OUTDIR)/main.o
 	$(CC) -o $(OUTDIR)/$@ $^ $(LDLIBS)

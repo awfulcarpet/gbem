@@ -1355,7 +1355,7 @@ handle_interrupt(struct CPU *cpu)
 	return 0;
 }
 
-static int
+int
 execute_opcode(struct CPU *cpu) {
 	uint8_t opcode = read(cpu, cpu->pc);
 
