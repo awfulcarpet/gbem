@@ -11,19 +11,21 @@
 #include "opcode.h"
 #include "timer.h"
 #include "graphics.h"
+#include "gb.h"
 
 int
 main(int argc, char **argv) {
 	// unused for now
 	(void)argc;
 	(void)argv;
+	struct GB * gb = gb_init();
 
-	struct CPU *cpu = init_cpu();
+	if (gb == NULL) return 1;
 
 	/* load CAFE into DE and BABE into BC and swap them */
-	cpu->memory[0] = 0x11;
-	cpu->memory[1] = 0xFE;
-	cpu->memory[2] = 0xCA;
+	// cpu->memory[0] = 0x11;
+	// cpu->memory[1] = 0xFE;
+	// cpu->memory[2] = 0xCA;
 	//
 	// cpu->memory[3] = 0x01;
 	// cpu->memory[4] = 0xBE;
@@ -47,20 +49,17 @@ main(int argc, char **argv) {
 	// cpu->memory[0x0018] = 0x20;
 	// cpu->memory[0x0019] = 0x00;
 	//
-	cpu->memory[0x0020] = 0x10; /* STOP */
+	gb->cpu->memory[0x0020] = 0x10; /* STOP */
 	// write(cpu, TAC, 0b101);
 
-	if (graphics_init())
-		return 1;
-
 	while (1) {
-		print_cpu_state(cpu);
-		execute(cpu);
+		print_cpu_state(gb->cpu);
+		execute(gb->cpu);
 
-		if (cpu->stop == 1)
+		if (gb->cpu->stop == 1)
 			break;
 	}
-		print_cpu_state(cpu);
+		print_cpu_state(gb->cpu);
 
 	getchar();
 	return 0;

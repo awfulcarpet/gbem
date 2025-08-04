@@ -18,8 +18,11 @@ int
 load_rom(struct CPU *cpu, char *path)
 {
 	FILE* file = fopen(path, "rb");
-	if (file == NULL)
+	if (file == NULL) {
+		fprintf(stderr, "unable to open rom: %s\n", path);
 		return 1;
+	}
+
 	int pos = 0;
 	while (fread(&cpu->memory[pos], 1, 1, file)) {
 		pos++;

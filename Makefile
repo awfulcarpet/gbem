@@ -11,6 +11,7 @@ OBJ = \
 	  $(OUTDIR)/mem.o \
 	  $(OUTDIR)/timer.o \
 	  $(OUTDIR)/graphics.o \
+	  $(OUTDIR)/gb.o \
 
 all: $(NAME)
 
@@ -20,11 +21,13 @@ run: $(NAME)
 tests: make_tests blargg
 	$(OUTDIR)/instr
 	rm -f /tmp/log
-	$(OUTDIR)/blargg 1 & watch -g /tmp/log && pkill blargg
-	$(OUTDIR)/blargg 2 & watch -g /tmp/log && pkill blargg
+	$(OUTDIR)/blargg 1 &
 
 blargg: $(OBJ) tests/blargg.c
-	$(CC) -o $(OUTDIR)/blargg $^ -D$(TESTS)
+	$(CC) -o $(OUTDIR)/blargg $^ -D$(TESTS) $(LDLIBS)
+
+acid: $(OBJ) tests/acid.c
+	$(CC) -o $(OUTDIR)/acid $^ -D$(TESTS) $(LDLIBS)
 
 $(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(OUTDIR)
