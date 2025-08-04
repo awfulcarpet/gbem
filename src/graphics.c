@@ -121,7 +121,7 @@ set_ppu_mode(struct PPU *ppu, enum PPU_MODE mode)
 
 /* TODO: replace with scan line */
 void
-draw_tile(struct PPU *ppu, struct Tile *t, uint8_t x, uint8_t y)
+draw_tile(struct PPU *ppu, struct Tile *t, uint8_t xpix, uint8_t ypix)
 {
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
@@ -144,7 +144,7 @@ draw_tile(struct PPU *ppu, struct Tile *t, uint8_t x, uint8_t y)
 				assert(NULL); /* unreachable */
 				break;
 			}
-			ppu->fb[i * SCREEN_WIDTH + j] = color;
+			ppu->fb[ypix * SCREEN_WIDTH + i * SCREEN_WIDTH + j + xpix] = color;
 		}
 	}
 }
@@ -153,7 +153,6 @@ int
 graphics_scanline(struct PPU *ppu)
 {
 	set_ppu_mode(ppu, OAM_SCAN);
-	// ppu->fb[SCREEN_WIDTH * SCREEN_HEIGHT / 2 + SCREEN_WIDTH / 2] = 0xFFFFFF;
 
 
 	struct Tile *t = get_tile(ppu, 33);
@@ -165,14 +164,14 @@ graphics_scanline(struct PPU *ppu)
 		}
 		fprintf(stderr, "\n");
 	}
-		fprintf(stderr, "\n");
-	for (int i = 0; i < 16; i++) {
+	fprintf(stderr, "\n");
+	for (int i = 0; i < 18; i++) {
 		for (int j = 0; j < 20; j++) {
 			fprintf(stderr, "%3d ", w->tiles[i][j]->id);
+			draw_tile(ppu, w->tiles[i][j], j * 8, i * 8);
 		}
 		fprintf(stderr, "\n");
 	}
-		draw_tile(ppu, w->tiles[0][15], 0 * 16, 0 * 16);
 	SDL_UpdateWindowSurface(ppu->win);
 	return 0;
 }
