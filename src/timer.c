@@ -3,23 +3,23 @@
 #include <stdio.h>
 
 #include "cpu.h"
-#include "ram.h"
+#include "mem.h"
 #include "timer.h"
 
 static uint8_t sum = 0;
 
 static void
 incr(struct CPU *cpu, uint8_t cycles, uint16_t period) {
-	uint8_t tima = read(cpu, TIMA);
+	uint8_t tima = mem_read(cpu, TIMA);
 
 	sum += cycles;
 
 	while (sum >= period) {
 		sum -= period;
-		write(cpu, TIMA, ++tima);
+		mem_write(cpu, TIMA, ++tima);
 
 		if (tima == 0x00) {
-			write(cpu, TIMA, read(cpu, TMA));
+			mem_write(cpu, TIMA, mem_read(cpu, TMA));
 			request_interrupt(cpu, INTERRUPT_TIMER);
 		}
 	}
@@ -28,10 +28,10 @@ incr(struct CPU *cpu, uint8_t cycles, uint16_t period) {
 void
 timer_incr(struct CPU *cpu, int cycles)
 {
-	uint8_t tac = read(cpu, TAC);
+	uint8_t tac = mem_read(cpu, TAC);
 	cpu->div += cycles * 4;
 
-	write(cpu, DIV, cpu->div >> 8);
+	mem_write(cpu, DIV, cpu->div >> 8);
 
 	if ((tac & TAC_ENABLE) == 0)
 		return;

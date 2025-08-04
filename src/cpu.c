@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "cpu.h"
-#include "ram.h"
+#include "mem.h"
 #include "opcode.h"
 #include "timer.h"
 
@@ -31,7 +31,7 @@ init_cpu(void) {
 
 	cpu->div = 0;
 
-	ram_init(cpu);
+	mem_init(cpu);
 	memset(cpu->memory, 0, 0xFFFF + 1);
 
 	cpu->log = fopen("log", "w");
@@ -42,7 +42,7 @@ init_cpu(void) {
 void
 request_interrupt(struct CPU *cpu, enum INTERRUPT interrupt)
 {
-	write(cpu, IF, interrupt);
+	mem_write(cpu, IF, interrupt);
 }
 
 /* parse r8 used from lowest bit position */
@@ -93,18 +93,18 @@ pop(struct CPU *cpu, uint8_t *h, uint8_t *l)
 {
 	cpu->sp += 2;
 	if (h != NULL)
-		*h = read(cpu, cpu->sp - 1);
+		*h = mem_read(cpu, cpu->sp - 1);
 	if (l != NULL)
-		*l = read(cpu, cpu->sp - 2);
+		*l = mem_read(cpu, cpu->sp - 2);
 
-	return read(cpu, cpu->sp - 1) << 8 | read(cpu, cpu->sp - 2);
+	return mem_read(cpu, cpu->sp - 1) << 8 | mem_read(cpu, cpu->sp - 2);
 }
 
 static void
 push(struct CPU *cpu, uint8_t h, uint8_t l)
 {
-	write(cpu, --cpu->sp, h);
-	write(cpu, --cpu->sp, l);
+	mem_write(cpu, --cpu->sp, h);
+	mem_write(cpu, --cpu->sp, l);
 }
 
 
@@ -304,7 +304,7 @@ ld_r16_imm16(struct CPU *cpu, uint8_t opcode)
 
 	set_regs_r16(0b00110000, 4)
 
-	reg = read(cpu, cpu->pc + 1) << 8 | read(cpu, cpu->pc);
+	reg = mem_read(cpu, cpu->pc + 1) << 8 | mem_read(cpu, cpu->pc);
 
 	set_r8_from_r16()
 	cpu->pc += 2;
@@ -317,7 +317,7 @@ ld_r16mem_a(struct CPU *cpu, uint8_t opcode)
 {
 	set_regs_r16mem(0b00110000, 4)
 
-	write(cpu, reg, cpu->a);
+	mem_write(cpu, reg, cpu->a);
 
 	if (op == hli)
 		inc_r16(cpu, hl << 4);
@@ -332,7 +332,7 @@ ld_a_r16mem(struct CPU *cpu, uint8_t opcode)
 {
 	set_regs_r16mem(0b00110000, 4)
 
-	cpu->a = read(cpu, reg);
+	cpu->a = mem_read(cpu, reg);
 
 	if (op == hli)
 		inc_r16(cpu, hl << 4);
@@ -344,10 +344,10 @@ ld_a_r16mem(struct CPU *cpu, uint8_t opcode)
 static int
 ld_imm16_sp(struct CPU *cpu, uint8_t opcode)
 {
-	uint16_t adr = read(cpu, cpu->pc + 1) << 8 | read(cpu, cpu->pc);
+	uint16_t adr = mem_read(cpu, cpu->pc + 1) << 8 | mem_read(cpu, cpu->pc);
 
-	write(cpu, adr, cpu->sp & 0xff);
-	write(cpu, adr + 1, cpu->sp >> 8);
+	mem_write(cpu, adr, cpu->sp & 0xff);
+	mem_write(cpu, adr + 1, cpu->sp >> 8);
 	cpu->pc += 2;
 	return 5;
 }
@@ -372,7 +372,7 @@ ld_r8_imm8(struct CPU *cpu, uint8_t opcode)
 {
 	uint8_t *dst = parse_r8(cpu, opcode, 3);
 
-	*dst = read(cpu, cpu->pc);
+	*dst = mem_read(cpu, cpu->pc);
 
 	cpu->pc += 1;
 
@@ -547,7 +547,7 @@ jr_imm8(struct CPU *cpu, uint8_t opcode)
 	return 2;
 
 jmp:
-	cpu->pc += (int8_t)read(cpu, cpu->pc) + 1;
+	cpu->pc += (int8_t)mem_read(cpu, cpu->pc) + 1;
 	return 3;
 }
 
@@ -801,7 +801,7 @@ ret:
 static int
 jp_a16(struct CPU *cpu)
 {
-	jp(cpu, read(cpu, cpu->pc + 1), read(cpu, cpu->pc));
+	jp(cpu, mem_read(cpu, cpu->pc + 1), mem_read(cpu, cpu->pc));
 	return 4;
 }
 
@@ -842,14 +842,14 @@ jp_cond(struct CPU *cpu, uint8_t opcode)
 	return 3;
 
 jmp:
-	jp(cpu, read(cpu, cpu->pc + 1), read(cpu, cpu->pc));
+	jp(cpu, mem_read(cpu, cpu->pc + 1), mem_read(cpu, cpu->pc));
 	return 4;
 }
 
 static int
 call_a16(struct CPU *cpu)
 {
-	call(cpu, read(cpu, cpu->pc + 1), read(cpu, cpu->pc));
+	call(cpu, mem_read(cpu, cpu->pc + 1), mem_read(cpu, cpu->pc));
 	return 6;
 }
 
@@ -883,7 +883,7 @@ call_cond(struct CPU *cpu, uint8_t opcode)
 	return 3;
 
 call:
-	call(cpu, read(cpu, cpu->pc + 1), read(cpu, cpu->pc));
+	call(cpu, mem_read(cpu, cpu->pc + 1), mem_read(cpu, cpu->pc));
 	return 6;
 }
 
@@ -957,8 +957,8 @@ push_r16stk(struct CPU *cpu, uint8_t opcode)
 			break;
 	};
 
-	write(cpu, --cpu->sp, *high);
-	write(cpu, --cpu->sp, *low);
+	mem_write(cpu, --cpu->sp, *high);
+	mem_write(cpu, --cpu->sp, *low);
 
 	return 4;
 }
@@ -968,27 +968,27 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 {
 	switch (opcode) {
 		case 0xE0:
-			write(cpu, 0xFF00 + read(cpu, cpu->pc++), cpu->a);
+			mem_write(cpu, 0xFF00 + mem_read(cpu, cpu->pc++), cpu->a);
 			return 3;
 		break;
 		case 0xE2:
-			write(cpu, 0xFF00 + cpu->c, cpu->a);
+			mem_write(cpu, 0xFF00 + cpu->c, cpu->a);
 			return 2;
 		break;
 		case 0xEA:
-			write(cpu, read(cpu, cpu->pc++) | read(cpu, cpu->pc++) << 8, cpu->a);
+			mem_write(cpu, mem_read(cpu, cpu->pc++) | mem_read(cpu, cpu->pc++) << 8, cpu->a);
 			return 4;
 		break;
 		case 0xf0:
-			cpu->a = read(cpu, 0xFF00 + read(cpu, cpu->pc++));
+			cpu->a = mem_read(cpu, 0xFF00 + mem_read(cpu, cpu->pc++));
 			return 3;
 		break;
 		case 0xf2:
-			cpu->a = read(cpu, 0xFF00 + cpu->c);
+			cpu->a = mem_read(cpu, 0xFF00 + cpu->c);
 			return 2;
 		break;
 		case 0xf8: {
-			uint8_t e = read(cpu, cpu->pc++);
+			uint8_t e = mem_read(cpu, cpu->pc++);
 
 			cpu->f.z = 0;
 			cpu->f.n = 0;
@@ -1001,7 +1001,7 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 			break;
 		}
 		case 0xfa:
-			 cpu->a = read(cpu, read(cpu, cpu->pc++) | read(cpu, cpu->pc++) << 8);
+			 cpu->a = mem_read(cpu, mem_read(cpu, cpu->pc++) | mem_read(cpu, cpu->pc++) << 8);
 			return 4;
 		break;
 		default:
@@ -1015,7 +1015,7 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 static int
 add_sp_imm8(struct CPU *cpu)
 {
-	uint8_t e = read(cpu, cpu->pc++);
+	uint8_t e = mem_read(cpu, cpu->pc++);
 
 	cpu->f.z = 0;
 	cpu->f.n = 0;
@@ -1248,7 +1248,7 @@ set_b3_r8(struct CPU *cpu, uint8_t opcode)
 static int
 prefix(struct CPU *cpu)
 {
-	uint8_t opcode = read(cpu, cpu->pc++);
+	uint8_t opcode = mem_read(cpu, cpu->pc++);
 
 	if ((opcode & 0b11111000) == 0) {
 		return rlc_r8(cpu, opcode);
@@ -1303,12 +1303,12 @@ prefix(struct CPU *cpu)
 static int
 handle_interrupt(struct CPU *cpu)
 {
-	uint8_t flag = read(cpu, IF);
-	uint8_t enable = read(cpu, IE);
+	uint8_t flag = mem_read(cpu, IF);
+	uint8_t enable = mem_read(cpu, IE);
 
 	if (flag & INTERRUPT_VBLANK && enable & INTERRUPT_VBLANK) {
 		fprintf(cpu->log, "int %d ", INTERRUPT_VBLANK);
-		write(cpu, IF, flag & ~INTERRUPT_VBLANK);
+		mem_write(cpu, IF, flag & ~INTERRUPT_VBLANK);
 		cpu->ime = IME_UNSET;
 		cpu->pc -= 2;
 		call(cpu, 0x00, 0x40);
@@ -1317,7 +1317,7 @@ handle_interrupt(struct CPU *cpu)
 
 	if (flag & INTERRUPT_LCD && enable & INTERRUPT_LCD) {
 		fprintf(cpu->log, "int %d ", INTERRUPT_LCD);
-		write(cpu, IF, flag & ~INTERRUPT_LCD);
+		mem_write(cpu, IF, flag & ~INTERRUPT_LCD);
 		cpu->ime = IME_UNSET;
 		cpu->pc -= 2;
 		call(cpu, 0x00, 0x48);
@@ -1326,7 +1326,7 @@ handle_interrupt(struct CPU *cpu)
 
 	if (flag & INTERRUPT_TIMER && enable & INTERRUPT_TIMER) {
 		fprintf(cpu->log, "int %d ", INTERRUPT_TIMER);
-		write(cpu, IF, flag & ~INTERRUPT_TIMER);
+		mem_write(cpu, IF, flag & ~INTERRUPT_TIMER);
 		cpu->ime = IME_UNSET;
 		cpu->pc -= 2;
 		call(cpu, 0x00, 0x50);
@@ -1335,7 +1335,7 @@ handle_interrupt(struct CPU *cpu)
 
 	if (flag & INTERRUPT_SERIAL && enable & INTERRUPT_SERIAL) {
 		fprintf(cpu->log, "int %d ", INTERRUPT_SERIAL);
-		write(cpu, IF, flag & ~INTERRUPT_SERIAL);
+		mem_write(cpu, IF, flag & ~INTERRUPT_SERIAL);
 		cpu->ime = IME_UNSET;
 
 		cpu->pc -= 2;
@@ -1345,7 +1345,7 @@ handle_interrupt(struct CPU *cpu)
 
 	if (flag & INTERRUPT_JOYPAD && enable & INTERRUPT_JOYPAD) {
 		fprintf(cpu->log, "int %d ", INTERRUPT_JOYPAD);
-		write(cpu, IF, flag & ~INTERRUPT_JOYPAD);
+		mem_write(cpu, IF, flag & ~INTERRUPT_JOYPAD);
 		cpu->ime = IME_UNSET;
 		cpu->pc -= 2;
 		call(cpu, 0x00, 0x60);
@@ -1357,10 +1357,10 @@ handle_interrupt(struct CPU *cpu)
 
 int
 execute_opcode(struct CPU *cpu) {
-	uint8_t opcode = read(cpu, cpu->pc);
+	uint8_t opcode = mem_read(cpu, cpu->pc);
 
 	if (cpu->halt) {
-		if (read(cpu, IE) & read(cpu, IF)) {
+		if (mem_read(cpu, IE) & mem_read(cpu, IF)) {
 			cpu->halt = 0;
 			if (cpu->ime == 0)
 				goto halt_bug; /* TODO: actually test halt bug */
@@ -1505,28 +1505,28 @@ halt_bug:
 
 		switch (op) {
 			case 0:
-				return add_imm8(cpu, read(cpu, cpu->pc));
+				return add_imm8(cpu, mem_read(cpu, cpu->pc));
 				break;
 			case 1:
-				return adc_imm8(cpu, read(cpu, cpu->pc));
+				return adc_imm8(cpu, mem_read(cpu, cpu->pc));
 				break;
 			case 2:
-				return sub_imm8(cpu, read(cpu, cpu->pc));
+				return sub_imm8(cpu, mem_read(cpu, cpu->pc));
 				break;
 			case 3:
-				return sbc_imm8(cpu, read(cpu, cpu->pc));
+				return sbc_imm8(cpu, mem_read(cpu, cpu->pc));
 				break;
 			case 4:
-				return and_imm8(cpu, read(cpu, cpu->pc));
+				return and_imm8(cpu, mem_read(cpu, cpu->pc));
 				break;
 			case 5:
-				return xor_imm8(cpu, read(cpu, cpu->pc));
+				return xor_imm8(cpu, mem_read(cpu, cpu->pc));
 				break;
 			case 6:
-				return or_imm8(cpu, read(cpu, cpu->pc));
+				return or_imm8(cpu, mem_read(cpu, cpu->pc));
 				break;
 			case 7:
-				return cp_imm8(cpu, read(cpu, cpu->pc));
+				return cp_imm8(cpu, mem_read(cpu, cpu->pc));
 				break;
 		}
 
@@ -1624,26 +1624,26 @@ void
 print_cpu_state(struct CPU *cpu)
 {
 	// fprintf(cpu->log, "%s ", get_mnemonic(read(cpu, cpu->pc)));
-	fprintf(cpu->log, "DIV: %08d ", read(cpu, DIV));
+	fprintf(cpu->log, "DIV: %08d ", mem_read(cpu, DIV));
 	fprintf(cpu->log, "CYC: %05d ", cpu->mcycles);
-	fprintf(cpu->log, "TAC: %03b TIMA: %02x ", read(cpu, TAC), read(cpu, TIMA));
+	fprintf(cpu->log, "TAC: %03b TIMA: %02x ", mem_read(cpu, TAC), mem_read(cpu, TIMA));
 
 	fprintf(cpu->log, "%c%c%c%c ",
 		 cpu->f.z ? 'z' : '-', cpu->f.n ? 'n' : '-', cpu->f.h ? 'h' : '-',
 		 cpu->f.c ? 'c' : '-');
-	fprintf(cpu->log, "IME: %d IF: %05b IE: %05b ", cpu->ime, read(cpu, IF),
-		 read(cpu, IE));
+	fprintf(cpu->log, "IME: %d IF: %05b IE: %05b ", cpu->ime, mem_read(cpu, IF),
+		 mem_read(cpu, IE));
 
 	fprintf(cpu->log, "AF: %02x%02x BC: %02x%02x DE: %02x%02x HL: %02x%02x "
 		 "SP: %04x PC: %04x ", cpu->a, cpu->f.flags, cpu->b, cpu->c, cpu->d,
 		 cpu->e, cpu->h, cpu->l, cpu->sp, cpu->pc);
 
-	fprintf(cpu->log, "[HL]: %02x ", read(cpu, cpu->h << 8 | cpu->l));
-	fprintf(cpu->log, "[%02x %02x %02x %02x] ", read(cpu, cpu->sp),
-		 read(cpu, cpu->sp+1), read(cpu, cpu->sp+2), read(cpu, cpu->sp+3));
+	fprintf(cpu->log, "[HL]: %02x ", mem_read(cpu, cpu->h << 8 | cpu->l));
+	fprintf(cpu->log, "[%02x %02x %02x %02x] ", mem_read(cpu, cpu->sp),
+		 mem_read(cpu, cpu->sp+1), mem_read(cpu, cpu->sp+2), mem_read(cpu, cpu->sp+3));
 
-	fprintf(cpu->log, "(%02x %02x %02x %02x)", read(cpu, cpu->pc),
-		 read(cpu, cpu->pc+1), read(cpu, cpu->pc+2), read(cpu, cpu->pc+3));
+	fprintf(cpu->log, "(%02x %02x %02x %02x)", mem_read(cpu, cpu->pc),
+		 mem_read(cpu, cpu->pc+1), mem_read(cpu, cpu->pc+2), mem_read(cpu, cpu->pc+3));
 
 	fprintf(cpu->log, "\n");
 }

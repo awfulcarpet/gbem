@@ -1,10 +1,16 @@
+#include <stdbool.h>
 #include <sys/types.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_error.h>
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_surface.h>
+#include <SDL2/SDL_video.h>
 
 #include "cpu.h"
-#include "ram.h"
+#include "mem.h"
 #include "opcode.h"
 #include "timer.h"
-
+#include "graphics.h"
 
 int
 main(int argc, char **argv) {
@@ -18,31 +24,34 @@ main(int argc, char **argv) {
 	cpu->memory[0] = 0x11;
 	cpu->memory[1] = 0xFE;
 	cpu->memory[2] = 0xCA;
-
-	cpu->memory[3] = 0x01;
-	cpu->memory[4] = 0xBE;
-	cpu->memory[5] = 0xBA;
-
-	cpu->memory[6] = 0x78;
-	cpu->memory[7] = 0x42;
-	cpu->memory[8] = 0x57;
-	cpu->memory[9] = 0x79;
-	cpu->memory[10] = 0x4b;
-	cpu->memory[11] = 0x5f;
-	cpu->memory[12] = 0xe0;
-	cpu->memory[13] = 0x02;
-	cpu->memory[0xff01] = 'c';
-
-	cpu->memory[14] = 0xcd; /* CALL a16 */
-	cpu->memory[15] = 0x17;
-	cpu->memory[16] = 0x00;
-
-	cpu->memory[0x0017] = 0xcd; /* CALL a16 */
-	cpu->memory[0x0018] = 0x20;
-	cpu->memory[0x0019] = 0x00;
-
+	//
+	// cpu->memory[3] = 0x01;
+	// cpu->memory[4] = 0xBE;
+	// cpu->memory[5] = 0xBA;
+	//
+	// cpu->memory[6] = 0x78;
+	// cpu->memory[7] = 0x42;
+	// cpu->memory[8] = 0x57;
+	// cpu->memory[9] = 0x79;
+	// cpu->memory[10] = 0x4b;
+	// cpu->memory[11] = 0x5f;
+	// cpu->memory[12] = 0xe0;
+	// cpu->memory[13] = 0x02;
+	// cpu->memory[0xff01] = 'c';
+	//
+	// cpu->memory[14] = 0xcd; /* CALL a16 */
+	// cpu->memory[15] = 0x17;
+	// cpu->memory[16] = 0x00;
+	//
+	// cpu->memory[0x0017] = 0xcd; /* CALL a16 */
+	// cpu->memory[0x0018] = 0x20;
+	// cpu->memory[0x0019] = 0x00;
+	//
 	cpu->memory[0x0020] = 0x10; /* STOP */
-	write(cpu, TAC, 0b101);
+	// write(cpu, TAC, 0b101);
+
+	if (graphics_init())
+		return 1;
 
 	while (1) {
 		print_cpu_state(cpu);
@@ -52,5 +61,7 @@ main(int argc, char **argv) {
 			break;
 	}
 		print_cpu_state(cpu);
+
+	getchar();
 	return 0;
 }

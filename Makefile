@@ -1,6 +1,6 @@
-WARNINGS = -Wall -Wextra -Wpedantic -Wno-unused-result -Wwrite-strings -Wcast-align -Wpointer-arith -Wunused-parameter -Wmissing-include-dirs
-CFLAGS = -std=c99 -O0 $(WARNINGS) $(DEFS)
-LDLIBS =
+WARNINGS = -ggdb -Wall -Wextra -Wpedantic -Wno-unused-result -Wwrite-strings -Wcast-align -Wpointer-arith -Wunused-parameter -Wmissing-include-dirs
+CFLAGS = -std=c99 $(WARNINGS) $(DEFS)
+LDLIBS = -lSDL2
 TESTS ?= TEST
 
 NAME = gbem
@@ -8,8 +8,9 @@ OUTDIR = .build
 OBJ = \
 	  $(OUTDIR)/cpu.o \
 	  $(OUTDIR)/opcode.o \
-	  $(OUTDIR)/ram.o \
+	  $(OUTDIR)/mem.o \
 	  $(OUTDIR)/timer.o \
+	  $(OUTDIR)/graphics.o \
 
 all: $(NAME)
 

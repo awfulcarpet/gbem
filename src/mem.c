@@ -3,15 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
-#include "ram.h"
+#include "mem.h"
 #include "timer.h"
 
 static FILE *f = NULL;
 
 void
-ram_init(struct CPU *cpu)
+mem_init(struct CPU *cpu)
 {
-
 	memset(cpu->memory, 0, 0xFFFF + 1);
 }
 
@@ -31,12 +30,12 @@ load_rom(struct CPU *cpu, char *path)
 }
 
 uint8_t
-read(struct CPU *cpu, uint16_t adr) {
+mem_read(struct CPU *cpu, uint16_t adr) {
 	return cpu->memory[adr];
 }
 
 void
-write(struct CPU *cpu, uint16_t adr, uint8_t data) {
+mem_write(struct CPU *cpu, uint16_t adr, uint8_t data) {
 #ifndef TEST
 	assert(adr >= 0x8000); // avoid writing ROM
 #endif
@@ -46,7 +45,7 @@ write(struct CPU *cpu, uint16_t adr, uint8_t data) {
 		exit(5);
 
 	if (adr == SC && data == 0x81) {
-		fprintf(f, "%c", read(cpu, SB));
+		fprintf(f, "%c", mem_read(cpu, SB));
 	}
 	fclose(f);
 
