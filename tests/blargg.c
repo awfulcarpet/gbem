@@ -1,13 +1,15 @@
 #include "../src/cpu.h"
 #include "../src/mem.h"
 #include "../src/opcode.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 int
 main(int argc, char **argv)
 {
-	struct CPU *cpu = init_cpu();
+	uint8_t mem[1 << 16] = {0};
+	struct CPU *cpu = init_cpu(mem);
 
 	 char *roms[] = {
 		"tests/blargg/cpu_instrs/individual/01-special.gb",
@@ -35,7 +37,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (load_rom(cpu, roms[atoi(argv[1]) - 1])) {
+	if (load_rom(cpu->memory, roms[atoi(argv[1]) - 1])) {
 		printf("unable to open rom\n");
 		return 1;
 	}

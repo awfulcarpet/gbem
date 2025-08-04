@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +16,7 @@ mem_init(struct CPU *cpu)
 }
 
 int
-load_rom(struct CPU *cpu, char *path)
+load_rom(uint8_t *mem, char *path)
 {
 	FILE* file = fopen(path, "rb");
 	if (file == NULL) {
@@ -24,7 +25,7 @@ load_rom(struct CPU *cpu, char *path)
 	}
 
 	int pos = 0;
-	while (fread(&cpu->memory[pos], 1, 1, file)) {
+	while (fread(&mem[pos], 1, 1, file)) {
 		pos++;
 	}
 	fclose(file);
@@ -33,12 +34,12 @@ load_rom(struct CPU *cpu, char *path)
 }
 
 uint8_t
-mem_read(struct CPU *cpu, uint16_t adr) {
-	return cpu->memory[adr];
+mem_read(uint8_t *mem, uint16_t adr) {
+	return mem[adr];
 }
 
 void
-mem_write(struct CPU *cpu, uint16_t adr, uint8_t data) {
+mem_write(uint8_t *mem, uint16_t adr, uint8_t data) {
 #ifndef TEST
 	assert(adr >= 0x8000); // avoid writing ROM
 #endif
@@ -48,7 +49,7 @@ mem_write(struct CPU *cpu, uint16_t adr, uint8_t data) {
 		if (f == NULL)
 			exit(5);
 
-		fprintf(f, "%c", mem_read(cpu, SB));
+		fprintf(f, "%c", mem_read(mem, SB));
 		fclose(f);
 	}
 
@@ -57,5 +58,5 @@ mem_write(struct CPU *cpu, uint16_t adr, uint8_t data) {
 		data = 0x00;
 #endif
 
-	cpu->memory[adr] = data;
+	mem[adr] = data;
 }

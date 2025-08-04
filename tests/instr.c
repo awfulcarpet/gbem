@@ -129,6 +129,7 @@ cpu_from_json(const cJSON *json, struct CPU *cpu)
 
 	const cJSON *ram = cJSON_GetObjectItem(json, "ram");
 	const cJSON *content = NULL;
+	cpu->memory = calloc(1 << 16, sizeof(uint8_t));
 
 	cJSON_ArrayForEach(content, ram)
 	{
@@ -165,6 +166,8 @@ run_test(cJSON *json)
 
 
 	struct CPU cpu = test->initial;
+	cpu.memory = calloc(1 << 16, sizeof(uint8_t));
+	memcpy(cpu.memory, test->initial.memory, 1 << 16);
 	while (cpu.mcycles < test->cycles) {
 		cpu.mcycles += execute_opcode(&cpu);
 	}
@@ -176,7 +179,11 @@ run_test(cJSON *json)
 		print_cpu_state(&test->initial);
 		fprintf(stderr, "\n");
 
+		free(cpu.memory);
+
 		struct CPU cpu = test->initial;
+		cpu.memory = calloc(1 << 16, sizeof(uint8_t));
+		memcpy(cpu.memory, test->initial.memory, 1 << 16);
 		while (cpu.mcycles < test->cycles) {
 			cpu.mcycles += execute_opcode(&cpu);
 			print_cpu_state(&cpu);
@@ -185,8 +192,12 @@ run_test(cJSON *json)
 		fprintf(stderr, "\nfinal\n");
 		print_cpu_state(&test->final);
 		fprintf(stderr, "\n");
+		free(cpu.memory);
 		failed = 1;
 	}
+	free(cpu.memory);
+	free(test->initial.memory);
+	free(test->final.memory);
 
 	free(test);
 
@@ -194,7 +205,7 @@ run_test(cJSON *json)
 }
 
 int
-run_opcode(int opcode)
+run_opcode(uint8_t opcode)
 {
 	char *filename = calloc(strlen("tests/GameboyCPUTests/v2/00.json") + 1, sizeof(char));
 	sprintf(filename, "tests/GameboyCPUTests/v2/%02x.json", opcode);
@@ -204,7 +215,7 @@ run_opcode(int opcode)
 	cJSON *json = cJSON_Parse(buf);
 	cJSON *test = NULL;
 
-	char *mnemonic = get_mnemonic(opcode);
+	char *mnemonic = get_mnemonic(&opcode);
 	int len = 20 - strlen(mnemonic);
 	printf("%02x: %s%*.*s", opcode, mnemonic, len, len, "...........................");
 

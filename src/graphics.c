@@ -1,15 +1,35 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
 #include <assert.h>
+#include <stdint.h>
 #include "graphics.h"
 
+enum {
+	BLACK = 0x00,
+	DGRAY = 0x55,
+	GRAY = 0xAA,
+	WHITE = 0xff,
+};
+
+struct Tile {
+	uint8_t pixels[8][8];
+};
+
+struct Tile *
+get_tile(struct CPU *cpu)
+{
+}
+
 struct PPU *
-graphics_init(void)
+graphics_init(uint8_t *mem)
 {
 	struct PPU *ppu = calloc(1, sizeof(struct PPU));
 
 	if (ppu == NULL)
 		return NULL;
+
+	if (mem != NULL)
+		ppu->mem = mem;
 
 	if (SDL_Init(SDL_INIT_VIDEO)) {
 		fprintf(stderr, "unable to init SDL: %s\n", SDL_GetError());
@@ -60,8 +80,7 @@ int
 graphics_scanline(struct PPU *ppu)
 {
 	set_ppu_mode(ppu, OAM_SCAN);
-	ppu->fb[SCREEN_WIDTH * SCREEN_HEIGHT / 2 + SCREEN_WIDTH / 2] = 0xFFFFFF;
-
+	// ppu->fb[SCREEN_WIDTH * SCREEN_HEIGHT / 2 + SCREEN_WIDTH / 2] = 0xFFFFFF;
 
 	SDL_UpdateWindowSurface(ppu->win);
 	return 0;

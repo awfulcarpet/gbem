@@ -31,10 +31,12 @@ struct PPU {
 	struct Mode mode;
 	uint8_t ly;
 
+	uint8_t *mem;
+
 	SDL_Window *win;
 	uint32_t *fb;
 };
 
 
-struct PPU *graphics_init(void);
+struct PPU *graphics_init(uint8_t *mem);
 int graphics_scanline(struct PPU *ppu);

@@ -86,7 +86,7 @@ struct CPU {
 	uint8_t halt;
 	uint8_t stop;
 
-	uint8_t memory[0xFFFF + 1];
+	uint8_t *memory;
 	uint32_t mcycles;
 
 	uint16_t div;
@@ -148,7 +148,7 @@ switch (op) { \
 		break; \
 }; \
 
-struct CPU *init_cpu(void);
+struct CPU *init_cpu(uint8_t *mem);
 void request_interrupt(struct CPU *cpu, enum INTERRUPT interrupt);
 void execute(struct CPU *cpu);
 int execute_opcode(struct CPU *cpu);

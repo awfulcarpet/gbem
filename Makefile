@@ -18,8 +18,9 @@ all: $(NAME)
 run: $(NAME)
 	$(OUTDIR)/$(NAME)
 
-tests: make_tests blargg
+tests: make_tests blargg acid
 	$(OUTDIR)/instr
+	# $(OUTDIR)/acid
 	rm -f /tmp/log
 	$(OUTDIR)/blargg 1 &
 

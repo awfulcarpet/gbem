@@ -10,16 +10,16 @@ static uint8_t sum = 0;
 
 static void
 incr(struct CPU *cpu, uint8_t cycles, uint16_t period) {
-	uint8_t tima = mem_read(cpu, TIMA);
+	uint8_t tima = mem_read(cpu->memory, TIMA);
 
 	sum += cycles;
 
 	while (sum >= period) {
 		sum -= period;
-		mem_write(cpu, TIMA, ++tima);
+		mem_write(cpu->memory, TIMA, ++tima);
 
 		if (tima == 0x00) {
-			mem_write(cpu, TIMA, mem_read(cpu, TMA));
+			mem_write(cpu->memory, TIMA, mem_read(cpu->memory, TMA));
 			request_interrupt(cpu, INTERRUPT_TIMER);
 		}
 	}
@@ -28,10 +28,10 @@ incr(struct CPU *cpu, uint8_t cycles, uint16_t period) {
 void
 timer_incr(struct CPU *cpu, int cycles)
 {
-	uint8_t tac = mem_read(cpu, TAC);
+	uint8_t tac = mem_read(cpu->memory, TAC);
 	cpu->div += cycles * 4;
 
-	mem_write(cpu, DIV, cpu->div >> 8);
+	mem_write(cpu->memory, DIV, cpu->div >> 8);
 
 	if ((tac & TAC_ENABLE) == 0)
 		return;

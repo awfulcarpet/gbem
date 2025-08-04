@@ -6,7 +6,7 @@ int
 main(void)
 {
 	struct GB *gb = gb_init();
-	if(load_rom(gb->cpu, "tests/dmg-acid2.gb"))
+	if(load_rom(gb->mem, "tests/dmg-acid2.gb"))
 		return 1;
 
 
