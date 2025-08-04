@@ -1,3 +1,4 @@
+#include <stdint.h>
 struct GB {
 	struct CPU *cpu;
 	struct PPU *ppu;

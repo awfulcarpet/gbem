@@ -8,6 +8,7 @@
 #include "mem.h"
 #include "opcode.h"
 #include "timer.h"
+#include "graphics.h"
 
 
 struct CPU *
@@ -1623,7 +1624,7 @@ cpu_log(struct CPU *cpu)
 void
 print_cpu_state(struct CPU *cpu)
 {
-	// fprintf(cpu->log, "%s ", get_mnemonic(read(cpu, cpu->pc)));
+	fprintf(cpu->log, "%13s|", get_mnemonic(&cpu->memory[cpu->pc]));
 	fprintf(cpu->log, "DIV: %08d ", mem_read(cpu, DIV));
 	fprintf(cpu->log, "CYC: %05d ", cpu->mcycles);
 	fprintf(cpu->log, "TAC: %03b TIMA: %02x ", mem_read(cpu, TAC), mem_read(cpu, TIMA));

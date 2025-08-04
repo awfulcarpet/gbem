@@ -3,6 +3,7 @@
 #include "cpu.h"
 #include "graphics.h"
 #include "gb.h"
+#include "mem.h"
 
 struct GB *
 gb_init(void)
@@ -25,6 +26,16 @@ gb_run(struct GB *gb)
 	while (true) {
 		print_cpu_state(gb->cpu);
 		execute(gb->cpu);
-		graphics_scanline(gb->ppu);
+		// graphics_scanline(gb->ppu);
+
+		if (mem_read(gb->cpu, gb->cpu->pc) == 0x00) {
+			for (int i = 0x9880; i < 0x9c00; i++) {
+				int c = mem_read(gb->cpu, i);
+				if (c != 0) {
+					printf("%d\t", c);
+				}
+			}
+			return;
+		}
 	}
 }

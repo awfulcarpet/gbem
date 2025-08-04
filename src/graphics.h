@@ -8,6 +8,13 @@ enum {
 	SCREEN_HEIGHT = 144,
 };
 
+enum {
+	LCDC = 0xff40,
+	STAT = 0xff41,
+	LY = 0xff44,
+	LYC = 0xff45,
+};
+
 enum PPU_MODE {
 	HBLANK = 0,
 	VBLANK = 1,

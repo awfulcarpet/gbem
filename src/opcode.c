@@ -9,11 +9,63 @@ unimlemented_opcode(uint8_t opcode) {
 	exit(1);
 }
 
+static char *
+get_prefix(uint8_t opcode)
+{
+	if ((opcode & 0b11111000) == 0) {
+		return "RLC r8";
+	}
+
+	if ((opcode & 0b11111000) == 0b1000) {
+		return "RRC R8";
+	}
+
+	if ((opcode & 0b11111000) == 0b10000) {
+		return "RL R8";
+	}
+
+	if ((opcode & 0b11111000) == 0b11000) {
+		return "RR R8";
+	}
+
+	if ((opcode & 0b11111000) == 0b100000) {
+		return "SLA R8";
+	}
+
+	if ((opcode & 0b11111000) == 0b101000) {
+		return "SRA R8";
+	}
+
+	if ((opcode & 0b11111000) == 0b110000) {
+		return "SWAP R8";
+	}
+
+	if ((opcode & 0b11111000) == 0b111000) {
+		return "SRL R8";
+	}
+
+	if (opcode >> 6 == 1) {
+		return "BIT B3 R8";
+	}
+
+	if (opcode >> 6 == 0b10) {
+		return "RES B3 R8";
+	}
+
+	if (opcode >> 6 == 0b11) {
+		return "SET B3 R8";
+	}
+
+	unimlemented_opcode(opcode);
+
+	return "";
+}
+
 char *
-get_mnemonic(uint8_t opcode)
+get_mnemonic(uint8_t *opcode)
 {
 	char *buf = calloc(16 + 1, sizeof(char));
-    switch (opcode) {
+    switch (*opcode) {
 	case 0x00: {  const char *tmp = "NOP"; memcpy(buf, tmp, strlen(tmp)); break; }
 	case 0x01: {  const char *tmp = "LD BC, imm16"; memcpy(buf, tmp, strlen(tmp)); break; }
 	case 0x02: {  const char *tmp = "LD [BC], A"; memcpy(buf, tmp, strlen(tmp)); break; }
@@ -230,7 +282,7 @@ get_mnemonic(uint8_t opcode)
 	case 0xc8: {  const char *tmp = "RET Z"; memcpy(buf, tmp, strlen(tmp)); break; }
 	case 0xc9: {  const char *tmp = "RET"; memcpy(buf, tmp, strlen(tmp)); break; }
 	case 0xca: {  const char *tmp = "JP Z"; memcpy(buf, tmp, strlen(tmp)); break; }
-	case 0xcb: {  const char *tmp = "PREFIX"; memcpy(buf, tmp, strlen(tmp)); break; } // TODO: implement
+	case 0xcb: {  const char *tmp = get_prefix(*(opcode+1)); memcpy(buf, tmp, strlen(tmp)); break; } // TODO: implement
 	case 0xcc: {  const char *tmp = "CALL Z, imm16"; memcpy(buf, tmp, strlen(tmp)); break; }
 	case 0xcd: {  const char *tmp = "CALL imm16"; memcpy(buf, tmp, strlen(tmp)); break; }
 	case 0xce: {  const char *tmp = "ADC A, imm8"; memcpy(buf, tmp, strlen(tmp)); break; }
@@ -288,7 +340,7 @@ get_mnemonic(uint8_t opcode)
 	case 0xff: {  const char *tmp = "RST $38"; memcpy(buf, tmp, strlen(tmp)); break; }
 
 	default:
-	    unimlemented_opcode(opcode);
+	    unimlemented_opcode(*opcode);
 	    break;
     }
 	return buf;
@@ -576,3 +628,4 @@ print_mnemonic(uint8_t *opcode) {
 	    break;
     }
 }
+

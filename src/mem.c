@@ -43,14 +43,14 @@ mem_write(struct CPU *cpu, uint16_t adr, uint8_t data) {
 	assert(adr >= 0x8000); // avoid writing ROM
 #endif
 
-	f = fopen("/tmp/log", "a");
-	if (f == NULL)
-		exit(5);
-
 	if (adr == SC && data == 0x81) {
+		f = fopen("/tmp/log", "a");
+		if (f == NULL)
+			exit(5);
+
 		fprintf(f, "%c", mem_read(cpu, SB));
+		fclose(f);
 	}
-	fclose(f);
 
 #ifndef TEST
 	if (adr == DIV)

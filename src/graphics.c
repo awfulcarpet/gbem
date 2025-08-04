@@ -3,7 +3,6 @@
 #include <assert.h>
 #include "graphics.h"
 
-
 struct PPU *
 graphics_init(void)
 {
@@ -33,15 +32,6 @@ graphics_init(void)
 	return ppu;
 }
 
-int
-graphics_scanline(struct PPU *ppu)
-{
-	ppu->fb[SCREEN_WIDTH * SCREEN_HEIGHT / 2 + SCREEN_WIDTH / 2] = 0xFFFFFF;
-
-	SDL_UpdateWindowSurface(ppu->win);
-	return 0;
-}
-
 static void
 set_ppu_mode(struct PPU *ppu, enum PPU_MODE mode)
 {
@@ -66,3 +56,13 @@ set_ppu_mode(struct PPU *ppu, enum PPU_MODE mode)
 	}
 }
 
+int
+graphics_scanline(struct PPU *ppu)
+{
+	set_ppu_mode(ppu, OAM_SCAN);
+	ppu->fb[SCREEN_WIDTH * SCREEN_HEIGHT / 2 + SCREEN_WIDTH / 2] = 0xFFFFFF;
+
+
+	SDL_UpdateWindowSurface(ppu->win);
+	return 0;
+}
