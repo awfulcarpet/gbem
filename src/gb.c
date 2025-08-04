@@ -29,12 +29,6 @@ gb_run(struct GB *gb)
 		// graphics_scanline(gb->ppu);
 
 		if (mem_read(gb->mem, gb->cpu->pc) == 0x00) {
-			for (int i = 0x9880; i < 0x9c00; i++) {
-				int c = mem_read(gb->mem, i);
-				if (c != 0) {
-					printf("%d\t", c);
-				}
-			}
 			break;
 		}
 	}
