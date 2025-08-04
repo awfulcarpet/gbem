@@ -22,14 +22,25 @@ struct Tile *
 get_tile(struct PPU *ppu, uint8_t id)
 {
 	struct Tile *t = calloc(1, sizeof(struct Tile));
+	if (t == NULL)
+		return NULL;
+
+	/* https://gbdev.io/pandocs/Tile_Data.html#data-format */
 	uint8_t h = 0, l = 0;
 	uint16_t adr = VRAM_TILE + id * 16;
-	for (int i = 0; i < 16; i++) {
-		h = mem_read(ppu->mem, adr + i);
-		fprintf(stderr, "%02x ", h);
+
+	for (int i = 0; i < 16 - 1; i += 2) {
+		l = mem_read(ppu->mem, adr + i);
+		h = mem_read(ppu->mem, adr + i + 1);
+
+		for (int j = 0; j < 8; j++) {
+			uint8_t b1 = h & (1 << (7 - j)) ? 1 : 0;
+			uint8_t b2 = l & (1 << (7 - j)) ? 1 : 0;
+			uint8_t res = b1 << 1 | b2;
+			t->pixels[i/2][j] = res;
+		}
 	}
-		fprintf(stderr, "\n");
-	return NULL;
+	return t;
 }
 
 struct PPU *
@@ -94,7 +105,14 @@ graphics_scanline(struct PPU *ppu)
 	set_ppu_mode(ppu, OAM_SCAN);
 	// ppu->fb[SCREEN_WIDTH * SCREEN_HEIGHT / 2 + SCREEN_WIDTH / 2] = 0xFFFFFF;
 
-	get_tile(ppu, 33);
+	struct Tile *t = get_tile(ppu, 33);
+
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			fprintf(stderr, "%d ", t->pixels[i][j]);
+		}
+		fprintf(stderr, "\n");
+	}
 	SDL_UpdateWindowSurface(ppu->win);
 	return 0;
 }
