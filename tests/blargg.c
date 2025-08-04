@@ -1,5 +1,5 @@
 #include "../src/cpu.h"
-#include "../src/ram.h"
+#include "../src/mem.h"
 #include "../src/opcode.h"
 #include <stdio.h>
 #include <stdlib.h>
