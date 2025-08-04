@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include "graphics.h"
+#include "mem.h"
 
 enum {
 	BLACK = 0x00,
@@ -11,13 +12,24 @@ enum {
 	WHITE = 0xff,
 };
 
+#define VRAM_TILE 0x8000
+
 struct Tile {
 	uint8_t pixels[8][8];
 };
 
 struct Tile *
-get_tile(struct CPU *cpu)
+get_tile(struct PPU *ppu, uint8_t id)
 {
+	struct Tile *t = calloc(1, sizeof(struct Tile));
+	uint8_t h = 0, l = 0;
+	uint16_t adr = VRAM_TILE + id * 16;
+	for (int i = 0; i < 16; i++) {
+		h = mem_read(ppu->mem, adr + i);
+		fprintf(stderr, "%02x ", h);
+	}
+		fprintf(stderr, "\n");
+	return NULL;
 }
 
 struct PPU *
@@ -82,6 +94,7 @@ graphics_scanline(struct PPU *ppu)
 	set_ppu_mode(ppu, OAM_SCAN);
 	// ppu->fb[SCREEN_WIDTH * SCREEN_HEIGHT / 2 + SCREEN_WIDTH / 2] = 0xFFFFFF;
 
+	get_tile(ppu, 33);
 	SDL_UpdateWindowSurface(ppu->win);
 	return 0;
 }

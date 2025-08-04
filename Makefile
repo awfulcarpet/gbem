@@ -19,10 +19,10 @@ run: $(NAME)
 	$(OUTDIR)/$(NAME)
 
 tests: make_tests blargg acid
-	$(OUTDIR)/instr
-	# $(OUTDIR)/acid
-	rm -f /tmp/log
-	$(OUTDIR)/blargg 1 &
+	# $(OUTDIR)/instr
+	$(OUTDIR)/acid
+	# rm -f /tmp/log
+	# $(OUTDIR)/blargg 1 &
 
 blargg: $(OBJ) tests/blargg.c
 	$(CC) -o $(OUTDIR)/blargg $^ -D$(TESTS) $(LDLIBS)
