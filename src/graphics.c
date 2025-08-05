@@ -14,6 +14,11 @@ enum {
 
 #define VRAM_TILE 0x8000
 
+enum {
+	BYTES_PER_SPRITE = 4,
+	BYTES_PER_TILE = 16,
+};
+
 struct Tile {
 	uint8_t pixels[8][8];
 	uint8_t id;
@@ -21,6 +26,19 @@ struct Tile {
 
 struct Window {
 	struct Tile *tiles[32][32];
+};
+
+
+struct Sprite {
+	uint8_t tile_id;
+	uint8_t x, y;
+	struct {
+		uint8_t priority:1;
+		uint8_t yflip:1;
+		uint8_t xflip:1;
+		uint8_t dmg_palette:2;
+		uint8_t pad:3;
+	};
 };
 
 struct Tile *
@@ -33,9 +51,9 @@ get_tile(struct PPU *ppu, uint8_t id)
 
 	/* https://gbdev.io/pandocs/Tile_Data.html#data-format */
 	uint8_t h = 0, l = 0;
-	uint16_t adr = VRAM_TILE + id * 16;
+	uint16_t adr = VRAM_TILE + id * BYTES_PER_TILE;
 
-	for (int i = 0; i < 16 - 1; i += 2) {
+	for (int i = 0; i < BYTES_PER_TILE - 1; i += 2) {
 		l = mem_read(ppu->mem, adr + i);
 		h = mem_read(ppu->mem, adr + i + 1);
 
@@ -63,6 +81,28 @@ get_window(struct PPU *ppu)
 	return w;
 }
 
+struct Sprite *
+get_sprite(struct PPU *ppu, uint8_t id)
+{
+	uint16_t adr = OAM + id * BYTES_PER_SPRITE;
+	struct Sprite *s = calloc(1, sizeof(struct Sprite));
+	if (s == NULL)
+		return NULL;
+
+	s->y = mem_read(ppu->mem, adr) - 16;
+	s->x = mem_read(ppu->mem, adr + 1) - 8;
+	s->tile_id = mem_read(ppu->mem, adr + 2);
+
+	uint8_t flag = mem_read(ppu->mem, adr + 3);
+
+	s->priority = flag & (1 << 7);
+	s->yflip = flag & (1 << 6);
+	s->xflip = flag & (1 << 5);
+	s->dmg_palette = flag & (1 << 4);
+
+	return s;
+}
+
 struct PPU *
 graphics_init(uint8_t *mem)
 {
@@ -86,6 +126,8 @@ graphics_init(uint8_t *mem)
 		fprintf(stderr, "unable to create sdl win: %s\n", SDL_GetError());
 		return NULL;
 	}
+
+	ppu->log = fopen("lcd", "w");
 
 
 	ppu->fb = SDL_GetWindowSurface(ppu->win)->pixels;
@@ -153,26 +195,30 @@ int
 graphics_scanline(struct PPU *ppu)
 {
 	set_ppu_mode(ppu, OAM_SCAN);
+	mem_write(ppu->mem, LY, mem_read(ppu->mem, LY) + 1);
 
-
-	struct Tile *t = get_tile(ppu, 33);
 	struct Window *w = get_window(ppu);
-
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
-			fprintf(stderr, "%d ", t->pixels[i][j]);
-		}
-		fprintf(stderr, "\n");
-	}
-	fprintf(stderr, "\n");
 	for (int i = 0; i < 18; i++) {
 		for (int j = 0; j < 20; j++) {
-			fprintf(stderr, "%3d ", w->tiles[i][j]->id);
 			draw_tile(ppu, w->tiles[i][j], j * 8, i * 8);
 		}
-		fprintf(stderr, "\n");
 	}
+
+	struct Sprite *s = get_sprite(ppu, 8);
+
+	struct Tile *t = get_tile(ppu, s->tile_id);
+	draw_tile(ppu, t, s->x, s->y);
 	SDL_UpdateWindowSurface(ppu->win);
 	return 0;
+}
+
+void
+graphics_log(struct PPU *ppu)
+{
+	fprintf(ppu->log, "LCDC: %08b ", mem_read(ppu->mem, LCDC));
+	fprintf(ppu->log, "LY: %02x ", mem_read(ppu->mem, LY));
+	fprintf(ppu->log, "LYC: %02x ", mem_read(ppu->mem, LYC));
+	fprintf(ppu->log, "STAT: %07b ", mem_read(ppu->mem, STAT));
+	fprintf(ppu->log, "\n");
 }
 

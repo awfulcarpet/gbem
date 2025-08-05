@@ -23,11 +23,12 @@ gb_init(void)
 void
 gb_run(struct GB *gb)
 {
+	graphics_scanline(gb->ppu);
 	while (true) {
 		print_cpu_state(gb->cpu);
 		execute(gb->cpu);
 		// graphics_scanline(gb->ppu);
-
+		graphics_log(gb->ppu);
 		if (mem_read(gb->mem, gb->cpu->pc) == 0x00) {
 			break;
 		}

@@ -13,6 +13,8 @@ enum {
 	STAT = 0xff41,
 	LY = 0xff44,
 	LYC = 0xff45,
+
+	OAM = 0xFE00,
 };
 
 enum PPU_MODE {
@@ -35,8 +37,11 @@ struct PPU {
 
 	SDL_Window *win;
 	uint32_t *fb;
+
+	FILE *log;
 };
 
 
 struct PPU *graphics_init(uint8_t *mem);
 int graphics_scanline(struct PPU *ppu);
+void graphics_log(struct PPU *ppu);
