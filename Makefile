@@ -10,7 +10,7 @@ OBJ = \
 	  $(OUTDIR)/opcode.o \
 	  $(OUTDIR)/mem.o \
 	  $(OUTDIR)/timer.o \
-	  $(OUTDIR)/graphics.o \
+	  $(OUTDIR)/ppu.o \
 	  $(OUTDIR)/gb.o \
 
 all: $(NAME)

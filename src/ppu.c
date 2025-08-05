@@ -2,7 +2,7 @@
 #include <SDL2/SDL_video.h>
 #include <assert.h>
 #include <stdint.h>
-#include "graphics.h"
+#include "ppu.h"
 #include "mem.h"
 
 enum Color {
@@ -128,7 +128,7 @@ get_sprite(struct PPU *ppu, uint8_t id)
 }
 
 struct PPU *
-graphics_init(uint8_t *mem)
+ppu_init(uint8_t *mem)
 {
 	struct PPU *ppu = calloc(1, sizeof(struct PPU));
 
@@ -316,7 +316,7 @@ write_lcdc(struct PPU *ppu, struct LCD_Control *lcdc)
 }
 
 int
-graphics_scanline(struct PPU *ppu)
+ppu_drawscreen(struct PPU *ppu)
 {
 	set_ppu_mode(ppu, OAM_SCAN);
 	mem_write(ppu->mem, LY, mem_read(ppu->mem, LY) + 1);
@@ -328,6 +328,7 @@ graphics_scanline(struct PPU *ppu)
 
 	lcdc.obj_size = 1;
 	write_lcdc(ppu, &lcdc);
+
 
 	// for (int i = 0; i < 40; i++) {
 	struct Sprite *s = get_sprite(ppu, 20);
@@ -341,7 +342,7 @@ graphics_scanline(struct PPU *ppu)
 }
 
 void
-graphics_log(struct PPU *ppu)
+ppu_log(struct PPU *ppu)
 {
 	fprintf(ppu->log, "LCDC: %08b ", mem_read(ppu->mem, LCDC));
 	fprintf(ppu->log, "LY: %02x ", mem_read(ppu->mem, LY));

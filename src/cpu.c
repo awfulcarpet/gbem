@@ -7,7 +7,7 @@
 #include "mem.h"
 #include "opcode.h"
 #include "timer.h"
-#include "graphics.h"
+#include "ppu.h"
 
 
 struct CPU *
