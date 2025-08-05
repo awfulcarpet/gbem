@@ -5,7 +5,7 @@
 #include "graphics.h"
 #include "mem.h"
 
-enum {
+enum Color {
 	BLACK = 0x00,
 	DGRAY = 0x55,
 	GRAY = 0xAA,
@@ -26,6 +26,11 @@ struct Tile {
 
 struct Window {
 	struct Tile *tiles[32][32];
+};
+
+struct Pallete {
+	uint8_t cindex:2;
+	enum Color color;
 };
 
 
@@ -203,6 +208,18 @@ tile_xflip(struct Tile *t)
 	}
 }
 
+void
+tile_yflip(struct Tile *t)
+{
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 8; j++) {
+			t->pixels[i][j] ^= t->pixels[7-i][j];
+			t->pixels[7-i][j] ^= t->pixels[i][j];
+			t->pixels[i][j] ^= t->pixels[7-i][j];
+		}
+	}
+}
+
 
 int
 graphics_scanline(struct PPU *ppu)
@@ -221,8 +238,10 @@ graphics_scanline(struct PPU *ppu)
 		struct Sprite *s = get_sprite(ppu, i);
 
 		struct Tile *t = get_tile(ppu, s->tile_id);
-		// if (s->xflip)
+		if (s->xflip)
 			tile_xflip(t);
+		if (s->yflip)
+			tile_yflip(t);
 		draw_tile(ppu, t, s->x, s->y);
 		free(t);
 		free(s);
