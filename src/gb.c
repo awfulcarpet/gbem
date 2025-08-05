@@ -23,7 +23,6 @@ gb_init(void)
 void
 gb_run(struct GB *gb)
 {
-	graphics_scanline(gb->ppu);
 	while (true) {
 		print_cpu_state(gb->cpu);
 		execute(gb->cpu);

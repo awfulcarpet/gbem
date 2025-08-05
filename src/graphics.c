@@ -6,10 +6,16 @@
 #include "mem.h"
 
 enum Color {
-	BLACK = 0x00,
-	DGRAY = 0x55,
-	GRAY = 0xAA,
-	WHITE = 0xff,
+	BLACK = 0x000000,
+	DGRAY = 0x555555,
+	GRAY = 0xaaaaaa,
+	WHITE = 0xffffff,
+};
+
+enum Pallete {
+	BGP = 0xff47,
+	OBP0 = 0xff48,
+	OBP1 = 0xff49,
 };
 
 #define VRAM_TILE 0x8000
@@ -28,10 +34,6 @@ struct Window {
 	struct Tile *tiles[32][32];
 };
 
-struct Pallete {
-	uint8_t cindex:2;
-	enum Color color;
-};
 
 
 struct Sprite {
@@ -41,8 +43,8 @@ struct Sprite {
 		uint8_t priority:1;
 		uint8_t yflip:1;
 		uint8_t xflip:1;
-		uint8_t dmg_palette:2;
-		uint8_t pad:3;
+		uint8_t dmg_palette:1;
+		uint8_t pad:4;
 	};
 };
 
@@ -100,10 +102,10 @@ get_sprite(struct PPU *ppu, uint8_t id)
 
 	uint8_t flag = mem_read(ppu->mem, adr + 3);
 
-	s->priority = flag & (1 << 7);
-	s->yflip = flag & (1 << 6);
-	s->xflip = flag & (1 << 5);
-	s->dmg_palette = flag & (1 << 4);
+	s->priority = (flag & (1 << 7)) >> 7;
+	s->yflip = (flag & (1 << 6)) >> 6;
+	s->xflip = (flag & (1 << 5)) >> 5;
+	s->dmg_palette = (flag & (1 << 4)) >> 4;
 
 	return s;
 }
@@ -166,26 +168,34 @@ set_ppu_mode(struct PPU *ppu, enum PPU_MODE mode)
 	}
 }
 
+uint8_t
+get_color(struct PPU *ppu, uint8_t id, enum Pallete pallete)
+{
+	return (mem_read(ppu->mem, pallete) & (3 << (id * 2))) >> (id * 2);
+}
+
 /* TODO: replace with scan line */
 void
-draw_tile(struct PPU *ppu, struct Tile *t, uint8_t xpix, uint8_t ypix)
+draw_tile(struct PPU *ppu, struct Tile *t, uint8_t xpix, uint8_t ypix, enum Pallete pallete)
 {
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
 			uint8_t pix = t->pixels[i][j];
 			uint32_t color = 0x00;
-			switch (pix) {
+			switch (get_color(ppu, pix, pallete)) {
 				case 0:
-					color = 0xFFFFFF;
+					if (pallete != BGP)
+						continue;
+					color = WHITE;
 				break;
 				case 1:
-					color = 0xAAAAAA;
+					color = GRAY;
 				break;
 				case 2:
-					color = 0x555555;
+					color = DGRAY;
 				break;
 				case 3:
-					color = 0x00;
+					color = BLACK;
 				break;
 				default:
 				assert(NULL); /* unreachable */
@@ -220,6 +230,18 @@ tile_yflip(struct Tile *t)
 	}
 }
 
+void
+sprite_render(struct PPU *ppu, struct Sprite *s)
+{
+	struct Tile *t = get_tile(ppu, s->tile_id);
+	if (s->xflip)
+		tile_xflip(t);
+	if (s->yflip)
+		tile_yflip(t);
+	draw_tile(ppu, t, s->x, s->y, s->dmg_palette ? OBP1 : OBP0);
+	free(t);
+}
+
 
 int
 graphics_scanline(struct PPU *ppu)
@@ -230,20 +252,14 @@ graphics_scanline(struct PPU *ppu)
 	struct Window *w = get_window(ppu);
 	for (int i = 0; i < 18; i++) {
 		for (int j = 0; j < 20; j++) {
-			draw_tile(ppu, w->tiles[i][j], j * 8, i * 8);
+			draw_tile(ppu, w->tiles[i][j], j * 8, i * 8, BGP);
 		}
 	}
 
-	for (int i = 0; i < 40; i++) {
-		struct Sprite *s = get_sprite(ppu, i);
 
-		struct Tile *t = get_tile(ppu, s->tile_id);
-		if (s->xflip)
-			tile_xflip(t);
-		if (s->yflip)
-			tile_yflip(t);
-		draw_tile(ppu, t, s->x, s->y);
-		free(t);
+	for (int i = 0; i < 40; i++) {
+	struct Sprite *s = get_sprite(ppu, i);
+	sprite_render(ppu, s);
 		free(s);
 	}
 	SDL_UpdateWindowSurface(ppu->win);
