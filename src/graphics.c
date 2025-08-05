@@ -191,6 +191,19 @@ draw_tile(struct PPU *ppu, struct Tile *t, uint8_t xpix, uint8_t ypix)
 	}
 }
 
+void
+tile_xflip(struct Tile *t)
+{
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 4; j++) {
+			t->pixels[i][j] ^= t->pixels[i][7-j];
+			t->pixels[i][7-j] ^= t->pixels[i][j];
+			t->pixels[i][j] ^= t->pixels[i][7-j];
+		}
+	}
+}
+
+
 int
 graphics_scanline(struct PPU *ppu)
 {
@@ -208,7 +221,11 @@ graphics_scanline(struct PPU *ppu)
 		struct Sprite *s = get_sprite(ppu, i);
 
 		struct Tile *t = get_tile(ppu, s->tile_id);
+		// if (s->xflip)
+			tile_xflip(t);
 		draw_tile(ppu, t, s->x, s->y);
+		free(t);
+		free(s);
 	}
 	SDL_UpdateWindowSurface(ppu->win);
 	return 0;
