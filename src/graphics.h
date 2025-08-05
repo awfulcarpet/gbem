@@ -15,6 +15,8 @@ enum {
 	LYC = 0xff45,
 
 	OAM = 0xFE00,
+	WX = 0xff4a,
+	WY = 0xff4b,
 };
 
 enum PPU_MODE {
@@ -22,6 +24,17 @@ enum PPU_MODE {
 	VBLANK = 1,
 	OAM_SCAN = 2,
 	DRAW = 3,
+};
+
+struct LCD_Control {
+	uint8_t enable:1;
+	uint8_t w_tmap:1;
+	uint8_t wenable:1;
+	uint8_t tdata:1;
+	uint8_t bg_tmap:1;
+	uint8_t obj_size:1;
+	uint8_t obj_enable:1;
+	uint8_t bgwin_enable:1;
 };
 
 struct Mode {

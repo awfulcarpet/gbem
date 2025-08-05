@@ -34,8 +34,6 @@ struct Window {
 	struct Tile *tiles[32][32];
 };
 
-
-
 struct Sprite {
 	uint8_t tile_id;
 	uint8_t x, y;
@@ -47,6 +45,24 @@ struct Sprite {
 		uint8_t pad:4;
 	};
 };
+
+struct LCD_Control
+read_lcdc(struct PPU *ppu)
+{
+	struct LCD_Control lcdc = {0};
+	uint8_t tmp = mem_read(ppu->mem, LCDC);
+
+	lcdc.enable = tmp & (1 << 7) ? 1 : 0;
+	lcdc.w_tmap = tmp & (1 << 6) ? 1 : 0;
+	lcdc.wenable = tmp & (1 << 5) ? 1 : 0;
+	lcdc.tdata = tmp & (1 << 4) ? 1 : 0;
+	lcdc.bg_tmap = tmp & (1 << 3) ? 1 : 0;
+	lcdc.obj_size = tmp & (1 << 2) ? 1 : 0;
+	lcdc.obj_enable = tmp & (1 << 1) ? 1 : 0;
+	lcdc.bgwin_enable = tmp & (1 << 0) ? 1 : 0;
+
+	return lcdc;
+}
 
 struct Tile *
 get_tile(struct PPU *ppu, uint8_t id)
@@ -76,13 +92,14 @@ get_tile(struct PPU *ppu, uint8_t id)
 
 /* TODO: handle LCDC */
 struct Window *
-get_window(struct PPU *ppu)
+get_window(struct PPU *ppu, uint16_t adr)
 {
 	struct Window *w = calloc(1, sizeof(struct Window));
 	if (w == NULL) return NULL;
 
+
 	for (int i = 0; i < 32 * 32; i++) {
-		w->tiles[i / 32][i % 32] = get_tile(ppu, mem_read(ppu->mem, i + 0x9880));
+		w->tiles[i / 32][i % 32] = get_tile(ppu, mem_read(ppu->mem, i + adr));
 	}
 
 	return w;
@@ -201,7 +218,9 @@ draw_tile(struct PPU *ppu, struct Tile *t, uint8_t xpix, uint8_t ypix, enum Pall
 				assert(NULL); /* unreachable */
 				break;
 			}
-			ppu->fb[ypix * SCREEN_WIDTH + i * SCREEN_WIDTH + j + xpix] = color;
+			uint16_t coord = ypix * SCREEN_WIDTH + i * SCREEN_WIDTH + j + xpix;
+			if (coord > SCREEN_WIDTH * SCREEN_HEIGHT) continue;
+			ppu->fb[coord] = color;
 		}
 	}
 }
@@ -219,13 +238,24 @@ tile_xflip(struct Tile *t)
 }
 
 void
-tile_yflip(struct Tile *t)
+sprite_yflip(struct Tile *t1, struct Tile *t2)
 {
-	for (int i = 0; i < 4; i++) {
+	if (t2 == NULL) {
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 8; j++) {
+				t1->pixels[i][j] ^= t1->pixels[7-i][j];
+				t1->pixels[7-i][j] ^= t1->pixels[i][j];
+				t1->pixels[i][j] ^= t1->pixels[7-i][j];
+			}
+		}
+		return;
+	}
+
+	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
-			t->pixels[i][j] ^= t->pixels[7-i][j];
-			t->pixels[7-i][j] ^= t->pixels[i][j];
-			t->pixels[i][j] ^= t->pixels[7-i][j];
+			t1->pixels[i][j] ^= t2->pixels[7-i][j];
+			t2->pixels[7-i][j] ^= t1->pixels[i][j];
+			t1->pixels[i][j] ^= t2->pixels[7-i][j];
 		}
 	}
 }
@@ -233,15 +263,57 @@ tile_yflip(struct Tile *t)
 void
 sprite_render(struct PPU *ppu, struct Sprite *s)
 {
-	struct Tile *t = get_tile(ppu, s->tile_id);
-	if (s->xflip)
-		tile_xflip(t);
+	struct LCD_Control lcdc = read_lcdc(ppu);
+
+	if (lcdc.obj_size)
+		s->tile_id &= 0xfe;
+
+	struct Tile *t1 = get_tile(ppu, s->tile_id);
+	struct Tile *t2 = get_tile(ppu, s->tile_id | 0x01);
+
+	if (s->xflip) {
+		tile_xflip(t1);
+		if (lcdc.obj_size)
+			tile_xflip(t2);
+	}
+
 	if (s->yflip)
-		tile_yflip(t);
-	draw_tile(ppu, t, s->x, s->y, s->dmg_palette ? OBP1 : OBP0);
-	free(t);
+		sprite_yflip(t1, lcdc.obj_size ? t2 : NULL);
+
+	draw_tile(ppu, t1, s->x, s->y, s->dmg_palette ? OBP1 : OBP0);
+	if (lcdc.obj_size)
+		draw_tile(ppu, t2, s->x, s->y + 8, s->dmg_palette ? OBP1 : OBP0);
+
+	free(t1);
+	free(t2);
 }
 
+void
+render_window(struct PPU *ppu, struct Window *win, uint8_t x, uint8_t y)
+{
+	for (int i = 0; i < 18; i++) {
+		for (int j = 0; j < 20; j++) {
+			draw_tile(ppu, win->tiles[i][j], x + j * 8, y + i * 8, BGP);
+			free(win->tiles[i][j]);
+		}
+	}
+	free(win);
+}
+
+void
+write_lcdc(struct PPU *ppu, struct LCD_Control *lcdc)
+{
+	uint8_t new = 0;
+	new |= lcdc->enable << 7;
+	new |= lcdc->w_tmap << 6;
+	new |= lcdc->wenable << 5;
+	new |= lcdc->tdata << 4;
+	new |= lcdc->bg_tmap << 3;
+	new |= lcdc->obj_size << 2;
+	new |= lcdc->obj_enable << 1;
+	new |= lcdc->bgwin_enable;
+	mem_write(ppu->mem, LCDC, new);
+}
 
 int
 graphics_scanline(struct PPU *ppu)
@@ -249,19 +321,21 @@ graphics_scanline(struct PPU *ppu)
 	set_ppu_mode(ppu, OAM_SCAN);
 	mem_write(ppu->mem, LY, mem_read(ppu->mem, LY) + 1);
 
-	struct Window *w = get_window(ppu);
-	for (int i = 0; i < 18; i++) {
-		for (int j = 0; j < 20; j++) {
-			draw_tile(ppu, w->tiles[i][j], j * 8, i * 8, BGP);
-		}
-	}
 
+	struct LCD_Control lcdc = read_lcdc(ppu);
+	struct Window *bg = get_window(ppu, 0x9880);
+	render_window(ppu, bg, 0, 0);
 
-	for (int i = 0; i < 40; i++) {
-	struct Sprite *s = get_sprite(ppu, i);
-	sprite_render(ppu, s);
+	lcdc.obj_size = 1;
+	write_lcdc(ppu, &lcdc);
+
+	// for (int i = 0; i < 40; i++) {
+	struct Sprite *s = get_sprite(ppu, 20);
+	// struct Sprite *s = get_sprite(ppu, i);
+		sprite_render(ppu, s);
 		free(s);
-	}
+	// }
+
 	SDL_UpdateWindowSurface(ppu->win);
 	return 0;
 }
