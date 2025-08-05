@@ -5,47 +5,6 @@
 #include "ppu.h"
 #include "mem.h"
 
-enum Color {
-	BLACK = 0x000000,
-	DGRAY = 0x555555,
-	GRAY = 0xaaaaaa,
-	WHITE = 0xffffff,
-};
-
-enum Pallete {
-	BGP = 0xff47,
-	OBP0 = 0xff48,
-	OBP1 = 0xff49,
-};
-
-#define VRAM_TILE 0x8000
-
-enum {
-	BYTES_PER_SPRITE = 4,
-	BYTES_PER_TILE = 16,
-};
-
-struct Tile {
-	uint8_t pixels[8][8];
-	uint8_t id;
-};
-
-struct Window {
-	struct Tile *tiles[32][32];
-};
-
-struct Sprite {
-	uint8_t tile_id;
-	uint8_t x, y;
-	struct {
-		uint8_t priority:1;
-		uint8_t yflip:1;
-		uint8_t xflip:1;
-		uint8_t dmg_palette:1;
-		uint8_t pad:4;
-	};
-};
-
 struct LCD_Control
 read_lcdc(struct PPU *ppu)
 {
@@ -74,7 +33,7 @@ get_tile(struct PPU *ppu, uint8_t id)
 
 	/* https://gbdev.io/pandocs/Tile_Data.html#data-format */
 	uint8_t h = 0, l = 0;
-	uint16_t adr = VRAM_TILE + id * BYTES_PER_TILE;
+	uint16_t adr = VRAM + id * BYTES_PER_TILE;
 
 	for (int i = 0; i < BYTES_PER_TILE - 1; i += 2) {
 		l = mem_read(ppu->mem, adr + i);
@@ -383,7 +342,7 @@ ppu_drawscreen(struct PPU *ppu)
 	// 	free(s);
 	}
 
-	// SDL_UpdateWindowSurface(ppu->win);
+	SDL_UpdateWindowSurface(ppu->win);
 	return 0;
 }
 

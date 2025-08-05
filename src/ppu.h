@@ -22,7 +22,33 @@ enum {
 	WY = 0xff4a,
 	WX = 0xff4b,
 
+	VRAM = 0x8000,
 };
+
+enum Color {
+	BLACK = 0x000000,
+	DGRAY = 0x555555,
+	GRAY = 0xaaaaaa,
+	WHITE = 0xffffff,
+};
+
+enum Pallete {
+	BGP = 0xff47,
+	OBP0 = 0xff48,
+	OBP1 = 0xff49,
+};
+
+
+enum {
+	BYTES_PER_SPRITE = 4,
+	BYTES_PER_TILE = 16,
+};
+
+enum {
+	WINDOW_WIDTH_TILES = 32,
+	WINDOW_HEIGHT_TILES = 32,
+};
+
 
 #define OAM_SPRITE_LIMIT 10
 
@@ -43,6 +69,28 @@ struct LCD_Control {
 	uint8_t obj_enable:1;
 	uint8_t bgwin_enable:1;
 };
+
+struct Tile {
+	uint8_t pixels[8][8];
+	uint8_t id;
+};
+
+struct Window {
+	struct Tile *tiles[32][32];
+};
+
+struct Sprite {
+	uint8_t tile_id;
+	uint8_t x, y;
+	struct {
+		uint8_t priority:1;
+		uint8_t yflip:1;
+		uint8_t xflip:1;
+		uint8_t dmg_palette:1;
+		uint8_t pad:4;
+	};
+};
+
 
 struct Mode {
 	enum PPU_MODE mode;
