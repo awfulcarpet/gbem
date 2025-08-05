@@ -113,8 +113,8 @@ get_sprite(struct PPU *ppu, uint8_t id)
 	if (s == NULL)
 		return NULL;
 
-	s->y = mem_read(ppu->mem, adr) - 16;
-	s->x = mem_read(ppu->mem, adr + 1) - 8;
+	s->y = mem_read(ppu->mem, adr);
+	s->x = mem_read(ppu->mem, adr + 1);
 	s->tile_id = mem_read(ppu->mem, adr + 2);
 
 	uint8_t flag = mem_read(ppu->mem, adr + 3);
@@ -280,6 +280,8 @@ sprite_render(struct PPU *ppu, struct Sprite *s)
 	if (s->yflip)
 		sprite_yflip(t1, lcdc.obj_size ? t2 : NULL);
 
+	s->y -= 16;
+	s->x -= 8;
 	draw_tile(ppu, t1, s->x, s->y, s->dmg_palette ? OBP1 : OBP0);
 	if (lcdc.obj_size)
 		draw_tile(ppu, t2, s->x, s->y + 8, s->dmg_palette ? OBP1 : OBP0);
@@ -315,29 +317,73 @@ write_lcdc(struct PPU *ppu, struct LCD_Control *lcdc)
 	mem_write(ppu->mem, LCDC, new);
 }
 
+struct Sprite **
+oam_scan(struct PPU *ppu, uint8_t ly)
+{
+	struct Sprite **list = calloc(OAM_SPRITE_LIMIT, sizeof(struct Sprite *));
+	struct LCD_Control lcdc = read_lcdc(ppu);
+
+	int i = 0;
+	for (int j = 0; j < 40 && i < OAM_SPRITE_LIMIT; j++) {
+		struct Sprite *s = get_sprite(ppu, j);
+		if (s->x > 0 && ly + 16 >= s->y
+				&& ly + 16 < s->y + (lcdc.obj_size ? 16 : 8)) {
+			list[i++] = s;
+			continue;
+		}
+
+		free(s);
+		s = NULL;
+	}
+
+
+	return list;
+}
+
+int
+ppu_scanline(struct PPU *ppu)
+{
+	set_ppu_mode(ppu, OAM_SCAN);
+	uint8_t ly = mem_read(ppu->mem, LY);
+
+	struct Sprite **list = oam_scan(ppu, ly);
+	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
+		if (list[i] == NULL)
+			break;
+
+		sprite_render(ppu, list[i]);
+		free(list[i]);
+	}
+	free(list);
+
+	mem_write(ppu->mem, LY, ly + 1);
+	SDL_UpdateWindowSurface(ppu->win);
+	return 0;
+}
+
 int
 ppu_drawscreen(struct PPU *ppu)
 {
-	set_ppu_mode(ppu, OAM_SCAN);
-	mem_write(ppu->mem, LY, mem_read(ppu->mem, LY) + 1);
+	// set_ppu_mode(ppu, OAM_SCAN);
+	// mem_write(ppu->mem, LY, mem_read(ppu->mem, LY) + 1);
 
 
 	struct LCD_Control lcdc = read_lcdc(ppu);
 	struct Window *bg = get_window(ppu, 0x9880);
 	render_window(ppu, bg, 0, 0);
 
-	lcdc.obj_size = 1;
-	write_lcdc(ppu, &lcdc);
+	// lcdc.obj_size = 1;
+	// write_lcdc(ppu, &lcdc);
 
 
-	// for (int i = 0; i < 40; i++) {
-	struct Sprite *s = get_sprite(ppu, 20);
+	for (int i = 0; i < 40; i++) {
+	// struct Sprite *s = get_sprite(ppu, 20);
 	// struct Sprite *s = get_sprite(ppu, i);
-		sprite_render(ppu, s);
-		free(s);
-	// }
+	// 	sprite_render(ppu, s);
+	// 	free(s);
+	}
 
-	SDL_UpdateWindowSurface(ppu->win);
+	// SDL_UpdateWindowSurface(ppu->win);
 	return 0;
 }
 

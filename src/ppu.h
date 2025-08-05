@@ -16,13 +16,15 @@ enum {
 
 	OAM = 0xFE00,
 
-	SCX = 0xff42,
-	SCY = 0xff43,
+	SCY = 0xff42,
+	SCX = 0xff43,
 
-	WX = 0xff4a,
-	WY = 0xff4b,
+	WY = 0xff4a,
+	WX = 0xff4b,
 
 };
+
+#define OAM_SPRITE_LIMIT 10
 
 enum PPU_MODE {
 	HBLANK = 0,
@@ -60,5 +62,6 @@ struct PPU {
 
 
 struct PPU *ppu_init(uint8_t *mem);
+int ppu_scanline(struct PPU *ppu);
 int ppu_drawscreen(struct PPU *ppu);
 void ppu_log(struct PPU *ppu);
