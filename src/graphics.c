@@ -204,10 +204,12 @@ graphics_scanline(struct PPU *ppu)
 		}
 	}
 
-	struct Sprite *s = get_sprite(ppu, 8);
+	for (int i = 0; i < 40; i++) {
+		struct Sprite *s = get_sprite(ppu, i);
 
-	struct Tile *t = get_tile(ppu, s->tile_id);
-	draw_tile(ppu, t, s->x, s->y);
+		struct Tile *t = get_tile(ppu, s->tile_id);
+		draw_tile(ppu, t, s->x, s->y);
+	}
 	SDL_UpdateWindowSurface(ppu->win);
 	return 0;
 }
