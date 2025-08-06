@@ -73,6 +73,7 @@ get_tile(struct PPU *ppu, uint8_t id)
 	return t;
 }
 
+/* returns 20 tile ids for the window/bg */
 uint8_t *
 get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 {
@@ -175,8 +176,8 @@ get_color(struct PPU *ppu, uint8_t id, enum Pallete pallete)
 void
 draw_tile_row(struct PPU *ppu, uint8_t *row, uint8_t xpix, enum Pallete pallete, uint8_t ly)
 {
-	for (int j = 0; j < 8; j++) {
-		uint8_t pix = row[j];
+	for (int i = 0; i < 8; i++) {
+		uint8_t pix = row[i];
 		uint32_t color = 0x00;
 		switch (get_color(ppu, pix, pallete)) {
 			case 0:
@@ -197,9 +198,16 @@ draw_tile_row(struct PPU *ppu, uint8_t *row, uint8_t xpix, enum Pallete pallete,
 				assert(NULL); /* unreachable */
 				break;
 		}
-		uint16_t coord = ly * SCREEN_WIDTH + j + xpix;
-		if (coord > SCREEN_WIDTH * SCREEN_HEIGHT) continue;
-		ppu->fb[coord] = color;
+
+		for (int j = 0; j < SCALE; j++) {
+			for (int k = 0; k < SCALE; k++) {
+				uint16_t y = (ly) * SCALE + j;
+				uint16_t x = (i + xpix) * SCALE + k;
+				uint32_t coord = y * SCREEN_WIDTH * SCALE + x;
+				if (coord > SCREEN_WIDTH * SCALE * SCREEN_HEIGHT * SCALE) continue;
+				ppu->fb[coord] = color;
+			}
+		}
 	}
 }
 
@@ -439,6 +447,7 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 	free(row);
 
 
+	return 0;
 	fprintf(ppu->log, "ly: %d| ", ly);
 	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
 		if (list[i] == NULL)

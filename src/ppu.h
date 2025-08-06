@@ -1,7 +1,7 @@
 #include <SDL2/SDL_video.h>
 #include <stdint.h>
 
-#define SCALE 1
+#define SCALE 3
 
 enum {
 	SCREEN_WIDTH = 160,
