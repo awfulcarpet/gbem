@@ -358,7 +358,7 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 	}
 
 
-	return 0;
+	// return 0;
 	fprintf(ppu->log, "ly: %d| ", ly);
 	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
 		if (list[i] == NULL)
@@ -367,6 +367,7 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 
 		if (lcdc.obj_enable)
 			sprite_render_row(ppu, list[i], ly);
+
 		free(list[i]);
 	}
 	free(list);
@@ -389,6 +390,10 @@ ppu_scanline(struct PPU *ppu)
 	if (ly >= SCREEN_HEIGHT)
 		goto vblank;
 
+	if (ly == 0x08) {
+		lcdc.bgwin_enable = 0;
+	}
+
 	if (ly == 0x10) {
 		lcdc.wenable = 1;
 		lcdc.bgwin_enable = 1;
@@ -407,9 +412,43 @@ ppu_scanline(struct PPU *ppu)
 		mem_write(ppu->mem, WX, 240);
 	}
 
+	if (ly == 0x58) {
+		lcdc.obj_size = 1;
+	}
+
+	if (ly == 0x68) {
+		lcdc.obj_size = 0;
+		lcdc.obj_enable = 0;
+	}
+
 	if (ly == 0x70) {
 		mem_write(ppu->mem, WX, 0x58 + 7);
 		lcdc.w_tmap = 0;
+	}
+
+	if (ly == 0x80) {
+		lcdc.bg_tmap = 1;
+		lcdc.tdata = 0;
+	}
+
+	if (ly == 0x81) {
+		lcdc.wenable = 0;
+		lcdc.w_tmap = 1;
+	}
+
+	if (ly == 0x82) {
+		mem_write(ppu->mem, SCX, 0xf3);
+	}
+
+	if (ly == 0x8f) {
+		lcdc.bg_tmap = 0;
+		lcdc.tdata = 1;
+	}
+
+
+	if (ly == 0x90) {
+		lcdc.obj_enable = 1;
+		mem_write(ppu->mem, SCX, 0);
 	}
 
 	write_lcdc(ppu, &lcdc);
@@ -418,14 +457,14 @@ ppu_scanline(struct PPU *ppu)
 
 	ppu_draw(ppu, list);
 
-	if (ly == lyc)
-		request_interrupt(ppu->mem, INTERRUPT_LCD);
-
+	// if (ly == lyc)
+	// 	request_interrupt(ppu->mem, INTERRUPT_LCD);
+	//
 
 vblank:
 	if (ly == 144) {
 		ly = 0;
-		request_interrupt(ppu->mem, INTERRUPT_VBLANK);
+		// request_interrupt(ppu->mem, INTERRUPT_VBLANK);
 		wly = 0;
 		goto end;
 	}

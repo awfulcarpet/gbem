@@ -30,18 +30,15 @@ gb_run(struct GB *gb)
 		int cycles = execute(gb->cpu);
 		ppu_log(gb->ppu);
 		dots += cycles * 4;
-		// if (dots >= 456) {
-		// 	ppu_scanline(gb->ppu);
-		// 	dots -= 456;
-		// }
+		if (dots >= 456) {
+			ppu_scanline(gb->ppu);
+			dots -= 456;
+		}
 		if (mem_read(gb->mem, gb->cpu->pc) == 0x00) {
 			break;
 		}
 	}
-	mem_write(gb->mem, SCY, 0x20);
-	mem_write(gb->mem, WY, 0x28);
-	mem_write(gb->mem, WX, 0x58 + 7);
-	for (int i = 0; i < SCREEN_WIDTH; i++) {
+	for (int i = 0; i < SCREEN_HEIGHT; i++) {
 		ppu_scanline(gb->ppu);
 	}
 }
