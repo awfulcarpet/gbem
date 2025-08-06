@@ -399,30 +399,6 @@ ppu_scanline(struct PPU *ppu)
 	return 0;
 }
 
-int
-ppu_drawscreen(struct PPU *ppu)
-{
-	// set_ppu_mode(ppu, OAM_SCAN);
-	// mem_write(ppu->mem, LY, mem_read(ppu->mem, LY) + 1);
-
-
-	struct LCD_Control lcdc = read_lcdc(ppu);
-
-	// lcdc.obj_size = 1;
-	// write_lcdc(ppu, &lcdc);
-
-
-	for (int i = 0; i < 40; i++) {
-	// struct Sprite *s = get_sprite(ppu, 20);
-	// struct Sprite *s = get_sprite(ppu, i);
-	// 	sprite_render(ppu, s);
-	// 	free(s);
-	}
-
-	SDL_UpdateWindowSurface(ppu->win);
-	return 0;
-}
-
 void
 ppu_log(struct PPU *ppu)
 {
