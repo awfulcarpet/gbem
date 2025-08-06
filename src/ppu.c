@@ -84,21 +84,6 @@ get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 	return row;
 }
 
-/* TODO: handle LCDC */
-struct Window *
-get_window(struct PPU *ppu, uint16_t adr)
-{
-	struct Window *w = calloc(1, sizeof(struct Window));
-	if (w == NULL) return NULL;
-
-
-	for (int i = 0; i < 32 * 32; i++) {
-		w->tiles[i / 32][i % 32] = get_tile(ppu, mem_read(ppu->mem, i + adr));
-	}
-
-	return w;
-}
-
 struct Sprite *
 get_sprite(struct PPU *ppu, uint8_t id)
 {
@@ -422,8 +407,6 @@ ppu_drawscreen(struct PPU *ppu)
 
 
 	struct LCD_Control lcdc = read_lcdc(ppu);
-	struct Window *bg = get_window(ppu, 0x9880);
-	render_window(ppu, bg, 0, 0);
 
 	// lcdc.obj_size = 1;
 	// write_lcdc(ppu, &lcdc);
