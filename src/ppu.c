@@ -77,11 +77,12 @@ get_tile(struct PPU *ppu, uint8_t id)
 uint8_t *
 get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 {
-	uint8_t *row = calloc(20, sizeof(uint8_t *));
+	uint8_t *row = calloc(20 + 1, sizeof(uint8_t *));
 	uint8_t scy = mem_read(ppu->mem, SCY);
+	uint8_t scx = mem_read(ppu->mem, SCX);
 
-	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
-		row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i);
+	for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
+		row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i + scx/8);
 	}
 
 	return row;
@@ -174,7 +175,7 @@ get_color(struct PPU *ppu, uint8_t id, enum Pallete pallete)
 }
 
 void
-draw_tile_row(struct PPU *ppu, uint8_t *row, uint8_t xpix, enum Pallete pallete, uint8_t ly)
+draw_tile_row(struct PPU *ppu, uint8_t *row, int16_t xpix, enum Pallete pallete, uint8_t ly)
 {
 	for (int i = 0; i < 8; i++) {
 		uint8_t pix = row[i];
@@ -198,12 +199,12 @@ draw_tile_row(struct PPU *ppu, uint8_t *row, uint8_t xpix, enum Pallete pallete,
 				assert(NULL); /* unreachable */
 				break;
 		}
-
 		for (int j = 0; j < SCALE; j++) {
 			for (int k = 0; k < SCALE; k++) {
 				uint16_t y = (ly) * SCALE + j;
 				uint16_t x = (i + xpix) * SCALE + k;
 				uint32_t coord = y * SCREEN_WIDTH * SCALE + x;
+				if (x >= SCREEN_WIDTH * SCALE) continue;
 				if (coord > SCREEN_WIDTH * SCALE * SCREEN_HEIGHT * SCALE) continue;
 				ppu->fb[coord] = color;
 			}
@@ -373,9 +374,10 @@ void
 render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 {
 	uint8_t scy = mem_read(ppu->mem, SCY);
-	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
+	uint8_t scx = mem_read(ppu->mem, SCX);
+	for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
 		uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8);
-		draw_tile_row(ppu, pix, i * 8, BGP, ly);
+		draw_tile_row(ppu, pix, i * 8 - scx % 8, BGP, ly);
 		free(pix);
 	}
 }
