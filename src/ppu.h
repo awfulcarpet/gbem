@@ -81,15 +81,6 @@ struct LCD_Control {
 	uint8_t bgwin_enable:1;
 };
 
-struct Tile {
-	uint8_t pixels[8][8];
-	uint8_t id;
-};
-
-struct Window {
-	struct Tile *tiles[32][32];
-};
-
 struct Sprite {
 	uint8_t tile_id;
 	uint8_t x, y;

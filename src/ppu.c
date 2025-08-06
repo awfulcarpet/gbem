@@ -54,32 +54,6 @@ get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row, enum TILE_TYPE type)
 	return pix;
 }
 
-struct Tile *
-get_tile(struct PPU *ppu, uint8_t id)
-{
-	struct Tile *t = calloc(1, sizeof(struct Tile));
-	if (t == NULL)
-		return NULL;
-	t->id = id;
-
-	/* https://gbdev.io/pandocs/Tile_Data.html#data-format */
-	uint8_t h = 0, l = 0;
-	uint16_t adr = VRAM + id * BYTES_PER_TILE;
-
-	for (int i = 0; i < BYTES_PER_TILE - 1; i += 2) {
-		l = mem_read(ppu->mem, adr + i);
-		h = mem_read(ppu->mem, adr + i + 1);
-
-		for (int j = 0; j < 8; j++) {
-			uint8_t b1 = h & (1 << (7 - j)) ? 1 : 0;
-			uint8_t b2 = l & (1 << (7 - j)) ? 1 : 0;
-			uint8_t res = b1 << 1 | b2;
-			t->pixels[i/2][j] = res;
-		}
-	}
-	return t;
-}
-
 /* returns 20 tile ids for the window/bg */
 uint8_t *
 get_bg_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
@@ -235,40 +209,6 @@ draw_tile_row(struct PPU *ppu, uint8_t *row, int16_t xpix, enum Pallete pallete,
 	}
 }
 
-/* TODO: replace with scan line */
-void
-draw_tile(struct PPU *ppu, struct Tile *t, uint8_t xpix, uint8_t ypix, enum Pallete pallete)
-{
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
-			uint8_t pix = t->pixels[i][j];
-			uint32_t color = 0x00;
-			switch (get_color(ppu, pix, pallete)) {
-				case 0:
-					if (pallete != BGP)
-						continue;
-					color = WHITE;
-				break;
-				case 1:
-					color = GRAY;
-				break;
-				case 2:
-					color = DGRAY;
-				break;
-				case 3:
-					color = BLACK;
-				break;
-				default:
-				assert(NULL); /* unreachable */
-				break;
-			}
-			uint16_t coord = ypix * SCREEN_WIDTH + i * SCREEN_WIDTH + j + xpix;
-			if (coord > SCREEN_WIDTH * SCREEN_HEIGHT) continue;
-			ppu->fb[coord] = color;
-		}
-	}
-}
-
 void
 tile_xflip_row(uint8_t *row)
 {
@@ -276,18 +216,6 @@ tile_xflip_row(uint8_t *row)
 		row[i] ^= row[7-i];
 		row[7-i] ^= row[i];
 		row[i] ^= row[7-i];
-	}
-}
-
-void
-tile_xflip(struct Tile *t)
-{
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 4; j++) {
-			t->pixels[i][j] ^= t->pixels[i][7-j];
-			t->pixels[i][7-j] ^= t->pixels[i][j];
-			t->pixels[i][j] ^= t->pixels[i][7-j];
-		}
 	}
 }
 
@@ -301,28 +229,6 @@ sprite_yflip_row(uint8_t *r1, uint8_t *r2)
 	}
 }
 
-void
-sprite_yflip(struct Tile *t1, struct Tile *t2)
-{
-	if (t2 == NULL) {
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 8; j++) {
-				t1->pixels[i][j] ^= t1->pixels[7-i][j];
-				t1->pixels[7-i][j] ^= t1->pixels[i][j];
-				t1->pixels[i][j] ^= t1->pixels[7-i][j];
-			}
-		}
-		return;
-	}
-
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
-			t1->pixels[i][j] ^= t2->pixels[7-i][j];
-			t2->pixels[7-i][j] ^= t1->pixels[i][j];
-			t1->pixels[i][j] ^= t2->pixels[7-i][j];
-		}
-	}
-}
 
 void
 sprite_render_row(struct PPU *ppu, struct Sprite *s, uint8_t ly)
@@ -359,41 +265,6 @@ sprite_render_row(struct PPU *ppu, struct Sprite *s, uint8_t ly)
 }
 
 void
-sprite_render(struct PPU *ppu, struct Sprite *s, uint8_t row)
-{
-	struct LCD_Control lcdc = read_lcdc(ppu);
-
-	if (lcdc.obj_size)
-		s->tile_id &= 0xfe;
-
-	struct Tile *t1 = get_tile(ppu, s->tile_id);
-	struct Tile *t2 = get_tile(ppu, s->tile_id | 0x01);
-
-	for (int i = 0; i < 8; i++)
-		// fprintf(stderr, "%c ", t1->pixels[row][i] == 0 ? '-' : t1->pixels[row][i] + '0');
-		fprintf(stderr, "%3d ", t1->pixels[row][i]);
-	fprintf(stderr, "\n");
-
-	// if (s->xflip) {
-	// 	tile_xflip(t1);
-	// 	if (lcdc.obj_size)
-	// 		tile_xflip(t2);
-	// }
-	//
-	// if (s->yflip)
-	// 	sprite_yflip(t1, lcdc.obj_size ? t2 : NULL);
-	//
-	// s->y -= 16;
-	// s->x -= 8;
-	// draw_tile(ppu, t1, s->x, s->y, s->dmg_palette ? OBP1 : OBP0);
-	// if (lcdc.obj_size)
-	// 	draw_tile(ppu, t2, s->x, s->y + 8, s->dmg_palette ? OBP1 : OBP0);
-
-	free(t1);
-	free(t2);
-}
-
-void
 render_bg_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 {
 	uint8_t scy = mem_read(ppu->mem, SCY);
@@ -422,19 +293,6 @@ render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 		free(pix);
 	}
 	wly++;
-}
-
-void
-render_window(struct PPU *ppu, struct Window *win, uint8_t x, uint8_t y)
-{
-	uint8_t ly = mem_read(ppu->mem, LY);
-	for (int i = 0; i < 18; i++) {
-		for (int j = 0; j < 20; j++) {
-			draw_tile(ppu, win->tiles[i][j], x + j * 8, y + i * 8, BGP);
-			free(win->tiles[i][j]);
-		}
-	}
-	free(win);
 }
 
 void
