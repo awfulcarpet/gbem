@@ -7,6 +7,7 @@
 #include "ppu.h"
 #include "mem.h"
 
+static uint8_t wly = 0;
 struct LCD_Control
 read_lcdc(struct PPU *ppu)
 {
@@ -103,7 +104,7 @@ get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 	uint8_t wx = mem_read(ppu->mem, WX);
 
 	for (int i = 0; i < WINDOW_WIDTH_TILES; i++) {
-		row[i] = mem_read(ppu->mem, adr + (ly-wy)/8 *WINDOW_WIDTH_TILES + i);
+		row[i] = mem_read(ppu->mem, adr + (wly)/8 * WINDOW_WIDTH_TILES + i);
 	}
 
 	return row;
@@ -413,12 +414,14 @@ render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 
 	if (wy > ly)
 		return;
+	if (wx - 7> SCREEN_WIDTH) return;
 
 	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
 		uint8_t *pix = get_tile_row(ppu, row[i], (ly - wy) % 8, WINDOW);
 		draw_tile_row(ppu, pix, i * 8 + wx - 7, BGP, ly);
 		free(pix);
 	}
+	wly++;
 }
 
 void
@@ -565,6 +568,7 @@ vblank:
 	if (ly == 144) {
 		ly = 0;
 		request_interrupt(ppu->mem, INTERRUPT_VBLANK);
+		wly = 0;
 		goto end;
 	}
 
