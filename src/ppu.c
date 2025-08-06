@@ -372,8 +372,9 @@ sprite_render(struct PPU *ppu, struct Sprite *s, uint8_t row)
 void
 render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 {
+	uint8_t scy = mem_read(ppu->mem, SCY);
 	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
-		uint8_t *pix = get_tile_row(ppu, row[i], ly % 8);
+		uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8);
 		draw_tile_row(ppu, pix, i * 8, BGP, ly);
 		free(pix);
 	}
