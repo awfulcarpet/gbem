@@ -363,11 +363,9 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 
 
 	// return 0;
-	fprintf(ppu->log, "ly: %d| ", ly);
 	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
 		if (list[i] == NULL)
 			break;
-		fprintf(ppu->log, "(%02x %d %d) ", list[i]->tile_id, list[i]->xflip, list[i]->yflip);
 
 		if (lcdc.obj_enable)
 			sprite_render_row(ppu, list[i], ly);
@@ -375,7 +373,6 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 		free(list[i]);
 	}
 	free(list);
-	fprintf(ppu->log, "\n");
 
 	return 0;
 }
@@ -487,6 +484,10 @@ ppu_log(struct PPU *ppu)
 	fprintf(ppu->log, "LY: %3d ", mem_read(ppu->mem, LY));
 	fprintf(ppu->log, "LYC: %02x ", mem_read(ppu->mem, LYC));
 	fprintf(ppu->log, "STAT: %07b ", mem_read(ppu->mem, STAT));
+	fprintf(ppu->log, "SCX: %02x ", mem_read(ppu->mem, SCX));
+	fprintf(ppu->log, "SCY: %02x ", mem_read(ppu->mem, SCY));
+	fprintf(ppu->log, "WX: %02x ", mem_read(ppu->mem, WX));
+	fprintf(ppu->log, "WY: %02x ", mem_read(ppu->mem, WY));
 	fprintf(ppu->log, "\n");
 }
 
