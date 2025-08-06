@@ -320,6 +320,7 @@ render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
 		uint8_t *pix = get_tile_row(ppu, row[i], ly % 8);
 		draw_tile_row(ppu, pix, i * 8, BGP, ly);
+		free(pix);
 	}
 }
 
@@ -379,12 +380,19 @@ ppu_scanline(struct PPU *ppu)
 {
 	set_ppu_mode(ppu, OAM_SCAN);
 	uint8_t ly = mem_read(ppu->mem, LY);
+	struct LCD_Control lcdc = read_lcdc(ppu);
 
 	// struct Window *bg = get_window(ppu, 0x9880);
 	// render_window(ppu, bg, 0, 0);
+	if (ly >= 8 && ly <= 15)
+		lcdc.bgwin_enable = 0;
 
 	uint8_t *row = get_window_row(ppu, 0x9880, ly);
+	if (!lcdc.bgwin_enable) {
+		memset(row, 0, WINDOW_WIDTH_TILES);
+	}
 	render_window_row(ppu, row, ly);
+	free(row);
 
 	// struct Sprite **list = oam_scan(ppu, ly);
 	// for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
