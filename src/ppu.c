@@ -81,7 +81,7 @@ get_tile(struct PPU *ppu, uint8_t id)
 
 /* returns 20 tile ids for the window/bg */
 uint8_t *
-get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
+get_bg_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 {
 	uint8_t *row = calloc(20 + 1, sizeof(uint8_t *));
 	uint8_t scy = mem_read(ppu->mem, SCY);
@@ -93,6 +93,22 @@ get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 
 	return row;
 }
+
+/* returns 20 tile ids for the window/bg */
+uint8_t *
+get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
+{
+	uint8_t *row = calloc(WINDOW_WIDTH_TILES, sizeof(uint8_t *));
+	uint8_t wy = mem_read(ppu->mem, WY);
+	uint8_t wx = mem_read(ppu->mem, WX);
+
+	for (int i = 0; i < WINDOW_WIDTH_TILES; i++) {
+		row[i] = mem_read(ppu->mem, adr + (ly-wy)/8 *WINDOW_WIDTH_TILES + i);
+	}
+
+	return row;
+}
+
 
 struct Sprite *
 get_sprite(struct PPU *ppu, uint8_t id)
@@ -377,7 +393,7 @@ sprite_render(struct PPU *ppu, struct Sprite *s, uint8_t row)
 }
 
 void
-render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
+render_bg_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 {
 	uint8_t scy = mem_read(ppu->mem, SCY);
 	uint8_t scx = mem_read(ppu->mem, SCX);
@@ -385,6 +401,22 @@ render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 	for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
 		uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8, WINDOW);
 		draw_tile_row(ppu, pix, i * 8 - scx % 8, BGP, ly);
+		free(pix);
+	}
+}
+
+void
+render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
+{
+	uint8_t wy = mem_read(ppu->mem, WY);
+	uint8_t wx = mem_read(ppu->mem, WX);
+
+	if (wy > ly)
+		return;
+
+	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
+		uint8_t *pix = get_tile_row(ppu, row[i], (ly - wy) % 8, WINDOW);
+		draw_tile_row(ppu, pix, i * 8 + wx - 7, BGP, ly);
 		free(pix);
 	}
 }
@@ -448,11 +480,21 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 	uint16_t adr = 0x9800;
 	if (lcdc.bg_tmap)
 		adr = 0x9C00;
-	uint8_t *row = get_window_row(ppu, adr, ly);
+	uint8_t *row = get_bg_row(ppu, adr, ly);
 	if (lcdc.bgwin_enable) {
-		render_window_row(ppu, row, ly);
+		render_bg_row(ppu, row, ly);
 	}
 	free(row);
+
+	adr = 0x9800;
+	if (lcdc.w_tmap)
+		adr = 0x9C00;
+	if (lcdc.wenable) {
+		row = get_window_row(ppu, adr, ly);
+		render_window_row(ppu, row, ly);
+		if (row != NULL)
+			free(row);
+	}
 
 
 	return 0;
@@ -486,11 +528,27 @@ ppu_scanline(struct PPU *ppu)
 	if (ly >= SCREEN_HEIGHT)
 		goto vblank;
 
+	if (ly == 0x10) {
+		lcdc.wenable = 1;
+		lcdc.bgwin_enable = 1;
+	}
+
 	if (ly == 0x30) {
 		lcdc.tdata = 0;
 	}
+
 	if (ly == 0x38) {
 		lcdc.tdata = 1;
+		mem_write(ppu->mem, WX, 240);
+	}
+
+	if (ly == 0x3F) {
+		mem_write(ppu->mem, WX, 240);
+	}
+
+	if (ly == 0x70) {
+		mem_write(ppu->mem, WX, 0x58 + 7);
+		lcdc.w_tmap = 0;
 	}
 
 	write_lcdc(ppu, &lcdc);
