@@ -39,9 +39,7 @@ gb_run(struct GB *gb)
 		}
 	}
 	mem_write(gb->mem, SCY, 0x20);
-	mem_write(gb->mem, SCX, 17);
 	for (int i = 0; i < SCREEN_HEIGHT; i++) {
-	// for (int i = 0; i < 8; i++) {
 		ppu_scanline(gb->ppu);
 	}
 }

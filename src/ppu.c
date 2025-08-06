@@ -2,6 +2,7 @@
 #include <SDL2/SDL_video.h>
 #include <assert.h>
 #include <stdint.h>
+#include <stdint.h>
 #include "cpu.h"
 #include "ppu.h"
 #include "mem.h"
@@ -138,7 +139,7 @@ ppu_init(uint8_t *mem)
 
 
 	ppu->fb = SDL_GetWindowSurface(ppu->win)->pixels;
-	memset(ppu->fb, 0, SCREEN_WIDTH * SCREEN_HEIGHT);
+	memset(ppu->fb, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT * SCALE * SCALE * sizeof(uint32_t));
 	SDL_UpdateWindowSurface(ppu->win);
 
 	return ppu;
