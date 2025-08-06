@@ -23,6 +23,28 @@ read_lcdc(struct PPU *ppu)
 	return lcdc;
 }
 
+/* row is row in tile */
+static uint8_t*
+get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row)
+{
+	uint8_t *pix = calloc(8, sizeof(uint8_t));
+
+	uint8_t h = 0, l = 0;
+	uint16_t adr = VRAM + id * BYTES_PER_TILE;
+
+	l = mem_read(ppu->mem, adr + row * 2);
+	h = mem_read(ppu->mem, adr + row * 2 + 1);
+
+	for (int j = 0; j < 8; j++) {
+		uint8_t b1 = h & (1 << (7 - j)) ? 1 : 0;
+		uint8_t b2 = l & (1 << (7 - j)) ? 1 : 0;
+		uint8_t res = b1 << 1 | b2;
+		pix[j] = res;
+	}
+
+	return pix;
+}
+
 struct Tile *
 get_tile(struct PPU *ppu, uint8_t id)
 {
@@ -47,6 +69,18 @@ get_tile(struct PPU *ppu, uint8_t id)
 		}
 	}
 	return t;
+}
+
+uint8_t *
+get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
+{
+	uint8_t *row = calloc(20, sizeof(uint8_t *));
+
+	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
+		row[i] = mem_read(ppu->mem, adr + ly/8 * WINDOW_WIDTH_TILES + i);
+	}
+
+	return row;
 }
 
 /* TODO: handle LCDC */
@@ -150,6 +184,37 @@ get_color(struct PPU *ppu, uint8_t id, enum Pallete pallete)
 	return (mem_read(ppu->mem, pallete) & (3 << (id * 2))) >> (id * 2);
 }
 
+void
+draw_tile_row(struct PPU *ppu, uint8_t *row, uint8_t xpix, enum Pallete pallete, uint8_t ly)
+{
+	for (int j = 0; j < 8; j++) {
+		uint8_t pix = row[j];
+		uint32_t color = 0x00;
+		switch (get_color(ppu, pix, pallete)) {
+			case 0:
+				if (pallete != BGP)
+					continue;
+				color = WHITE;
+				break;
+			case 1:
+				color = GRAY;
+				break;
+			case 2:
+				color = DGRAY;
+				break;
+			case 3:
+				color = BLACK;
+				break;
+			default:
+				assert(NULL); /* unreachable */
+				break;
+		}
+		uint16_t coord = ly * SCREEN_WIDTH + j + xpix;
+		if (coord > SCREEN_WIDTH * SCREEN_HEIGHT) continue;
+		ppu->fb[coord] = color;
+	}
+}
+
 /* TODO: replace with scan line */
 void
 draw_tile(struct PPU *ppu, struct Tile *t, uint8_t xpix, uint8_t ypix, enum Pallete pallete)
@@ -250,8 +315,18 @@ sprite_render(struct PPU *ppu, struct Sprite *s)
 }
 
 void
+render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
+{
+	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
+		uint8_t *pix = get_tile_row(ppu, row[i], ly % 8);
+		draw_tile_row(ppu, pix, i * 8, BGP, ly);
+	}
+}
+
+void
 render_window(struct PPU *ppu, struct Window *win, uint8_t x, uint8_t y)
 {
+	uint8_t ly = mem_read(ppu->mem, LY);
 	for (int i = 0; i < 18; i++) {
 		for (int j = 0; j < 20; j++) {
 			draw_tile(ppu, win->tiles[i][j], x + j * 8, y + i * 8, BGP);
@@ -305,15 +380,21 @@ ppu_scanline(struct PPU *ppu)
 	set_ppu_mode(ppu, OAM_SCAN);
 	uint8_t ly = mem_read(ppu->mem, LY);
 
-	struct Sprite **list = oam_scan(ppu, ly);
-	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
-		if (list[i] == NULL)
-			break;
+	// struct Window *bg = get_window(ppu, 0x9880);
+	// render_window(ppu, bg, 0, 0);
 
-		sprite_render(ppu, list[i]);
-		free(list[i]);
-	}
-	free(list);
+	uint8_t *row = get_window_row(ppu, 0x9880, ly);
+	render_window_row(ppu, row, ly);
+
+	// struct Sprite **list = oam_scan(ppu, ly);
+	// for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
+	// 	if (list[i] == NULL)
+	// 		break;
+	//
+	// 	sprite_render(ppu, list[i]);
+	// 	free(list[i]);
+	// }
+	// free(list);
 
 	mem_write(ppu->mem, LY, ly + 1);
 	SDL_UpdateWindowSurface(ppu->win);

@@ -9,6 +9,11 @@ enum {
 };
 
 enum {
+	LCD_WIDTH_TILES = 20,
+	LCD_HEIGHT_TILES = 18,
+};
+
+enum {
 	LCDC = 0xff40,
 	STAT = 0xff41,
 	LY = 0xff44,
