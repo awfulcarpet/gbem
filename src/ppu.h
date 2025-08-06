@@ -13,6 +13,12 @@ enum {
 	LCD_HEIGHT_TILES = 18,
 };
 
+enum TILE_TYPE {
+	SPRITE,
+	WINDOW,
+};
+
+
 enum {
 	LCDC = 0xff40,
 	STAT = 0xff41,

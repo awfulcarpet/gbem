@@ -27,13 +27,18 @@ read_lcdc(struct PPU *ppu)
 
 /* row is row in tile */
 static uint8_t*
-get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row)
+get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row, enum TILE_TYPE type)
 {
 	assert(row < 8);
 	uint8_t *pix = calloc(8, sizeof(uint8_t));
 
 	uint8_t h = 0, l = 0;
 	uint16_t adr = VRAM + id * BYTES_PER_TILE;
+	struct LCD_Control lcdc = read_lcdc(ppu);
+
+	if (type == WINDOW && lcdc.tdata == 0) {
+		adr = 0x9000 + (int8_t)id * BYTES_PER_TILE;
+	}
 
 	l = mem_read(ppu->mem, adr + row * 2);
 	h = mem_read(ppu->mem, adr + row * 2 + 1);
@@ -316,8 +321,8 @@ sprite_render_row(struct PPU *ppu, struct Sprite *s, uint8_t ly)
 		row -= 8;
 		s->tile_id |= 0x01;
 	}
-	uint8_t *t1 = get_tile_row(ppu, s->tile_id, row);
-	uint8_t *t2 = get_tile_row(ppu, s->tile_id, 7 - row);
+	uint8_t *t1 = get_tile_row(ppu, s->tile_id, row, SPRITE);
+	uint8_t *t2 = get_tile_row(ppu, s->tile_id, 7 - row, SPRITE);
 
 
 	if (s->yflip) {
@@ -376,8 +381,9 @@ render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 {
 	uint8_t scy = mem_read(ppu->mem, SCY);
 	uint8_t scx = mem_read(ppu->mem, SCX);
+
 	for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
-		uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8);
+		uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8, WINDOW);
 		draw_tile_row(ppu, pix, i * 8 - scx % 8, BGP, ly);
 		free(pix);
 	}
@@ -430,7 +436,6 @@ oam_scan(struct PPU *ppu, uint8_t ly)
 		s = NULL;
 	}
 
-
 	return list;
 }
 
@@ -444,10 +449,9 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 	if (lcdc.bg_tmap)
 		adr = 0x9C00;
 	uint8_t *row = get_window_row(ppu, adr, ly);
-	if (!lcdc.bgwin_enable) {
-		memset(row, 0, WINDOW_WIDTH_TILES);
+	if (lcdc.bgwin_enable) {
+		render_window_row(ppu, row, ly);
 	}
-	render_window_row(ppu, row, ly);
 	free(row);
 
 
@@ -481,6 +485,15 @@ ppu_scanline(struct PPU *ppu)
 
 	if (ly >= SCREEN_HEIGHT)
 		goto vblank;
+
+	if (ly == 0x30) {
+		lcdc.tdata = 0;
+	}
+	if (ly == 0x38) {
+		lcdc.tdata = 1;
+	}
+
+	write_lcdc(ppu, &lcdc);
 
 	struct Sprite **list = oam_scan(ppu, ly);
 
