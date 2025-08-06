@@ -33,6 +33,13 @@ load_rom(uint8_t *mem, char *path)
 	return 0;
 }
 
+void
+request_interrupt(uint8_t *mem, enum INTERRUPT interrupt)
+{
+	mem_write(mem, IF, interrupt);
+}
+
+
 uint8_t
 mem_read(uint8_t *mem, uint16_t adr) {
 	return mem[adr];

@@ -39,12 +39,6 @@ init_cpu(uint8_t *mem) {
 	return cpu;
 }
 
-void
-request_interrupt(struct CPU *cpu, enum INTERRUPT interrupt)
-{
-	mem_write(cpu->memory, IF, interrupt);
-}
-
 /* parse r8 used from lowest bit position */
 static uint8_t *
 parse_r8(struct CPU *cpu, uint8_t opcode, uint8_t bit)
@@ -1594,7 +1588,7 @@ halt_bug:
 	return 0;
 }
 
-void
+int
 execute(struct CPU *cpu)
 {
 	if (cpu->ime == IME_NEXT)
@@ -1608,6 +1602,7 @@ execute(struct CPU *cpu)
 		if (handle_interrupt(cpu))
 			cpu->mcycles += 5;
 	}
+	return cycles;
 }
 
 void

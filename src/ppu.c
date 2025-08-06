@@ -2,6 +2,7 @@
 #include <SDL2/SDL_video.h>
 #include <assert.h>
 #include <stdint.h>
+#include "cpu.h"
 #include "ppu.h"
 #include "mem.h"
 
@@ -298,9 +299,13 @@ sprite_render_row(struct PPU *ppu, struct Sprite *s, uint8_t ly)
 
 	if (lcdc.obj_size)
 		s->tile_id &= 0xfe;
-	// uint8_t *t2 = get_tile_row(ppu, s->tile_id | 0x01, ly);
 
 	uint8_t row = ly - s->y + 16;
+	assert(row < 16);
+	if (row >= 8) {
+		row -= 8;
+		s->tile_id |= 0x01;
+	}
 	uint8_t *t1 = get_tile_row(ppu, s->tile_id, row);
 	uint8_t *t2 = get_tile_row(ppu, s->tile_id, 7 - row);
 
@@ -418,21 +423,14 @@ oam_scan(struct PPU *ppu, uint8_t ly)
 }
 
 int
-ppu_scanline(struct PPU *ppu)
+ppu_draw(struct PPU *ppu, struct Sprite **list)
 {
-	set_ppu_mode(ppu, OAM_SCAN);
 	uint8_t ly = mem_read(ppu->mem, LY);
 	struct LCD_Control lcdc = read_lcdc(ppu);
-
-	if (ly >= 8 && ly <= 15)
-		lcdc.bgwin_enable = 0;
-	if (ly >= 13 * 8 && ly <= 14 * 8)
-		lcdc.obj_enable = 0;
 
 	uint16_t adr = 0x9800;
 	if (lcdc.bg_tmap)
 		adr = 0x9C00;
-
 	uint8_t *row = get_window_row(ppu, adr, ly);
 	if (!lcdc.bgwin_enable) {
 		memset(row, 0, WINDOW_WIDTH_TILES);
@@ -442,7 +440,6 @@ ppu_scanline(struct PPU *ppu)
 
 
 	fprintf(ppu->log, "ly: %d| ", ly);
-	struct Sprite **list = oam_scan(ppu, ly);
 	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
 		if (list[i] == NULL)
 			break;
@@ -455,7 +452,41 @@ ppu_scanline(struct PPU *ppu)
 	free(list);
 	fprintf(ppu->log, "\n");
 
-	mem_write(ppu->mem, LY, ly + 1);
+	return 0;
+}
+
+int
+ppu_scanline(struct PPU *ppu)
+{
+	set_ppu_mode(ppu, OAM_SCAN);
+	uint8_t ly = mem_read(ppu->mem, LY);
+	uint8_t lyc = mem_read(ppu->mem, LYC);
+	struct LCD_Control lcdc = read_lcdc(ppu);
+
+	if (!lcdc.enable)
+		return 0;
+
+	if (ly >= SCREEN_HEIGHT)
+		goto vblank;
+
+	struct Sprite **list = oam_scan(ppu, ly);
+
+	ppu_draw(ppu, list);
+
+	if (ly == lyc)
+		request_interrupt(ppu->mem, INTERRUPT_LCD);
+
+
+vblank:
+	if (ly == 144) {
+		ly = 0;
+		request_interrupt(ppu->mem, INTERRUPT_VBLANK);
+		goto end;
+	}
+
+	ly++;
+end:
+	mem_write(ppu->mem, LY, ly);
 	SDL_UpdateWindowSurface(ppu->win);
 	return 0;
 }
@@ -464,7 +495,7 @@ void
 ppu_log(struct PPU *ppu)
 {
 	fprintf(ppu->log, "LCDC: %08b ", mem_read(ppu->mem, LCDC));
-	fprintf(ppu->log, "LY: %02x ", mem_read(ppu->mem, LY));
+	fprintf(ppu->log, "LY: %3d ", mem_read(ppu->mem, LY));
 	fprintf(ppu->log, "LYC: %02x ", mem_read(ppu->mem, LYC));
 	fprintf(ppu->log, "STAT: %07b ", mem_read(ppu->mem, STAT));
 	fprintf(ppu->log, "\n");

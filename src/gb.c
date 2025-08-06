@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include "cpu.h"
 #include "ppu.h"
@@ -23,17 +24,18 @@ gb_init(void)
 void
 gb_run(struct GB *gb)
 {
+	uint16_t dots = 0;
 	while (true) {
 		print_cpu_state(gb->cpu);
-		execute(gb->cpu);
+		int cycles = execute(gb->cpu);
 		ppu_log(gb->ppu);
-		if (mem_read(gb->mem, gb->cpu->pc) == 0x00) {
+		dots += cycles * 4;
+		if (dots >= 456) {
+			ppu_scanline(gb->ppu);
+			dots -= 456;
+		}
+		if (mem_read(gb->mem, gb->cpu->pc) == 0x40) {
 			break;
 		}
-	}
-
-	// for (int i = 0; i < 48; i++) {
-	for (int i = 0; i < SCREEN_HEIGHT; i++) {
-		ppu_scanline(gb->ppu);
 	}
 }

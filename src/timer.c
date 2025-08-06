@@ -20,7 +20,7 @@ incr(struct CPU *cpu, uint8_t cycles, uint16_t period) {
 
 		if (tima == 0x00) {
 			mem_write(cpu->memory, TIMA, mem_read(cpu->memory, TMA));
-			request_interrupt(cpu, INTERRUPT_TIMER);
+			request_interrupt(cpu->memory, INTERRUPT_TIMER);
 		}
 	}
 }
