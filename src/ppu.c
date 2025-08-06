@@ -240,12 +240,12 @@ sprite_render_row(struct PPU *ppu, struct Sprite *s, uint8_t ly)
 
 	uint8_t row = ly - s->y + 16;
 	assert(row < 16);
-	if (row >= 8) {
-		row -= 8;
+	uint8_t *t1 = get_tile_row(ppu, s->tile_id, row % 8, SPRITE);
+
+	if (lcdc.obj_size)
 		s->tile_id |= 0x01;
-	}
-	uint8_t *t1 = get_tile_row(ppu, s->tile_id, row, SPRITE);
-	uint8_t *t2 = get_tile_row(ppu, s->tile_id, 7 - row, SPRITE);
+
+	uint8_t *t2 = get_tile_row(ppu, s->tile_id, 7 - (row % 8), SPRITE);
 
 
 	if (s->yflip) {
@@ -259,7 +259,11 @@ sprite_render_row(struct PPU *ppu, struct Sprite *s, uint8_t ly)
 	s->y -= 16;
 	s->x -= 8;
 
-	draw_tile_row(ppu, t1, s->x, s->dmg_palette ? OBP1 : OBP0, ly);
+	if (row >= 8) {
+		draw_tile_row(ppu, t2, s->x, s->dmg_palette ? OBP1 : OBP0, ly);
+	} else {
+		draw_tile_row(ppu, t1, s->x, s->dmg_palette ? OBP1 : OBP0, ly);
+	}
 	free(t1);
 	free(t2);
 }
