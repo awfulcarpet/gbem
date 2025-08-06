@@ -27,6 +27,7 @@ read_lcdc(struct PPU *ppu)
 static uint8_t*
 get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row)
 {
+	assert(row < 8);
 	uint8_t *pix = calloc(8, sizeof(uint8_t));
 
 	uint8_t h = 0, l = 0;
@@ -258,6 +259,16 @@ tile_xflip(struct Tile *t)
 }
 
 void
+sprite_yflip_row(uint8_t *r1, uint8_t *r2)
+{
+	for (int i = 0; i < 8; i++) {
+		r1[i] ^= r2[i];
+		r2[i] ^= r1[i];
+		r1[i] ^= r2[i];
+	}
+}
+
+void
 sprite_yflip(struct Tile *t1, struct Tile *t2)
 {
 	if (t2 == NULL) {
@@ -287,32 +298,27 @@ sprite_render_row(struct PPU *ppu, struct Sprite *s, uint8_t ly)
 
 	if (lcdc.obj_size)
 		s->tile_id &= 0xfe;
-
-	uint8_t *t1 = get_tile_row(ppu, s->tile_id, ly);
 	// uint8_t *t2 = get_tile_row(ppu, s->tile_id | 0x01, ly);
 
-	for (int i = 0; i < 8; i++)
-		fprintf(stderr, "%c ", t1[i] == 0 ? '-' : t1[i] + '0');
-	fprintf(stderr, "\n");
+	uint8_t row = ly - s->y + 16;
+	uint8_t *t1 = get_tile_row(ppu, s->tile_id, row);
+	uint8_t *t2 = get_tile_row(ppu, s->tile_id, 7 - row);
 
-	// if (s->xflip) {
-	// 	tile_xflip_row(t1);
-	// 	if (lcdc.obj_size)
-	// 		tile_xflip_row(t2);
-	// }
-	//
-	// if (s->yflip)
-	// 	sprite_yflip(t1, lcdc.obj_size ? t2 : NULL);
-	//
+
+	if (s->yflip) {
+		sprite_yflip_row(t1, t2);
+	}
+
+	if (s->xflip) {
+		tile_xflip_row(t1);
+	}
+
 	s->y -= 16;
 	s->x -= 8;
-	// draw_tile(ppu, t1, s->x, s->y, s->dmg_palette ? OBP1 : OBP0);
-	// if (lcdc.obj_size)
-	// 	draw_tile(ppu, t2, s->x, s->y + 8, s->dmg_palette ? OBP1 : OBP0);
 
 	draw_tile_row(ppu, t1, s->x, s->dmg_palette ? OBP1 : OBP0, ly);
 	free(t1);
-	// free(t2);
+	free(t2);
 }
 
 void
@@ -327,7 +333,8 @@ sprite_render(struct PPU *ppu, struct Sprite *s, uint8_t row)
 	struct Tile *t2 = get_tile(ppu, s->tile_id | 0x01);
 
 	for (int i = 0; i < 8; i++)
-		fprintf(stderr, "%c ", t1->pixels[row][i] == 0 ? '-' : t1->pixels[row][i] + '0');
+		// fprintf(stderr, "%c ", t1->pixels[row][i] == 0 ? '-' : t1->pixels[row][i] + '0');
+		fprintf(stderr, "%3d ", t1->pixels[row][i]);
 	fprintf(stderr, "\n");
 
 	// if (s->xflip) {
@@ -433,17 +440,18 @@ ppu_scanline(struct PPU *ppu)
 	render_window_row(ppu, row, ly);
 	free(row);
 
+	fprintf(ppu->log, "ly: %d| ", ly);
 	struct Sprite **list = oam_scan(ppu, ly);
 	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
 		if (list[i] == NULL)
 			break;
-		fprintf(stderr, "%d\n", list[i]->tile_id);
-		sprite_render(ppu, list[i], ly);
+		fprintf(ppu->log, "(%02x %d %d) ", list[i]->tile_id, list[i]->xflip, list[i]->yflip);
 
 		sprite_render_row(ppu, list[i], ly);
 		free(list[i]);
 	}
 	free(list);
+	fprintf(ppu->log, "\n");
 
 	mem_write(ppu->mem, LY, ly + 1);
 	SDL_UpdateWindowSurface(ppu->win);

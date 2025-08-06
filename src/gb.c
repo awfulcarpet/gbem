@@ -32,7 +32,8 @@ gb_run(struct GB *gb)
 		}
 	}
 
-	for (int i = 0; i < 40; i++) {
+	// for (int i = 0; i < 48; i++) {
+	for (int i = 0; i < SCREEN_HEIGHT; i++) {
 		ppu_scanline(gb->ppu);
 	}
 }
