@@ -424,10 +424,10 @@ ppu_scanline(struct PPU *ppu)
 	uint8_t ly = mem_read(ppu->mem, LY);
 	struct LCD_Control lcdc = read_lcdc(ppu);
 
-	// struct Window *bg = get_window(ppu, 0x9880);
-	// render_window(ppu, bg, 0, 0);
 	if (ly >= 8 && ly <= 15)
 		lcdc.bgwin_enable = 0;
+	if (ly >= 13 * 8 && ly <= 14 * 8)
+		lcdc.obj_enable = 0;
 
 	uint16_t adr = 0x9800;
 	if (lcdc.bg_tmap)
@@ -440,6 +440,7 @@ ppu_scanline(struct PPU *ppu)
 	render_window_row(ppu, row, ly);
 	free(row);
 
+
 	fprintf(ppu->log, "ly: %d| ", ly);
 	struct Sprite **list = oam_scan(ppu, ly);
 	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
@@ -447,7 +448,8 @@ ppu_scanline(struct PPU *ppu)
 			break;
 		fprintf(ppu->log, "(%02x %d %d) ", list[i]->tile_id, list[i]->xflip, list[i]->yflip);
 
-		sprite_render_row(ppu, list[i], ly);
+		if (lcdc.obj_enable)
+			sprite_render_row(ppu, list[i], ly);
 		free(list[i]);
 	}
 	free(list);
