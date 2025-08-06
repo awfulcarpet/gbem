@@ -75,9 +75,10 @@ uint8_t *
 get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 {
 	uint8_t *row = calloc(20, sizeof(uint8_t *));
+	uint8_t scy = mem_read(ppu->mem, SCY);
 
 	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
-		row[i] = mem_read(ppu->mem, adr + ly/8 * WINDOW_WIDTH_TILES + i);
+		row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i);
 	}
 
 	return row;
@@ -387,7 +388,11 @@ ppu_scanline(struct PPU *ppu)
 	if (ly >= 8 && ly <= 15)
 		lcdc.bgwin_enable = 0;
 
-	uint8_t *row = get_window_row(ppu, 0x9880, ly);
+	uint16_t adr = 0x9800;
+	if (lcdc.bg_tmap)
+		adr = 0x9C00;
+
+	uint8_t *row = get_window_row(ppu, adr, ly);
 	if (!lcdc.bgwin_enable) {
 		memset(row, 0, WINDOW_WIDTH_TILES);
 	}
