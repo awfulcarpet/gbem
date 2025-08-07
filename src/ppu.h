@@ -84,6 +84,7 @@ struct LCD_Control {
 struct Sprite {
 	uint8_t tile_id;
 	uint8_t x, y;
+
 	struct {
 		uint8_t priority:1;
 		uint8_t yflip:1;

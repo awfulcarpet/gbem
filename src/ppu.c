@@ -369,6 +369,10 @@ oam_scan(struct PPU *ppu, uint8_t ly)
 		s = NULL;
 	}
 
+	for (; i < OAM_SPRITE_LIMIT; i++) {
+		list[i] = NULL;
+	}
+
 	return list;
 }
 
@@ -399,7 +403,7 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 
 	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
 		if (list[i] == NULL)
-			break;
+			continue;
 
 		if (ppu->lcdc.obj_enable)
 			sprite_render_row(ppu, list[i], ly);
@@ -458,6 +462,10 @@ ppu_run(struct PPU *ppu, int cycles)
 				break;
 			case VBLANK:
 				wly = 0;
+				if (ppu->tcycles < 456)
+					break;
+
+				ppu->tcycles = 0;
 				if (ly >= 153) {
 					ppu->tcycles = 0;
 					ly = 0;
