@@ -101,8 +101,10 @@ struct Mode {
 
 struct PPU {
 	struct Mode mode;
+	struct LCD_Control lcdc;
 
 	uint8_t *mem;
+	uint16_t tcycles;
 
 	SDL_Window *win;
 	uint32_t *fb;
@@ -113,5 +115,5 @@ struct PPU {
 
 struct PPU *ppu_init(uint8_t *mem);
 int ppu_scanline(struct PPU *ppu);
-int ppu_drawscreen(struct PPU *ppu);
+int ppu_run(struct PPU *ppu, int cycles);
 void ppu_log(struct PPU *ppu);

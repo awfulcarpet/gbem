@@ -7,7 +7,39 @@
 #include "ppu.h"
 #include "mem.h"
 
+enum {
+	LYC_INT = 1 << 6,
+	MODE_2_INT = 1 << 5,
+	MODE_1_INT = 1 << 4,
+	MODE_0_INT = 1 << 3,
+	LYC_LC = 1 << 2,
+	MODE = 3,
+};
+
 static uint8_t wly = 0;
+static uint8_t statline = 0;
+
+void
+request_stat(struct PPU *ppu)
+{
+	uint8_t ly = mem_read(ppu->mem, LY);
+	uint8_t lyc = mem_read(ppu->mem, LYC);
+	uint8_t stat = mem_read(ppu->mem, STAT);
+
+	uint8_t line = 0;
+
+	if (stat & LYC_INT) {
+		line |= ((stat & LYC_LC) ? 1 : 0);
+	}
+
+	if (line != 0 && statline == 0) {
+		request_interrupt(ppu->mem, INTERRUPT_STAT);
+		fprintf(ppu->log, "int %d\n", INTERRUPT_STAT);
+	}
+
+	statline = line;
+}
+
 struct LCD_Control
 read_lcdc(struct PPU *ppu)
 {
@@ -63,7 +95,8 @@ get_bg_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 	uint8_t scx = mem_read(ppu->mem, SCX);
 
 	for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
-		row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i + scx/8);
+		// row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i + scx/8);
+		row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i);
 	}
 
 	return row;
@@ -132,6 +165,7 @@ ppu_init(uint8_t *mem)
 	}
 
 	ppu->log = fopen("lcd", "w");
+	ppu->mode.mode = OAM_SCAN;
 
 
 	ppu->fb = SDL_GetWindowSurface(ppu->win)->pixels;
@@ -163,6 +197,7 @@ set_ppu_mode(struct PPU *ppu, enum PPU_MODE mode)
 		assert(NULL); /* unreachable */
 		break;
 	}
+	mem_write(ppu->mem, STAT, mem_read(ppu->mem, STAT) | mode);
 }
 
 uint8_t
@@ -274,11 +309,17 @@ render_bg_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 	uint8_t scy = mem_read(ppu->mem, SCY);
 	uint8_t scx = mem_read(ppu->mem, SCX);
 
-	for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
+	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
 		uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8, WINDOW);
-		draw_tile_row(ppu, pix, i * 8 - scx % 8, BGP, ly);
+		draw_tile_row(ppu, pix, i * 8, BGP, ly);
 		free(pix);
 	}
+
+	// for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
+	// 	uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8, WINDOW);
+	// 	draw_tile_row(ppu, pix, i * 8 - scx % 8, BGP, ly);
+	// 	free(pix);
+	// }
 }
 
 void
@@ -340,39 +381,105 @@ int
 ppu_draw(struct PPU *ppu, struct Sprite **list)
 {
 	uint8_t ly = mem_read(ppu->mem, LY);
-	struct LCD_Control lcdc = read_lcdc(ppu);
 
 	uint16_t adr = 0x9800;
-	if (lcdc.bg_tmap)
+	if (ppu->lcdc.bg_tmap)
 		adr = 0x9C00;
-	uint8_t *row = get_bg_row(ppu, adr, ly);
-	if (lcdc.bgwin_enable) {
+
+	if (ppu->lcdc.bgwin_enable) {
+		uint8_t *row = get_bg_row(ppu, adr, ly);
 		render_bg_row(ppu, row, ly);
+		free(row);
 	}
-	free(row);
+
+	goto end;
 
 	adr = 0x9800;
-	if (lcdc.w_tmap)
+	if (ppu->lcdc.w_tmap)
 		adr = 0x9C00;
-	if (lcdc.wenable) {
-		row = get_window_row(ppu, adr, ly);
+	if (ppu->lcdc.wenable) {
+		uint8_t *row = get_window_row(ppu, adr, ly);
 		render_window_row(ppu, row, ly);
 		if (row != NULL)
 			free(row);
 	}
 
-
-	// return 0;
 	for (int i = 0; i < OAM_SPRITE_LIMIT; i++) {
 		if (list[i] == NULL)
 			break;
 
-		if (lcdc.obj_enable)
+		if (ppu->lcdc.obj_enable)
 			sprite_render_row(ppu, list[i], ly);
 
 		free(list[i]);
 	}
 	free(list);
+end:
+	SDL_UpdateWindowSurface(ppu->win);
+
+	return 0;
+}
+
+struct Sprite **list = NULL;
+int
+ppu_run(struct PPU *ppu, int cycles)
+{
+	uint8_t ly = mem_read(ppu->mem, LY);
+	uint8_t lyc = mem_read(ppu->mem, LYC);
+	struct LCD_Control lcdc = read_lcdc(ppu);
+
+	if (!lcdc.enable)
+		return 0;
+
+	for (int i = 0; i < cycles * 4; i++, ppu->tcycles++) {
+		set_ppu_mode(ppu, ppu->mode.mode);
+		switch (ppu->mode.mode) {
+			case OAM_SCAN:
+				if (ppu->tcycles >= 80) {
+					list = oam_scan(ppu, ly);
+					set_ppu_mode(ppu, DRAW);
+					ppu->lcdc = read_lcdc(ppu);
+				}
+				break;
+			case DRAW:
+				if (ppu->tcycles >= 80 + 289) {
+					if (ppu_draw(ppu, list)) return 1;
+					set_ppu_mode(ppu, HBLANK);
+				}
+				break;
+			case HBLANK:
+				if (ppu->tcycles < 456) {
+					break;
+				}
+
+				set_ppu_mode(ppu, OAM_SCAN);
+				mem_write(ppu->mem, LY, ++ly);
+
+				if (ly >= 143) {
+					set_ppu_mode(ppu, VBLANK);
+					request_interrupt(ppu->mem, INTERRUPT_VBLANK);
+				}
+				ppu->tcycles = 0;
+				break;
+			case VBLANK:
+				wly = 0;
+				if (ly >= 153) {
+					ppu->tcycles = 0;
+					ly = 0;
+					set_ppu_mode(ppu, OAM_SCAN);
+				}
+				mem_write(ppu->mem, LY, ++ly);
+				break;
+		}
+
+		request_stat(ppu);
+
+		if (ly == lyc) {
+			mem_write(ppu->mem, STAT, mem_read(ppu->mem, STAT) | LYC_LC);
+		} else {
+			mem_write(ppu->mem, STAT, mem_read(ppu->mem, STAT) & ~LYC_LC);
+		}
+	}
 
 	return 0;
 }
@@ -480,14 +587,16 @@ end:
 void
 ppu_log(struct PPU *ppu)
 {
+	fprintf(ppu->log, "CYC: %05d ", ppu->tcycles);
 	fprintf(ppu->log, "LCDC: %08b ", mem_read(ppu->mem, LCDC));
-	fprintf(ppu->log, "LY: %3d ", mem_read(ppu->mem, LY));
+	fprintf(ppu->log, "LY: %02x ", mem_read(ppu->mem, LY));
 	fprintf(ppu->log, "LYC: %02x ", mem_read(ppu->mem, LYC));
 	fprintf(ppu->log, "STAT: %07b ", mem_read(ppu->mem, STAT));
 	fprintf(ppu->log, "SCX: %02x ", mem_read(ppu->mem, SCX));
 	fprintf(ppu->log, "SCY: %02x ", mem_read(ppu->mem, SCY));
 	fprintf(ppu->log, "WX: %02x ", mem_read(ppu->mem, WX));
 	fprintf(ppu->log, "WY: %02x ", mem_read(ppu->mem, WY));
+	fprintf(ppu->log, "SL: %02x ", statline);
 	fprintf(ppu->log, "\n");
 }
 

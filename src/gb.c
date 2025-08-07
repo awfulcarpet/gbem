@@ -24,21 +24,14 @@ gb_init(void)
 void
 gb_run(struct GB *gb)
 {
-	uint16_t dots = 0;
+	int cycles = 0;
 	while (true) {
 		print_cpu_state(gb->cpu);
-		int cycles = execute(gb->cpu);
 		ppu_log(gb->ppu);
-		dots += cycles * 4;
-		if (dots >= 456) {
-			ppu_scanline(gb->ppu);
-			dots -= 456;
-		}
-		if (mem_read(gb->mem, gb->cpu->pc) == 0x00) {
+		if (ppu_run(gb->ppu, cycles)) return;
+		cycles = execute(gb->cpu);
+		if (mem_read(gb->mem, gb->cpu->pc) == 0x40) {
 			break;
 		}
-	}
-	for (int i = 0; i < SCREEN_HEIGHT; i++) {
-		ppu_scanline(gb->ppu);
 	}
 }

@@ -1309,9 +1309,9 @@ handle_interrupt(struct CPU *cpu)
 		return 5;
 	}
 
-	if (flag & INTERRUPT_LCD && enable & INTERRUPT_LCD) {
-		fprintf(cpu->log, "int %d ", INTERRUPT_LCD);
-		mem_write(cpu->memory, IF, flag & ~INTERRUPT_LCD);
+	if (flag & INTERRUPT_STAT && enable & INTERRUPT_STAT) {
+		fprintf(cpu->log, "int %d ", INTERRUPT_STAT);
+		mem_write(cpu->memory, IF, flag & ~INTERRUPT_STAT);
 		cpu->ime = IME_UNSET;
 		cpu->pc -= 2;
 		call(cpu, 0x00, 0x48);
@@ -1599,8 +1599,10 @@ execute(struct CPU *cpu)
 	timer_incr(cpu, cycles);
 
 	if (cpu->ime == IME_SET) {
-		if (handle_interrupt(cpu))
+		if (handle_interrupt(cpu)) {
 			cpu->mcycles += 5;
+			return cycles + 5;
+		}
 	}
 	return cycles;
 }
