@@ -20,6 +20,7 @@ gb_init(void)
 	gb->cpu->pc = 0x100;
 
 	gb->running = 1;
+	mem_write(gb->mem, JOYP, 0xcf);
 
 	return gb;
 }
