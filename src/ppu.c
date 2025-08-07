@@ -67,9 +67,8 @@ get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row, enum TILE_TYPE type)
 
 	uint8_t h = 0, l = 0;
 	uint16_t adr = VRAM + id * BYTES_PER_TILE;
-	struct LCD_Control lcdc = read_lcdc(ppu);
 
-	if (type == WINDOW && lcdc.tdata == 0) {
+	if (type == WINDOW && ppu->lcdc.tdata == 0) {
 		adr = 0x9000 + (int8_t)id * BYTES_PER_TILE;
 	}
 
@@ -95,8 +94,8 @@ get_bg_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 	uint8_t scx = mem_read(ppu->mem, SCX);
 
 	for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
-		// row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i + scx/8);
-		row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i);
+		row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i + scx/8);
+		// row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + i);
 	}
 
 	return row;
@@ -268,16 +267,14 @@ sprite_yflip_row(uint8_t *r1, uint8_t *r2)
 void
 sprite_render_row(struct PPU *ppu, struct Sprite *s, uint8_t ly)
 {
-	struct LCD_Control lcdc = read_lcdc(ppu);
-
-	if (lcdc.obj_size)
+	if (ppu->lcdc.obj_size)
 		s->tile_id &= 0xfe;
 
 	uint8_t row = ly - s->y + 16;
 	assert(row < 16);
 	uint8_t *t1 = get_tile_row(ppu, s->tile_id, row % 8, SPRITE);
 
-	if (lcdc.obj_size)
+	if (ppu->lcdc.obj_size)
 		s->tile_id |= 0x01;
 
 	uint8_t *t2 = get_tile_row(ppu, s->tile_id, 7 - (row % 8), SPRITE);
@@ -309,17 +306,17 @@ render_bg_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 	uint8_t scy = mem_read(ppu->mem, SCY);
 	uint8_t scx = mem_read(ppu->mem, SCX);
 
-	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
-		uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8, WINDOW);
-		draw_tile_row(ppu, pix, i * 8, BGP, ly);
-		free(pix);
-	}
-
-	// for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
+	// for (int i = 0; i < LCD_WIDTH_TILES; i++) {
 	// 	uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8, WINDOW);
-	// 	draw_tile_row(ppu, pix, i * 8 - scx % 8, BGP, ly);
+	// 	draw_tile_row(ppu, pix, i * 8, BGP, ly);
 	// 	free(pix);
 	// }
+
+	for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
+		uint8_t *pix = get_tile_row(ppu, row[i], (ly + scy) % 8, WINDOW);
+		draw_tile_row(ppu, pix, i * 8 - scx % 8, BGP, ly);
+		free(pix);
+	}
 }
 
 void
@@ -359,13 +356,12 @@ struct Sprite **
 oam_scan(struct PPU *ppu, uint8_t ly)
 {
 	struct Sprite **list = calloc(OAM_SPRITE_LIMIT, sizeof(struct Sprite *));
-	struct LCD_Control lcdc = read_lcdc(ppu);
 
 	int i = 0;
 	for (int j = 0; j < 40 && i < OAM_SPRITE_LIMIT; j++) {
 		struct Sprite *s = get_sprite(ppu, j);
 		if (s->x > 0 && ly + 16 >= s->y
-				&& ly + 16 < s->y + (lcdc.obj_size ? 16 : 8)) {
+				&& ly + 16 < s->y + (ppu->lcdc.obj_size ? 16 : 8)) {
 			list[i++] = s;
 			continue;
 		}
@@ -426,12 +422,13 @@ ppu_run(struct PPU *ppu, int cycles)
 {
 	uint8_t ly = mem_read(ppu->mem, LY);
 	uint8_t lyc = mem_read(ppu->mem, LYC);
-	struct LCD_Control lcdc = read_lcdc(ppu);
+	ppu->lcdc = read_lcdc(ppu);
 
-	if (!lcdc.enable)
+	if (!ppu->lcdc.enable)
 		return 0;
 
 	for (int i = 0; i < cycles * 4; i++, ppu->tcycles++) {
+		uint8_t ly = mem_read(ppu->mem, LY);
 		set_ppu_mode(ppu, ppu->mode.mode);
 		switch (ppu->mode.mode) {
 			case OAM_SCAN:
@@ -452,13 +449,14 @@ ppu_run(struct PPU *ppu, int cycles)
 					break;
 				}
 
-				set_ppu_mode(ppu, OAM_SCAN);
-				mem_write(ppu->mem, LY, ++ly);
-
 				if (ly >= 143) {
 					set_ppu_mode(ppu, VBLANK);
 					request_interrupt(ppu->mem, INTERRUPT_VBLANK);
+	 			} else {
+					set_ppu_mode(ppu, OAM_SCAN);
+					mem_write(ppu->mem, LY, ly + 1);
 				}
+
 				ppu->tcycles = 0;
 				break;
 			case VBLANK:
@@ -466,9 +464,11 @@ ppu_run(struct PPU *ppu, int cycles)
 				if (ly >= 153) {
 					ppu->tcycles = 0;
 					ly = 0;
+					mem_write(ppu->mem, LY, 0);
 					set_ppu_mode(ppu, OAM_SCAN);
+				} else {
+					mem_write(ppu->mem, LY, ly + 1);
 				}
-				mem_write(ppu->mem, LY, ++ly);
 				break;
 		}
 

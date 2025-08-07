@@ -1601,7 +1601,6 @@ execute(struct CPU *cpu)
 	if (cpu->ime == IME_SET) {
 		if (handle_interrupt(cpu)) {
 			cpu->mcycles += 5;
-			return cycles + 5;
 		}
 	}
 	return cycles;
