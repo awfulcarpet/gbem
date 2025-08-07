@@ -23,6 +23,10 @@ main(int argc, char **argv) {
 
 	if (gb == NULL) return 1;
 
+	if (load_rom(gb->mem, "tetris.gb")) {
+		return 1;
+	}
+
 	if (load_rom(gb->mem, "dmg_boot.bin")) {
 		return 1;
 	}
