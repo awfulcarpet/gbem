@@ -115,5 +115,5 @@ struct PPU {
 
 
 struct PPU *ppu_init(uint8_t *mem);
-int ppu_run(struct PPU *ppu, int cycles);
+void ppu_run(struct PPU *ppu, int cycles);
 void ppu_log(struct PPU *ppu);

@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "../src/gb.h"
 #include "../src/mem.h"
 
@@ -12,6 +11,5 @@ main(void)
 
 	gb_run(gb);
 
-	getchar();
 	return 0;
 }

@@ -376,7 +376,7 @@ oam_scan(struct PPU *ppu, uint8_t ly)
 	return list;
 }
 
-int
+void
 ppu_draw(struct PPU *ppu, struct Sprite **list)
 {
 	uint8_t ly = mem_read(ppu->mem, LY);
@@ -411,13 +411,10 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 		free(list[i]);
 	}
 	free(list);
-end:
-
-	return 0;
 }
 
 struct Sprite **list = NULL;
-int
+void
 ppu_run(struct PPU *ppu, int cycles)
 {
 	uint8_t ly = mem_read(ppu->mem, LY);
@@ -425,7 +422,7 @@ ppu_run(struct PPU *ppu, int cycles)
 	ppu->lcdc = read_lcdc(ppu);
 
 	if (!ppu->lcdc.enable)
-		return 0;
+		return;
 
 	ppu->tcycles += cycles * 4;
 	for (int i = 0; i < cycles * 4; i++, ppu->tcycles++) {
@@ -440,7 +437,7 @@ ppu_run(struct PPU *ppu, int cycles)
 				break;
 			case DRAW:
 				if (ppu->tcycles >= 80 + 289) {
-					if (ppu_draw(ppu, list)) return 1;
+					ppu_draw(ppu, list);
 					set_ppu_mode(ppu, HBLANK);
 				}
 				break;
@@ -485,8 +482,6 @@ ppu_run(struct PPU *ppu, int cycles)
 			mem_write(ppu->mem, STAT, mem_read(ppu->mem, STAT) & ~LYC_LC);
 		}
 	}
-
-	return 0;
 }
 
 void

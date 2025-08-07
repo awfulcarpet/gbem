@@ -12,6 +12,7 @@ OBJ = \
 	  $(OUTDIR)/timer.o \
 	  $(OUTDIR)/ppu.o \
 	  $(OUTDIR)/gb.o \
+	  $(OUTDIR)/joypad.o \
 
 all: $(NAME)
 

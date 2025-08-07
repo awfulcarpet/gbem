@@ -5,6 +5,7 @@
 #include "ppu.h"
 #include "gb.h"
 #include "mem.h"
+#include "joypad.h"
 
 struct GB *
 gb_init(void)
@@ -18,6 +19,8 @@ gb_init(void)
 
 	gb->cpu->pc = 0x100;
 
+	gb->running = 1;
+
 	return gb;
 }
 
@@ -25,13 +28,12 @@ void
 gb_run(struct GB *gb)
 {
 	int cycles = 0;
-	while (true) {
+	while (gb->running) {
 		print_cpu_state(gb->cpu);
 		ppu_log(gb->ppu);
-		if (ppu_run(gb->ppu, cycles)) return;
+
+		get_input(gb);
+		ppu_run(gb->ppu, cycles);
 		cycles = execute(gb->cpu);
-		if (mem_read(gb->mem, gb->cpu->pc) == 0x40) {
-			break;
-		}
 	}
 }
