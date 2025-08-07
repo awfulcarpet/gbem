@@ -19,10 +19,11 @@ main(int argc, char **argv) {
 	(void)argc;
 	(void)argv;
 	struct GB * gb = gb_init();
+	gb->cpu->pc = 0;
 
 	if (gb == NULL) return 1;
 
-	if (load_rom(gb->mem, "tetris.gb")) {
+	if (load_rom(gb->mem, "dmg_boot.bin")) {
 		return 1;
 	}
 

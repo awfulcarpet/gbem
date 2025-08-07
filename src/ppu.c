@@ -412,7 +412,6 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 	}
 	free(list);
 end:
-	SDL_UpdateWindowSurface(ppu->win);
 
 	return 0;
 }
@@ -428,8 +427,8 @@ ppu_run(struct PPU *ppu, int cycles)
 	if (!ppu->lcdc.enable)
 		return 0;
 
+	ppu->tcycles += cycles * 4;
 	for (int i = 0; i < cycles * 4; i++, ppu->tcycles++) {
-		uint8_t ly = mem_read(ppu->mem, LY);
 		set_ppu_mode(ppu, ppu->mode.mode);
 		switch (ppu->mode.mode) {
 			case OAM_SCAN:
@@ -453,6 +452,7 @@ ppu_run(struct PPU *ppu, int cycles)
 				if (ly >= 143) {
 					set_ppu_mode(ppu, VBLANK);
 					request_interrupt(ppu->mem, INTERRUPT_VBLANK);
+					SDL_UpdateWindowSurface(ppu->win);
 	 			} else {
 					set_ppu_mode(ppu, OAM_SCAN);
 					mem_write(ppu->mem, LY, ly + 1);
