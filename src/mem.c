@@ -65,5 +65,8 @@ mem_write(uint8_t *mem, uint16_t adr, uint8_t data) {
 		data = 0x00;
 #endif
 
+	if (adr < 0x8000)
+		return;
+
 	mem[adr] = data;
 }
