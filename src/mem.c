@@ -49,6 +49,8 @@ void
 mem_write(uint8_t *mem, uint16_t adr, uint8_t data) {
 #ifndef TEST
 	assert(adr >= 0x8000); // avoid writing ROM
+	if (adr < 0x8000)
+		return;
 #endif
 
 	if (adr == SC && data == 0x81) {
@@ -64,9 +66,6 @@ mem_write(uint8_t *mem, uint16_t adr, uint8_t data) {
 	if (adr == DIV)
 		data = 0x00;
 #endif
-
-	if (adr < 0x8000)
-		return;
 
 	mem[adr] = data;
 }

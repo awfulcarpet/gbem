@@ -194,8 +194,9 @@ run_test(cJSON *json)
 		fprintf(stderr, "\n");
 		free(cpu.memory);
 		failed = 1;
+	} else {
+		free(cpu.memory);
 	}
-	free(cpu.memory);
 	free(test->initial.memory);
 	free(test->final.memory);
 

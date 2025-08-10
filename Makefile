@@ -17,10 +17,10 @@ OBJ = \
 all: $(NAME)
 
 run: $(NAME)
-	$(OUTDIR)/$(NAME)
+	$(OUTDIR)/$(NAME) tetris.gb
 
 tests: make_tests blargg acid
-	# $(OUTDIR)/instr
+	$(OUTDIR)/instr
 	$(OUTDIR)/acid
 	# rm -f /tmp/log
 	# $(OUTDIR)/blargg 1 &

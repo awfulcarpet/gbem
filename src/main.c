@@ -23,7 +23,12 @@ main(int argc, char **argv) {
 
 	if (gb == NULL) return 1;
 
-	if (load_rom(gb->mem, "tetris.gb")) {
+	if (argc < 2) {
+		fprintf(stderr, "usage: gbem <gb file>\n");
+		return 1;
+	}
+
+	if (load_rom(gb->mem, argv[1])) {
 		return 1;
 	}
 
