@@ -22,6 +22,7 @@ static uint8_t statline = 0;
 static uint8_t * get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row, enum TILE_TYPE type);
 void draw_tile_row(struct PPU *ppu, uint8_t *row, int16_t xpix, enum Pallete pallete, uint8_t ly);
 uint8_t get_color(struct PPU *ppu, uint8_t id, enum Pallete pallete);
+struct LCD_Control read_lcdc(struct PPU *ppu);
 
 static uint8_t **
 get_tile(struct PPU *ppu, uint8_t id)
@@ -39,7 +40,7 @@ get_tile(struct PPU *ppu, uint8_t id)
 }
 
 void
-draw_tile_bg(struct PPU *ppu, uint8_t **tile, uint8_t x, uint8_t y)
+draw_tile(struct PPU *ppu, uint32_t *fb, uint8_t **tile, uint8_t x, uint8_t y)
 {
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
@@ -63,7 +64,7 @@ draw_tile_bg(struct PPU *ppu, uint8_t **tile, uint8_t x, uint8_t y)
 					break;
 			}
 
-			ppu->debug_fb[(y+i) * WINDOW_WIDTH_TILES * 8 + x+j] = color;
+			fb[(y+i) * WINDOW_WIDTH_TILES * 8 + x+j] = color;
 		}
 	}
 }
@@ -72,11 +73,33 @@ draw_tile_bg(struct PPU *ppu, uint8_t **tile, uint8_t x, uint8_t y)
 void
 debug_bg(struct PPU *ppu)
 {
+	struct LCD_Control lcdc = read_lcdc(ppu);
+	uint16_t adr = 0x9800;
+	if (lcdc.bg_tmap) adr = 0x9c00;
+
 	for (int i = 0; i < WINDOW_HEIGHT_TILES; i++) {
 		for (int j = 0; j < WINDOW_WIDTH_TILES; j++) {
-			uint8_t id = mem_read(ppu->mem, 0x9800 + i * WINDOW_WIDTH_TILES + j);
+			uint8_t id = mem_read(ppu->mem, adr + i * WINDOW_WIDTH_TILES + j);
 			uint8_t **tile = get_tile(ppu, id);
-			draw_tile_bg(ppu, tile, j * 8, i * 8);
+			draw_tile(ppu, ppu->debug_bgfb, tile, j * 8, i * 8);
+			for (int k = 0; k < 8; k++)
+				free(tile[k]);
+			free(tile);
+		}
+	}
+}
+
+void
+debug_win(struct PPU *ppu)
+{
+	struct LCD_Control lcdc = read_lcdc(ppu);
+	uint16_t adr = 0x9800;
+	if (lcdc.w_tmap) adr = 0x9c00;
+	for (int i = 0; i < WINDOW_HEIGHT_TILES; i++) {
+		for (int j = 0; j < WINDOW_WIDTH_TILES; j++) {
+			uint8_t id = mem_read(ppu->mem, adr + i * WINDOW_WIDTH_TILES + j);
+			uint8_t **tile = get_tile(ppu, id);
+			draw_tile(ppu, ppu->debug_wfb, tile, j * 8, i * 8);
 			for (int k = 0; k < 8; k++)
 				free(tile[k]);
 			free(tile);
@@ -88,7 +111,8 @@ void
 debug_draw(struct PPU *ppu)
 {
 	debug_bg(ppu);
-	SDL_UpdateWindowSurface(ppu->debug_win);
+
+	debug_win(ppu);
 }
 
 void
@@ -220,23 +244,32 @@ graphics_init(struct PPU *ppu)
 
 	/* TODO: SCALE */
 	ppu->win = SDL_CreateWindow("gbem", 0, 0, SCREEN_WIDTH * SCALE, SCREEN_HEIGHT * SCALE, SDL_WINDOW_SHOWN);
-	ppu->debug_win = SDL_CreateWindow("gbem background tiles", 0, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
+	ppu->debug_bgwin = SDL_CreateWindow("gbem background tiles", 0, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
+	ppu->debug_wwin = SDL_CreateWindow("gbem window tiles", 0, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
 
 	if (ppu->win == NULL) {
 		fprintf(stderr, "unable to create sdl win: %s\n", SDL_GetError());
 		return 1;
 	}
-	if (ppu->debug_win == NULL) {
-		fprintf(stderr, "unable to create sdl debug win: %s\n", SDL_GetError());
+
+	if (ppu->debug_bgwin == NULL) {
+		fprintf(stderr, "unable to create sdl debug bg win: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	if (ppu->debug_wwin == NULL) {
+		fprintf(stderr, "unable to create sdl debug window win: %s\n", SDL_GetError());
 		return 1;
 	}
 
 	ppu->fb = SDL_GetWindowSurface(ppu->win)->pixels;
-	ppu->debug_fb = SDL_GetWindowSurface(ppu->debug_win)->pixels;
+	ppu->debug_bgfb = SDL_GetWindowSurface(ppu->debug_bgwin)->pixels;
+	ppu->debug_wfb = SDL_GetWindowSurface(ppu->debug_wwin)->pixels;
 	memset(ppu->fb, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT * SCALE * SCALE * sizeof(uint32_t));
 
 	SDL_UpdateWindowSurface(ppu->win);
-	SDL_UpdateWindowSurface(ppu->debug_win);
+	SDL_UpdateWindowSurface(ppu->debug_bgwin);
+	SDL_UpdateWindowSurface(ppu->debug_wwin);
 
 	return 0;
 }

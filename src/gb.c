@@ -36,7 +36,12 @@ gb_run(struct GB *gb)
 		get_input(gb);
 		ppu_run(gb->ppu, cycles);
 		cycles = execute(gb->cpu);
-
+		if (gb->mem[gb->cpu->pc] == 0x40) {
+			break;
+		}
 	}
-		debug_draw(gb->ppu);
+	debug_draw(gb->ppu);
+	SDL_UpdateWindowSurface(gb->ppu->debug_wwin);
+	SDL_UpdateWindowSurface(gb->ppu->debug_bgwin);
+	getchar();
 }
