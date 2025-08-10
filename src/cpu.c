@@ -760,7 +760,7 @@ static int
 reti(struct CPU *cpu)
 {
 	ret(cpu);
-	ei(cpu);
+	cpu->ime = 1;
 	return 4;
 }
 
