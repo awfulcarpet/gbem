@@ -1,9 +1,6 @@
 .build
 core
-gblog
-log
-diff
-glog
-lcd
+cpu.log
+ppu.log
 tetris.gb
 dmg_boot.bin

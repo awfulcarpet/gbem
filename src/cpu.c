@@ -13,28 +13,27 @@
 struct CPU *
 init_cpu(uint8_t *mem) {
 	struct CPU *cpu = calloc(1, sizeof(struct CPU));
-	cpu->a = 0;
-	cpu->b = 0;
-	cpu->c = 0;
-	cpu->d = 0;
-	cpu->e = 0;
-	cpu->h = 0;
-	cpu->l = 0;
-	cpu->f.flags = 0;
+	/* https://bgb.bircd.org/pandocs.htm#powerupsequence */
+	cpu->pc = 0x101;
 
-	cpu->pc = 0;
-	cpu->sp = 0;
+	cpu->a = 0x01;
+	cpu->f.flags = 0xb0;
 
-	cpu->ime = 0;
+	cpu->b = 0x00;
+	cpu->c = 0x13;
 
-	cpu->mcycles = 0;
+	cpu->d = 0x00;
+	cpu->e = 0xd8;
 
-	cpu->div = 0;
+	cpu->h = 0x01;
+	cpu->l = 0x4d;
 
-	cpu->log = fopen("log", "w");
+	cpu->sp = 0xFFFE;
 
 	if (mem != NULL)
 		cpu->memory = mem;
+
+	cpu->log = fopen("cpu.log", "w");
 
 	return cpu;
 }

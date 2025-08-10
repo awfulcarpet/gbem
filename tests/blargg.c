@@ -1,6 +1,7 @@
 #include "../src/cpu.h"
 #include "../src/mem.h"
 #include "../src/opcode.h"
+#include "../src/gb.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,7 @@ int
 main(int argc, char **argv)
 {
 	uint8_t mem[1 << 16] = {0};
-	struct CPU *cpu = init_cpu(mem);
+	struct GB *gb = gb_init();
 
 	 char *roms[] = {
 		"tests/blargg/cpu_instrs/individual/01-special.gb",
@@ -28,8 +29,6 @@ main(int argc, char **argv)
 		"tests/blargg/mem_timing/individual/01-read_timing.gb",
 		"tests/blargg/mem_timing/individual/02-write_timing.gb",
 		"tests/blargg/mem_timing/individual/03-modify_timing.gb",
-
-
 	};
 
 	if (argc < 2) {
@@ -37,28 +36,12 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (load_rom(cpu->memory, roms[atoi(argv[1]) - 1])) {
+	if (load_rom(gb->mem, roms[atoi(argv[1]) - 1])) {
 		printf("unable to open rom\n");
 		return 1;
 	}
 
-	cpu->pc = 0x101;
+	gb_run(gb);
 
-	cpu->a = 1;
-	cpu->f.flags = 0xb0;
-	cpu->c = 0x13;
-	cpu->e = 0xd8;
-	cpu->h = 1;
-	cpu->l = 0x4d;
-	cpu->sp = 0xFFFE;
-
-	while (1) {
-		// cpu_log(cpu);
-		print_cpu_state(cpu);
-		execute(cpu);
-
-		if (cpu->stop == 1)
-			break;
-	}
 	return 0;
 }

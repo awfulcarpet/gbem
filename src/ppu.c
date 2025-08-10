@@ -162,7 +162,7 @@ ppu_init(uint8_t *mem)
 		return NULL;
 	}
 
-	ppu->log = fopen("lcd", "w");
+	ppu->log = fopen("ppu.log", "w");
 	ppu->mode.mode = OAM_SCAN;
 
 
