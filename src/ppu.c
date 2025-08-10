@@ -19,6 +19,78 @@ enum {
 static uint8_t wly = 0;
 static uint8_t statline = 0;
 
+static uint8_t * get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row, enum TILE_TYPE type);
+void draw_tile_row(struct PPU *ppu, uint8_t *row, int16_t xpix, enum Pallete pallete, uint8_t ly);
+uint8_t get_color(struct PPU *ppu, uint8_t id, enum Pallete pallete);
+
+static uint8_t **
+get_tile(struct PPU *ppu, uint8_t id)
+{
+	uint8_t **pix = calloc(8, sizeof(uint8_t *));
+
+	for (int i = 0; i < 8; i++) {
+		pix[i] = get_tile_row(ppu, id, i, WINDOW);
+	}
+
+	uint8_t h = 0, l = 0;
+	uint16_t adr = VRAM + id * BYTES_PER_TILE;
+
+	return pix;
+}
+
+void
+draw_tile_bg(struct PPU *ppu, uint8_t **tile, uint8_t x, uint8_t y)
+{
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			uint8_t pix = tile[i][j];
+			uint32_t color = 0x00;
+			switch (get_color(ppu, pix, BGP)) {
+				case 0:
+					color = WHITE;
+					break;
+				case 1:
+					color = GRAY;
+					break;
+				case 2:
+					color = DGRAY;
+					break;
+				case 3:
+					color = BLACK;
+					break;
+				default:
+					assert(NULL); /* unreachable */
+					break;
+			}
+
+			ppu->debug_fb[(y+i) * WINDOW_WIDTH_TILES * 8 + x+j] = color;
+		}
+	}
+}
+
+
+void
+debug_bg(struct PPU *ppu)
+{
+	for (int i = 0; i < WINDOW_HEIGHT_TILES; i++) {
+		for (int j = 0; j < WINDOW_WIDTH_TILES; j++) {
+			uint8_t id = mem_read(ppu->mem, 0x9800 + i * WINDOW_WIDTH_TILES + j);
+			uint8_t **tile = get_tile(ppu, id);
+			draw_tile_bg(ppu, tile, j * 8, i * 8);
+			for (int k = 0; k < 8; k++)
+				free(tile[k]);
+			free(tile);
+		}
+	}
+}
+
+void
+debug_draw(struct PPU *ppu)
+{
+	debug_bg(ppu);
+	SDL_UpdateWindowSurface(ppu->debug_win);
+}
+
 void
 request_stat(struct PPU *ppu)
 {
@@ -475,6 +547,7 @@ ppu_run(struct PPU *ppu, int cycles)
 			case DRAW:
 				if (ppu->tcycles >= 80 + 289) {
 					ppu_draw(ppu, list);
+					debug_draw(ppu);
 					set_ppu_mode(ppu, HBLANK);
 				}
 				break;

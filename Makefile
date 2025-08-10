@@ -30,6 +30,7 @@ blargg: $(OBJ) tests/blargg.c
 
 acid: $(OBJ) tests/acid.c
 	$(CC) -o $(OUTDIR)/acid $^ -D$(TESTS) $(LDLIBS)
+	$(OUTDIR)/acid
 
 $(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(OUTDIR)

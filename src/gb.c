@@ -36,5 +36,7 @@ gb_run(struct GB *gb)
 		get_input(gb);
 		ppu_run(gb->ppu, cycles);
 		cycles = execute(gb->cpu);
+
 	}
+		debug_draw(gb->ppu);
 }
