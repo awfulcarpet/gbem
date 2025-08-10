@@ -138,6 +138,30 @@ get_sprite(struct PPU *ppu, uint8_t id)
 	return s;
 }
 
+static int
+graphics_init(struct PPU *ppu)
+{
+	if (SDL_Init(SDL_INIT_VIDEO)) {
+		fprintf(stderr, "unable to init SDL: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	/* TODO: SCALE */
+	ppu->win = SDL_CreateWindow("gbem", 0, 0, SCREEN_WIDTH * SCALE, SCREEN_HEIGHT * SCALE, SDL_WINDOW_SHOWN);
+
+	if (ppu->win == NULL) {
+		fprintf(stderr, "unable to create sdl win: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	ppu->fb = SDL_GetWindowSurface(ppu->win)->pixels;
+	memset(ppu->fb, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT * SCALE * SCALE * sizeof(uint32_t));
+
+	SDL_UpdateWindowSurface(ppu->win);
+
+	return 0;
+}
+
 struct PPU *
 ppu_init(uint8_t *mem)
 {
@@ -149,26 +173,32 @@ ppu_init(uint8_t *mem)
 	if (mem != NULL)
 		ppu->mem = mem;
 
-	if (SDL_Init(SDL_INIT_VIDEO)) {
-		fprintf(stderr, "unable to init SDL: %s\n", SDL_GetError());
-		return NULL;
-	}
-
-	/* TODO: SCALE */
-	ppu->win = SDL_CreateWindow("gbem", 0, 0, SCREEN_WIDTH * SCALE, SCREEN_HEIGHT * SCALE, SDL_WINDOW_SHOWN);
-
-	if (ppu->win == NULL) {
-		fprintf(stderr, "unable to create sdl win: %s\n", SDL_GetError());
-		return NULL;
-	}
-
 	ppu->log = fopen("ppu.log", "w");
+
+	if (ppu->log == NULL) {
+		fprintf(stderr, "unable to open ppu log for writing\n");
+		free(ppu);
+		return NULL;
+	}
+
 	ppu->mode.mode = OAM_SCAN;
 
+	/* https://bgb.bircd.org/pandocs.htm#powerupsequence */
+	mem_write(ppu->mem, LCDC, 0x91);
+	mem_write(ppu->mem, SCY, 0x00);
+	mem_write(ppu->mem, SCX, 0x00);
+	mem_write(ppu->mem, LYC, 0x00);
+	mem_write(ppu->mem, BGP, 0xfc);
+	mem_write(ppu->mem, OBP0, 0xff);
+	mem_write(ppu->mem, OBP1, 0xff);
+	mem_write(ppu->mem, WY, 0x00);
+	mem_write(ppu->mem, WX, 0x00);
 
-	ppu->fb = SDL_GetWindowSurface(ppu->win)->pixels;
-	memset(ppu->fb, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT * SCALE * SCALE * sizeof(uint32_t));
-	SDL_UpdateWindowSurface(ppu->win);
+
+	if (graphics_init(ppu)) {
+		free(ppu);
+		return NULL;
+	}
 
 	return ppu;
 }
