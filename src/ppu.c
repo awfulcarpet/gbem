@@ -148,16 +148,23 @@ graphics_init(struct PPU *ppu)
 
 	/* TODO: SCALE */
 	ppu->win = SDL_CreateWindow("gbem", 0, 0, SCREEN_WIDTH * SCALE, SCREEN_HEIGHT * SCALE, SDL_WINDOW_SHOWN);
+	ppu->debug_win = SDL_CreateWindow("gbem background tiles", 0, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
 
 	if (ppu->win == NULL) {
 		fprintf(stderr, "unable to create sdl win: %s\n", SDL_GetError());
 		return 1;
 	}
+	if (ppu->debug_win == NULL) {
+		fprintf(stderr, "unable to create sdl debug win: %s\n", SDL_GetError());
+		return 1;
+	}
 
 	ppu->fb = SDL_GetWindowSurface(ppu->win)->pixels;
+	ppu->debug_fb = SDL_GetWindowSurface(ppu->debug_win)->pixels;
 	memset(ppu->fb, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT * SCALE * SCALE * sizeof(uint32_t));
 
 	SDL_UpdateWindowSurface(ppu->win);
+	SDL_UpdateWindowSurface(ppu->debug_win);
 
 	return 0;
 }

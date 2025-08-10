@@ -110,6 +110,9 @@ struct PPU {
 	SDL_Window *win;
 	uint32_t *fb;
 
+	SDL_Window *debug_win;
+	uint32_t *debug_fb;
+
 	FILE *log;
 };
 
