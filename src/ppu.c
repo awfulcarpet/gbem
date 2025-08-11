@@ -6,6 +6,7 @@
 #include "cpu.h"
 #include "ppu.h"
 #include "mem.h"
+#include "gb.h"
 
 enum {
 	LYC_INT = 1 << 6,
@@ -18,6 +19,9 @@ enum {
 
 static uint8_t wly = 0;
 static uint8_t statline = 0;
+
+static double time = 0;
+static double cur = 0;
 
 static uint8_t * get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row, enum TILE_TYPE type);
 void draw_tile_row(struct PPU *ppu, uint8_t *row, int16_t xpix, enum Pallete pallete, uint8_t ly);
@@ -592,6 +596,9 @@ ppu_run(struct PPU *ppu, int cycles)
 				}
 
 				if (ly >= 143) {
+					cur = getmsec();
+					fprintf(stderr, "ms: %f\n", cur - time);
+					time = getmsec();
 					set_ppu_mode(ppu, VBLANK);
 					request_interrupt(ppu->mem, INTERRUPT_VBLANK);
 					SDL_UpdateWindowSurface(ppu->win);

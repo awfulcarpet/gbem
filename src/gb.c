@@ -1,11 +1,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include "cpu.h"
 #include "ppu.h"
 #include "gb.h"
 #include "mem.h"
 #include "joypad.h"
+
+double
+getmsec() {
+       struct timeval time;
+       gettimeofday(&time, NULL);
+       return (double)time.tv_sec * 1000 + (time.tv_usec/1000.0);
+}
 
 struct GB *
 gb_init(void)
