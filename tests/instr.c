@@ -169,7 +169,8 @@ run_test(cJSON *json)
 	cpu.memory = calloc(1 << 16, sizeof(uint8_t));
 	memcpy(cpu.memory, test->initial.memory, 1 << 16);
 	while (cpu.mcycles < test->cycles) {
-		cpu.mcycles += execute_opcode(&cpu);
+		// cpu.mcycles += execute_opcode(&cpu);
+		cpu.mcycles += cpu_execute(&cpu);
 	}
 
 	if (is_cpu_same(&cpu, &test->final) != 0) {
@@ -185,7 +186,8 @@ run_test(cJSON *json)
 		cpu.memory = calloc(1 << 16, sizeof(uint8_t));
 		memcpy(cpu.memory, test->initial.memory, 1 << 16);
 		while (cpu.mcycles < test->cycles) {
-			cpu.mcycles += execute_opcode(&cpu);
+			// cpu.mcycles += execute_opcode(&cpu);
+			cpu.mcycles += cpu_execute(&cpu);
 			print_cpu_state(&cpu);
 		}
 

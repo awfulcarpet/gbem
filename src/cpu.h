@@ -150,6 +150,7 @@ switch (op) { \
 
 struct CPU *init_cpu(uint8_t *mem);
 int execute(struct CPU *cpu);
+int cpu_execute(struct CPU *cpu);
 int execute_opcode(struct CPU *cpu);
 void cpu_log(struct CPU *cpu);
 void print_cpu_state(struct CPU *cpu);

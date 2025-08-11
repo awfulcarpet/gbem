@@ -19,7 +19,7 @@ all: $(NAME)
 run: $(NAME)
 	$(OUTDIR)/$(NAME) tetris.gb
 
-tests: make_tests blargg acid
+tests: sm83 blargg acid
 	$(OUTDIR)/instr
 	$(OUTDIR)/acid
 	# rm -f /tmp/log
@@ -39,8 +39,9 @@ $(OUTDIR)/%.o: src/%.c
 $(NAME): $(OBJ) $(OUTDIR)/main.o
 	$(CC) -o $(OUTDIR)/$@ $^ $(LDLIBS)
 
-make_tests: $(OBJ) tests/instr.c tests/cJSON.o
+sm83: $(OBJ) tests/instr.c tests/cJSON.o
 	$(CC) -o $(OUTDIR)/instr $^ $(LDLIBS) -D$(TESTS)
+	$(OUTDIR)/instr
 
 clean:
 	rm -rf $(OUTDIR) core

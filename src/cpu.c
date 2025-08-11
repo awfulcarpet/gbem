@@ -1349,7 +1349,8 @@ handle_interrupt(struct CPU *cpu)
 }
 
 int
-execute_opcode(struct CPU *cpu) {
+cpu_execute(struct CPU *cpu)
+{
 	uint8_t opcode = mem_read(cpu->memory, cpu->pc);
 
 	if (cpu->halt) {
@@ -1364,226 +1365,790 @@ execute_opcode(struct CPU *cpu) {
 		cpu->pc++;
 halt_bug:
 
-	/* block 0 opcodes */
-	if (opcode <= 0x3f && opcode >= 0x00) {
-
-		/* NOP */
-		if (opcode == 0x00)
+	switch (opcode) {
+		case 0x00: /* NOP */
 			return 1;
-
-
-		/* ld r16,imm16 */
-		if ((opcode & 0b1111) == 0b0001) {
+		break;
+		case 0x01:
 			return ld_r16_imm16(cpu, opcode);
-		}
-
-		/* ld [r16mem],a */
-		if ((opcode & 0b1111) == 0b0010) {
+		break;
+		case 0x02:
 			return ld_r16mem_a(cpu, opcode);
-		}
-
-		/* ld a,[r16mem] */
-		if ((opcode & 0b1111) == 0b1010) {
-			return ld_a_r16mem(cpu, opcode);
-		}
-
-		/* ld [imm16], sp */
-		if (opcode == 0b00001000) {
-			return ld_imm16_sp(cpu, opcode);
-		}
-
-		/* inc r16 */
-		if ((opcode & 0b1111) == 0b0011) {
+		break;
+		case 0x03:
 			return inc_r16(cpu, opcode);
-		}
-
-		/* dec r16 */
-		if ((opcode & 0b1111) == 0b1011) {
-			return dec_r16(cpu, opcode);
-		}
-
-		/* add hl, r16 */
-		if ((opcode & 0b1111) == 0b1001) {
-			return add_hl_r16(cpu, opcode);
-		}
-
-		/* inc r8 */
-		if ((opcode & 0b111) == 0b100) {
+		break;
+		case 0x04:
 			return inc_r8(cpu, opcode);
-		}
-
-		/* dec r8 */
-		if ((opcode & 0b111) == 0b101) {
+		break;
+		case 0x05:
 			return dec_r8(cpu, opcode);
-		}
-
-		/* ld r8 imm8 */
-		if ((opcode & 0b111) == 0b110) {
+		break;
+		case 0x06:
 			return ld_r8_imm8(cpu, opcode);
-		}
-
-		/* bit shifts */
-		if ((opcode & 0b111) == 0b111) {
+		break;
+		case 0x07:
 			return bit_shift(cpu, opcode);
-		}
-
-		/* jr e8 */
-		/* jr cond, e8 */
-		if (opcode == 0b00011000 || (opcode & 0b00100111) == 0b00100000) {
-			return jr_imm8(cpu, opcode);
-		}
-
-		/* stop */
-		if (opcode == 0x10)
+		break;
+		case 0x08:
+			return ld_imm16_sp(cpu, opcode);
+		break;
+		case 0x09:
+			return add_hl_r16(cpu, opcode);
+		break;
+		case 0x0a:
+			return ld_a_r16mem(cpu, opcode);
+		break;
+		case 0x0b:
+			return dec_r16(cpu, opcode);
+		break;
+		case 0x0c:
+			return inc_r8(cpu, opcode);
+		break;
+		case 0x0d:
+			return dec_r8(cpu, opcode);
+		break;
+		case 0x0e:
+			return ld_r8_imm8(cpu, opcode);
+		break;
+		case 0x0f:
+			return bit_shift(cpu, opcode);
+		break;
+		case 0x10:
 			return stop(cpu);
-
-		unimlemented_opcode(opcode);
-	}
-
-	/* block 1 */
-	if (opcode >= 0x40 && opcode <= 0x7F) {
-
-		/* halt */
-		/* TODO: implement waking from halt*/
-		if (opcode == 0x76) {
+		break;
+		case 0x11:
+			return ld_r16_imm16(cpu, opcode);
+		break;
+		case 0x12:
+			return ld_r16mem_a(cpu, opcode);
+		break;
+		case 0x13:
+			return inc_r16(cpu, opcode);
+		break;
+		case 0x14:
+			return inc_r8(cpu, opcode);
+		break;
+		case 0x15:
+			return dec_r8(cpu, opcode);
+		break;
+		case 0x16:
+			return ld_r8_imm8(cpu, opcode);
+		break;
+		case 0x17:
+			return bit_shift(cpu, opcode);
+		break;
+		case 0x18:
+			return jr_imm8(cpu, opcode);
+		break;
+		case 0x19:
+			return add_hl_r16(cpu, opcode);
+		break;
+		case 0x1a:
+			return ld_a_r16mem(cpu, opcode);
+		break;
+		case 0x1b:
+			return dec_r16(cpu, opcode);
+		break;
+		case 0x1c:
+			return inc_r8(cpu, opcode);
+		break;
+		case 0x1d:
+			return dec_r8(cpu, opcode);
+		break;
+		case 0x1e:
+			return ld_r8_imm8(cpu, opcode);
+		break;
+		case 0x1f:
+			return bit_shift(cpu, opcode);
+		break;
+		case 0x20:
+			return jr_imm8(cpu, opcode);
+		break;
+		case 0x21:
+			return ld_r16_imm16(cpu, opcode);
+		break;
+		case 0x22:
+			return ld_r16mem_a(cpu, opcode);
+		break;
+		case 0x23:
+			return inc_r16(cpu, opcode);
+		break;
+		case 0x24:
+			return inc_r8(cpu, opcode);
+		break;
+		case 0x25:
+			return dec_r8(cpu, opcode);
+		break;
+		case 0x26:
+			return ld_r8_imm8(cpu, opcode);
+		break;
+		case 0x27:
+			return bit_shift(cpu, opcode);
+		break;
+		case 0x28:
+			return jr_imm8(cpu, opcode);
+		break;
+		case 0x29:
+			return add_hl_r16(cpu, opcode);
+		break;
+		case 0x2a:
+			return ld_a_r16mem(cpu, opcode);
+		break;
+		case 0x2b:
+			return dec_r16(cpu, opcode);
+		break;
+		case 0x2c:
+			return inc_r8(cpu, opcode);
+		break;
+		case 0x2d:
+			return dec_r8(cpu, opcode);
+		break;
+		case 0x2e:
+			return ld_r8_imm8(cpu, opcode);
+		break;
+		case 0x2f:
+			return bit_shift(cpu, opcode);
+		break;
+		case 0x30:
+			return jr_imm8(cpu, opcode);
+		break;
+		case 0x31:
+			return ld_r16_imm16(cpu, opcode);
+		break;
+		case 0x32:
+			return ld_r16mem_a(cpu, opcode);
+		break;
+		case 0x33:
+			return inc_r16(cpu, opcode);
+		break;
+		case 0x34:
+			return inc_r8(cpu, opcode);
+		break;
+		case 0x35:
+			return dec_r8(cpu, opcode);
+		break;
+		case 0x36:
+			return ld_r8_imm8(cpu, opcode);
+		break;
+		case 0x37:
+			return bit_shift(cpu, opcode);
+		break;
+		case 0x38:
+			return jr_imm8(cpu, opcode);
+		break;
+		case 0x39:
+			return add_hl_r16(cpu, opcode);
+		break;
+		case 0x3a:
+			return ld_a_r16mem(cpu, opcode);
+		break;
+		case 0x3b:
+			return dec_r16(cpu, opcode);
+		break;
+		case 0x3c:
+			return inc_r8(cpu, opcode);
+		break;
+		case 0x3d:
+			return dec_r8(cpu, opcode);
+		break;
+		case 0x3e:
+			return ld_r8_imm8(cpu, opcode);
+		break;
+		case 0x3f:
+			return bit_shift(cpu, opcode);
+		break;
+		case 0x40:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x41:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x42:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x43:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x44:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x45:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x46:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x47:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x48:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x49:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x4a:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x4b:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x4c:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x4d:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x4e:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x4f:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x50:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x51:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x52:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x53:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x54:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x55:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x56:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x57:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x58:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x59:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x5a:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x5b:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x5c:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x5d:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x5e:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x5f:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x60:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x61:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x62:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x63:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x64:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x65:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x66:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x67:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x68:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x69:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x6a:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x6b:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x6c:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x6d:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x6e:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x6f:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x70:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x71:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x72:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x73:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x74:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x75:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x76:
 			return halt(cpu);
-		}
-
-		return ld_r8_r8(cpu, opcode);
-	}
-
-	/* block 2 */
-	if (opcode >= 0x80 && opcode <= 0xbf) {
-		uint8_t op = opcode >> 3 & 0b111;
-
-		if (op == 0b000) {
+		break;
+		case 0x77:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x78:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x79:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x7a:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x7b:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x7c:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x7d:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x7e:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x7f:
+			return ld_r8_r8(cpu, opcode);
+		break;
+		case 0x80:
 			return add_r8(cpu, opcode);
-		}
-
-		if (op == 0b001) {
+		break;
+		case 0x81:
+			return add_r8(cpu, opcode);
+		break;
+		case 0x82:
+			return add_r8(cpu, opcode);
+		break;
+		case 0x83:
+			return add_r8(cpu, opcode);
+		break;
+		case 0x84:
+			return add_r8(cpu, opcode);
+		break;
+		case 0x85:
+			return add_r8(cpu, opcode);
+		break;
+		case 0x86:
+			return add_r8(cpu, opcode);
+		break;
+		case 0x87:
+			return add_r8(cpu, opcode);
+		break;
+		case 0x88:
 			return adc_r8(cpu, opcode);
-		}
-
-		if (op == 0b010) {
+		break;
+		case 0x89:
+			return adc_r8(cpu, opcode);
+		break;
+		case 0x8a:
+			return adc_r8(cpu, opcode);
+		break;
+		case 0x8b:
+			return adc_r8(cpu, opcode);
+		break;
+		case 0x8c:
+			return adc_r8(cpu, opcode);
+		break;
+		case 0x8d:
+			return adc_r8(cpu, opcode);
+		break;
+		case 0x8e:
+			return adc_r8(cpu, opcode);
+		break;
+		case 0x8f:
+			return adc_r8(cpu, opcode);
+		break;
+		case 0x90:
 			return sub_r8(cpu, opcode);
-		}
-
-		if (op == 0b011) {
+		break;
+		case 0x91:
+			return sub_r8(cpu, opcode);
+		break;
+		case 0x92:
+			return sub_r8(cpu, opcode);
+		break;
+		case 0x93:
+			return sub_r8(cpu, opcode);
+		break;
+		case 0x94:
+			return sub_r8(cpu, opcode);
+		break;
+		case 0x95:
+			return sub_r8(cpu, opcode);
+		break;
+		case 0x96:
+			return sub_r8(cpu, opcode);
+		break;
+		case 0x97:
+			return sub_r8(cpu, opcode);
+		break;
+		case 0x98:
 			return sbc_r8(cpu, opcode);
-		}
-
-		if (op == 0b100) {
+		break;
+		case 0x99:
+			return sbc_r8(cpu, opcode);
+		break;
+		case 0x9a:
+			return sbc_r8(cpu, opcode);
+		break;
+		case 0x9b:
+			return sbc_r8(cpu, opcode);
+		break;
+		case 0x9c:
+			return sbc_r8(cpu, opcode);
+		break;
+		case 0x9d:
+			return sbc_r8(cpu, opcode);
+		break;
+		case 0x9e:
+			return sbc_r8(cpu, opcode);
+		break;
+		case 0x9f:
+			return sbc_r8(cpu, opcode);
+		break;
+		case 0xa0:
 			return and_r8(cpu, opcode);
-		}
-
-		if (op == 0b101) {
+		break;
+		case 0xa1:
+			return and_r8(cpu, opcode);
+		break;
+		case 0xa2:
+			return and_r8(cpu, opcode);
+		break;
+		case 0xa3:
+			return and_r8(cpu, opcode);
+		break;
+		case 0xa4:
+			return and_r8(cpu, opcode);
+		break;
+		case 0xa5:
+			return and_r8(cpu, opcode);
+		break;
+		case 0xa6:
+			return and_r8(cpu, opcode);
+		break;
+		case 0xa7:
+			return and_r8(cpu, opcode);
+		break;
+		case 0xa8:
 			return xor_r8(cpu, opcode);
-		}
-
-		if (op == 0b110) {
+		break;
+		case 0xa9:
+			return xor_r8(cpu, opcode);
+		break;
+		case 0xaa:
+			return xor_r8(cpu, opcode);
+		break;
+		case 0xab:
+			return xor_r8(cpu, opcode);
+		break;
+		case 0xac:
+			return xor_r8(cpu, opcode);
+		break;
+		case 0xad:
+			return xor_r8(cpu, opcode);
+		break;
+		case 0xae:
+			return xor_r8(cpu, opcode);
+		break;
+		case 0xaf:
+			return xor_r8(cpu, opcode);
+		break;
+		case 0xb0:
 			return or_r8(cpu, opcode);
-		}
-
-		if (op == 0b111) {
+		break;
+		case 0xb1:
+			return or_r8(cpu, opcode);
+		break;
+		case 0xb2:
+			return or_r8(cpu, opcode);
+		break;
+		case 0xb3:
+			return or_r8(cpu, opcode);
+		break;
+		case 0xb4:
+			return or_r8(cpu, opcode);
+		break;
+		case 0xb5:
+			return or_r8(cpu, opcode);
+		break;
+		case 0xb6:
+			return or_r8(cpu, opcode);
+		break;
+		case 0xb7:
+			return or_r8(cpu, opcode);
+		break;
+		case 0xb8:
 			return cp_r8(cpu, opcode);
-		}
-
-		unimlemented_opcode(opcode);
+		break;
+		case 0xb9:
+			return cp_r8(cpu, opcode);
+		break;
+		case 0xba:
+			return cp_r8(cpu, opcode);
+		break;
+		case 0xbb:
+			return cp_r8(cpu, opcode);
+		break;
+		case 0xbc:
+			return cp_r8(cpu, opcode);
+		break;
+		case 0xbd:
+			return cp_r8(cpu, opcode);
+		break;
+		case 0xbe:
+			return cp_r8(cpu, opcode);
+		break;
+		case 0xbf:
+			return cp_r8(cpu, opcode);
+		break;
+		case 0xc0:
+			return ret_cond(cpu, opcode);
+		break;
+		case 0xc1:
+			return pop_r16stk(cpu, opcode);
+		break;
+		case 0xc2:
+			return jp_cond(cpu, opcode);
+		break;
+		case 0xc3:
+			return jp_a16(cpu);
+		break;
+		case 0xc4:
+			return call_cond(cpu, opcode);
+		break;
+		case 0xc5:
+			return push_r16stk(cpu, opcode);
+		break;
+		case 0xc6:
+			return add_imm8(cpu, mem_read(cpu->memory, cpu->pc));
+		break;
+		case 0xc7:
+			return rst(cpu, opcode);
+		break;
+		case 0xc8:
+			return ret_cond(cpu, opcode);
+		break;
+		case 0xc9:
+			return ret(cpu);
+		break;
+		case 0xca:
+			return jp_cond(cpu, opcode);
+		break;
+		case 0xcb:
+			return prefix(cpu);
+		break;
+		case 0xcc:
+			return call_cond(cpu, opcode);
+		break;
+		case 0xcd:
+			return call_a16(cpu);
+		break;
+		case 0xce:
+			return adc_imm8(cpu, mem_read(cpu->memory, cpu->pc));
+		break;
+		case 0xcf:
+			return rst(cpu, opcode);
+		break;
+		case 0xd0:
+			return ret_cond(cpu, opcode);
+		break;
+		case 0xd1:
+			return pop_r16stk(cpu, opcode);
+		break;
+		case 0xd2:
+			return jp_cond(cpu, opcode);
+		break;
+		case 0xd3:
+			fprintf(stderr, "0xd3 illigal opcode\n");
+			exit(1);
+		break;
+		case 0xd4:
+			return call_cond(cpu, opcode);
+		break;
+		case 0xd5:
+			return push_r16stk(cpu, opcode);
+		break;
+		case 0xd6:
+			return sub_imm8(cpu, mem_read(cpu->memory, cpu->pc));
+		break;
+		case 0xd7:
+			return rst(cpu, opcode);
+		break;
+		case 0xd8:
+			return ret_cond(cpu, opcode);
+		break;
+		case 0xd9:
+			return reti(cpu);
+		break;
+		case 0xda:
+			return jp_cond(cpu, opcode);
+		break;
+		case 0xdb:
+			fprintf(stderr, "0xdb illigal opcode\n");
+			exit(1);
+		break;
+		case 0xdc:
+			return call_cond(cpu, opcode);
+		break;
+		case 0xdd:
+			fprintf(stderr, "0xdd illigal opcode\n");
+			exit(1);
+		break;
+		case 0xde:
+			return sbc_imm8(cpu, mem_read(cpu->memory, cpu->pc));
+		break;
+		case 0xdf:
+			return rst(cpu, opcode);
+		break;
+		case 0xe0:
+			return ldh(cpu, opcode);
+		break;
+		case 0xe1:
+			return pop_r16stk(cpu, opcode);
+		break;
+		case 0xe2:
+			return ldh(cpu, opcode);
+		break;
+		case 0xe3:
+			fprintf(stderr, "0xe3 illigal opcode\n");
+			exit(1);
+		break;
+		case 0xe4:
+			fprintf(stderr, "0xe4 illigal opcode\n");
+			exit(1);
+		break;
+		case 0xe5:
+			return push_r16stk(cpu, opcode);
+		break;
+		case 0xe6:
+			return and_imm8(cpu, mem_read(cpu->memory, cpu->pc));
+		break;
+		case 0xe7:
+			return rst(cpu, opcode);
+		break;
+		case 0xe8:
+			return add_sp_imm8(cpu);
+		break;
+		case 0xe9:
+			return jp_hl(cpu);
+		break;
+		case 0xea:
+			return ldh(cpu, opcode);
+		break;
+		case 0xeb:
+			fprintf(stderr, "0xeb illigal opcode\n");
+			exit(1);
+		break;
+		case 0xec:
+			fprintf(stderr, "0xec illigal opcode\n");
+			exit(1);
+		break;
+		case 0xed:
+			fprintf(stderr, "0xed illigal opcode\n");
+			exit(1);
+		break;
+		case 0xee:
+			return xor_imm8(cpu, mem_read(cpu->memory, cpu->pc));
+		break;
+		case 0xef:
+			return rst(cpu, opcode);
+		break;
+		case 0xf0:
+			return ldh(cpu, opcode);
+		break;
+		case 0xf1:
+			return pop_r16stk(cpu, opcode);
+		break;
+		case 0xf2:
+			return ldh(cpu, opcode);
+		break;
+		case 0xf3:
+			return di(cpu);
+		break;
+		case 0xf4:
+			fprintf(stderr, "0xf4 illigal opcode\n");
+			exit(1);
+		break;
+		case 0xf5:
+			return push_r16stk(cpu, opcode);
+		break;
+		case 0xf6:
+			return or_imm8(cpu, mem_read(cpu->memory, cpu->pc));
+		break;
+		case 0xf7:
+			return rst(cpu, opcode);
+		break;
+		case 0xf8:
+			return ldh(cpu, opcode);
+		break;
+		case 0xf9:
+			return ld_sp_hl(cpu);
+		break;
+		case 0xfa:
+			return ldh(cpu, opcode);
+		break;
+		case 0xfb:
+			return ei(cpu);
+		break;
+		case 0xfc:
+			fprintf(stderr, "0xfc illigal opcode\n");
+			exit(1);
+		break;
+		case 0xfd:
+			fprintf(stderr, "0xfd illigal opcode\n");
+			exit(1);
+		break;
+		case 0xfe:
+			return cp_imm8(cpu, mem_read(cpu->memory, cpu->pc));
+		break;
+		case 0xff:
+			return rst(cpu, opcode);
+		break;
+		default:
+			unimlemented_opcode(opcode);
+		break;
 	}
-
-	/* block 3 */
-	/* 8bit arith with imm8 */
-	if ((opcode & 0b11000111) == 0b11000110) {
-		uint8_t op = opcode >> 3 & 0b111;
-
-		switch (op) {
-			case 0:
-				return add_imm8(cpu, mem_read(cpu->memory, cpu->pc));
-				break;
-			case 1:
-				return adc_imm8(cpu, mem_read(cpu->memory, cpu->pc));
-				break;
-			case 2:
-				return sub_imm8(cpu, mem_read(cpu->memory, cpu->pc));
-				break;
-			case 3:
-				return sbc_imm8(cpu, mem_read(cpu->memory, cpu->pc));
-				break;
-			case 4:
-				return and_imm8(cpu, mem_read(cpu->memory, cpu->pc));
-				break;
-			case 5:
-				return xor_imm8(cpu, mem_read(cpu->memory, cpu->pc));
-				break;
-			case 6:
-				return or_imm8(cpu, mem_read(cpu->memory, cpu->pc));
-				break;
-			case 7:
-				return cp_imm8(cpu, mem_read(cpu->memory, cpu->pc));
-				break;
-		}
-
-		unimlemented_opcode(opcode);
-	}
-
-	if (opcode == 0xc9)
-		return ret(cpu);
-	if (opcode == 0xd9)
-		return reti(cpu);
-
-	if ((opcode & 0b11100111) == 0b11000000) {
-		return ret_cond(cpu, opcode);
-	}
-
-	if (opcode == 0xc3)
-		return jp_a16(cpu);
-	if (opcode == 0xe9)
-		return jp_hl(cpu);
-	if ((opcode & 0b11100111) == 0b11000010) {
-		return jp_cond(cpu, opcode);
-	}
-
-	if (opcode == 0xcd)
-		return call_a16(cpu);
-	if ((opcode & 0b11100111) == 0b11000100) {
-		return call_cond(cpu, opcode);
-	}
-
-	if ((opcode & 0b11000111) == 0b11000111) {
-		return rst(cpu, opcode);
-	}
-
-	if ((opcode & 0b11001111) == 0b11000001) {
-		return pop_r16stk(cpu, opcode);
-	}
-
-	if ((opcode & 0b11001111) == 0b11000101) {
-		return push_r16stk(cpu, opcode);
-	}
-
-	if (opcode == 0xE8) {
-		return add_sp_imm8(cpu);
-	}
-
-	if ((opcode & 0b11100101) == 0b11100000
-			|| (opcode & 0b111100101) == 0b11110000) {
-		return ldh(cpu, opcode);
-	}
-
-	if (opcode == 0xf9) {
-		return ld_sp_hl(cpu);
-	}
-
-	if (opcode == 0xf3)
-		return di(cpu);
-	if (opcode == 0xfb)
-		return ei(cpu);
-
-	if (opcode == 0xcb)
-		return prefix(cpu);
-
-	unimlemented_opcode(opcode);
-
 	return 0;
 }
 
@@ -1593,7 +2158,7 @@ execute(struct CPU *cpu)
 	if (cpu->ime == IME_NEXT)
 		cpu->ime = IME_SET;
 
-	uint8_t cycles = execute_opcode(cpu);
+	uint8_t cycles = cpu_execute(cpu);
 	cpu->mcycles += cycles;
 	timer_incr(cpu, cycles);
 
