@@ -1,3 +1,4 @@
+#include <stdint.h>
 enum {
 	JOYP = 0xff00,
 };
@@ -17,4 +18,4 @@ enum Buttons {
 	DPAD_RIGHT = 1 << 0,
 };
 
-void get_input(struct GB *gb);
+uint8_t get_input(uint8_t joypad);

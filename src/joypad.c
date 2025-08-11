@@ -1,62 +1,80 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_keycode.h>
+#include <stdint.h>
 #include "mem.h"
 #include "gb.h"
 #include "joypad.h"
+static uint8_t buttons = ~0;
+static uint8_t dpad = ~0;
 
-void
-get_input(struct GB *gb)
+uint8_t
+get_input(uint8_t joypad)
 {
 	SDL_Event e;
 	SDL_PollEvent(&e);
-	// uint8_t buttons = 0;
-	// uint8_t dpad = 0;
-	// uint8_t joypad = mem_read(gb->mem, JOYP);
-	mem_write(gb->mem, JOYP, 0xcf);
 
 	switch (e.type) {
 		case SDL_KEYDOWN:
 		{
 				switch (e.key.keysym.sym) {
 					case SDLK_ESCAPE:
-						gb->running = 0;
+						exit(0);
 						break;
-					// case SDLK_UP:
-					// 	buttons |= DPAD_UP;
-					// break;
-					// case SDLK_DOWN:
-					// 	buttons |= DPAD_DOWN;
-					// break;
-					// case SDLK_LEFT:
-					// 	buttons |= DPAD_LEFT;
-					// break;
-					// case SDLK_RIGHT:
-					// 	buttons |= DPAD_RIGHT;
-					// break;
+					case SDLK_RETURN:
+						buttons &= ~BUTTON_START;
+						break;
+
+					case SDLK_UP:
+						dpad &= ~DPAD_UP;
+					break;
+					case SDLK_DOWN:
+						dpad &= ~DPAD_DOWN;
+					break;
+					case SDLK_LEFT:
+						dpad &= ~DPAD_LEFT;
+					break;
+					case SDLK_RIGHT:
+						dpad &= ~DPAD_RIGHT;
+					break;
 				}
 				break;
 		}
 		case SDL_KEYUP:
 		{
 				switch (e.key.keysym.sym) {
-					// case SDLK_UP:
-					// 	buttons &= ~DPAD_UP;
-					// break;
-					// case SDLK_DOWN:
-					// 	buttons &= ~DPAD_DOWN;
-					// break;
-					// case SDLK_LEFT:
-					// 	buttons &= ~DPAD_LEFT;
-					// break;
-					// case SDLK_RIGHT:
-					// 	buttons &= ~DPAD_RIGHT;
-					// break;
+					case SDLK_RETURN:
+						buttons |= BUTTON_START;
+						break;
+
+					case SDLK_UP:
+						dpad |= DPAD_UP;
+					break;
+					case SDLK_DOWN:
+						dpad |= DPAD_DOWN;
+					break;
+					case SDLK_LEFT:
+						dpad |= DPAD_LEFT;
+					break;
+					case SDLK_RIGHT:
+						dpad |= DPAD_RIGHT;
+					break;
 				}
 				break;
 		}
 		case SDL_QUIT:
-			gb->running = 0;
+			exit(0);
 		break;
 	}
+
+	if ((joypad & SSBA) == 0) {
+		return (joypad & 0xf0) | (buttons & 0xf);
+	}
+
+	if ((joypad & DPAD) == 0) {
+		return (joypad & 0xf0) | (dpad & 0xf);
+	}
+
+
+	return (joypad & 0xf0) | 0xf;
 }
 
