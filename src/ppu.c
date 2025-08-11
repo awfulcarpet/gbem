@@ -190,7 +190,7 @@ get_bg_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 	uint8_t scx = mem_read(ppu->mem, SCX);
 
 	for (int i = 0; i < LCD_WIDTH_TILES + 1; i++) {
-		row[i] = mem_read(ppu->mem, adr + (ly + scy)/8 * WINDOW_WIDTH_TILES + (i + scx/8) % WINDOW_WIDTH_TILES);
+		row[i] = mem_read(ppu->mem, adr + ((ly + scy)/8 % WINDOW_HEIGHT_TILES) * WINDOW_WIDTH_TILES + (i + scx/8) % WINDOW_WIDTH_TILES);
 	}
 
 	return row;
