@@ -593,7 +593,7 @@ ppu_run_cycle(struct PPU *ppu)
 
 			if (ly >= 143) {
 				cur = getmsec();
-				fprintf(stderr, "ms: %f\n", cur - time);
+				fprintf(stderr, "fps: %f\n", 1000/(cur - time));
 				time = getmsec();
 				set_ppu_mode(ppu, VBLANK);
 				request_interrupt(ppu->mem, INTERRUPT_VBLANK);
