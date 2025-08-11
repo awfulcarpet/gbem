@@ -53,7 +53,6 @@ mem_read(uint8_t *mem, uint16_t adr) {
 void
 mem_write(uint8_t *mem, uint16_t adr, uint8_t data) {
 #ifndef TEST
-	assert(adr >= 0x8000); // avoid writing ROM
 	if (adr < 0x8000)
 		return;
 #endif
