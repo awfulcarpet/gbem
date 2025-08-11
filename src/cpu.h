@@ -150,6 +150,27 @@ switch (op) { \
 		break; \
 }; \
 
+#define set_regs_r16stk(mask, shift) \
+int op = (opcode & mask) >> shift; \
+uint16_t reg = 0; \
+uint8_t *high, *low; \
+high = low = NULL; \
+\
+switch (op) { \
+	case s_bc: \
+		get_r16(cpu->b, cpu->c); \
+		break; \
+	case s_de: \
+		get_r16(cpu->d, cpu->e); \
+		break; \
+	case s_hl: \
+		get_r16(cpu->h, cpu->l); \
+		break; \
+	case s_af: \
+		get_r16(cpu->a, cpu->f.flags); \
+		break; \
+}; \
+
 struct CPU *init_cpu(uint8_t *mem);
 int execute(struct CPU *cpu);
 int cpu_execute(struct CPU *cpu);

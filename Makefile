@@ -1,5 +1,5 @@
 WARNINGS = -ggdb -Wall -Wextra -Wpedantic -Wno-unused-result -Wwrite-strings -Wcast-align -Wpointer-arith -Wunused-parameter -Wmissing-include-dirs
-CFLAGS = -std=c11 $(WARNINGS) $(DEFS)
+CFLAGS = -std=c23 $(WARNINGS) $(DEFS)
 LDLIBS = -lSDL2
 TESTS ?= TEST
 

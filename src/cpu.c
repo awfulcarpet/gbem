@@ -243,7 +243,10 @@ dec_r16(struct CPU *cpu, uint8_t opcode)
 static int
 add_hl_r16(struct CPU *cpu, uint8_t opcode)
 {
-	set_regs_r16(0b00110000, 4)
+	set_regs_r16(0b00110000, 4);
+	(void)high;
+	(void)low;
+
 	uint16_t hl = cpu->h << 8 | cpu->l;
 	/* TODO: do without uint32_t? */
 	uint32_t res = hl + reg;
@@ -308,7 +311,9 @@ ld_r16_imm16(struct CPU *cpu, uint8_t opcode)
 static int
 ld_r16mem_a(struct CPU *cpu, uint8_t opcode)
 {
-	set_regs_r16mem(0b00110000, 4)
+	set_regs_r16mem(0b00110000, 4);
+	(void)high;
+	(void)low;
 
 	mem_write(cpu->memory, reg, cpu->a);
 
@@ -323,7 +328,9 @@ ld_r16mem_a(struct CPU *cpu, uint8_t opcode)
 static int
 ld_a_r16mem(struct CPU *cpu, uint8_t opcode)
 {
-	set_regs_r16mem(0b00110000, 4)
+	set_regs_r16mem(0b00110000, 4);
+	(void)high;
+	(void)low;
 
 	cpu->a = mem_read(cpu->memory, reg);
 
@@ -335,7 +342,7 @@ ld_a_r16mem(struct CPU *cpu, uint8_t opcode)
 }
 
 static int
-ld_imm16_sp(struct CPU *cpu, uint8_t opcode)
+ld_imm16_sp(struct CPU *cpu)
 {
 	uint16_t adr = mem_read(cpu->memory, cpu->pc + 1) << 8 | mem_read(cpu->memory, cpu->pc);
 
@@ -900,25 +907,8 @@ ld_sp_hl(struct CPU *cpu)
 static int
 pop_r16stk(struct CPU *cpu, uint8_t opcode)
 {
-	int op = (opcode & 0b00110000) >> 4;
-	uint16_t reg = 0;
-	uint8_t *high, *low;
-	high = low = NULL;
-
-	switch (op) {
-		case s_bc:
-			get_r16(cpu->b, cpu->c);
-			break;
-		case s_de:
-			get_r16(cpu->d, cpu->e);
-			break;
-		case s_hl:
-			get_r16(cpu->h, cpu->l);
-			break;
-		case s_af:
-			get_r16(cpu->a, cpu->f.flags);
-			break;
-	};
+	set_regs_r16stk(0x0011000, 4);
+	(void)reg;
 
 	pop(cpu, high, low);
 
@@ -930,25 +920,8 @@ pop_r16stk(struct CPU *cpu, uint8_t opcode)
 static int
 push_r16stk(struct CPU *cpu, uint8_t opcode)
 {
-	int op = (opcode & 0b00110000) >> 4;
-	uint16_t reg = 0;
-	uint8_t *high, *low;
-	high = low = NULL;
-
-	switch (op) {
-		case s_bc:
-			get_r16(cpu->b, cpu->c);
-			break;
-		case s_de:
-			get_r16(cpu->d, cpu->e);
-			break;
-		case s_hl:
-			get_r16(cpu->h, cpu->l);
-			break;
-		case s_af:
-			get_r16(cpu->a, cpu->f.flags);
-			break;
-	};
+	set_regs_r16stk(0b0011000, 4);
+	(void)reg;
 
 	mem_write(cpu->memory, --cpu->sp, *high);
 	mem_write(cpu->memory, --cpu->sp, *low);
@@ -969,7 +942,8 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 			return 2;
 		break;
 		case 0xEA:
-			mem_write(cpu->memory, mem_read(cpu->memory, cpu->pc++) | mem_read(cpu->memory, cpu->pc++) << 8, cpu->a);
+			mem_write(cpu->memory, mem_read(cpu->memory, cpu->pc) | mem_read(cpu->memory, cpu->pc + 1) << 8, cpu->a);
+			cpu->pc += 2;
 			return 4;
 		break;
 		case 0xf0:
@@ -994,7 +968,8 @@ ldh(struct CPU *cpu, const uint8_t opcode)
 			break;
 		}
 		case 0xfa:
-			 cpu->a = mem_read(cpu->memory, mem_read(cpu->memory, cpu->pc++) | mem_read(cpu->memory, cpu->pc++) << 8);
+			cpu->a = mem_read(cpu->memory, mem_read(cpu->memory, cpu->pc) | mem_read(cpu->memory, cpu->pc + 1) << 8);
+			cpu->pc += 2;
 			return 4;
 		break;
 		default:
@@ -1391,7 +1366,7 @@ halt_bug:
 			return bit_shift(cpu, opcode);
 		break;
 		case 0x08:
-			return ld_imm16_sp(cpu, opcode);
+			return ld_imm16_sp(cpu);
 		break;
 		case 0x09:
 			return add_hl_r16(cpu, opcode);
