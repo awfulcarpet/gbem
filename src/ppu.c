@@ -64,7 +64,9 @@ draw_tile(struct PPU *ppu, uint32_t *fb, uint8_t **tile, uint8_t x, uint8_t y)
 					break;
 			}
 
-			fb[(y+i) * WINDOW_WIDTH_TILES * 8 + x+j] = color;
+			uint32_t coords = (y+i) * WINDOW_WIDTH_TILES * 8 + x+j;
+			assert(coords < WINDOW_WIDTH_TILES * WINDOW_HEIGHT_TILES * 8 * 8);
+			fb[coords] = color;
 		}
 	}
 }
