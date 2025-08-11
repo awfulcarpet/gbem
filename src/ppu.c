@@ -110,11 +110,26 @@ debug_win(struct PPU *ppu)
 }
 
 void
+debug_obj(struct PPU *ppu)
+{
+	uint16_t adr = 0x8000;
+	for (int i = 0; i < 255; i++) {
+		uint8_t **tile = get_tile(ppu, i);
+		draw_tile(ppu, ppu->debug_ofb, tile, (i * 8)%256, i/32 * 8);
+		for (int k = 0; k < 8; k++)
+				free(tile[k]);
+			free(tile);
+	}
+}
+
+void
 debug_draw(struct PPU *ppu)
 {
 	debug_bg(ppu);
 
 	debug_win(ppu);
+
+	debug_obj(ppu);
 }
 
 void
@@ -242,8 +257,9 @@ graphics_init(struct PPU *ppu)
 
 	/* TODO: SCALE */
 	ppu->win = SDL_CreateWindow("gbem", 0, 0, SCREEN_WIDTH * SCALE, SCREEN_HEIGHT * SCALE, SDL_WINDOW_SHOWN);
-	ppu->debug_bgwin = SDL_CreateWindow("gbem background tiles", 0, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
-	ppu->debug_wwin = SDL_CreateWindow("gbem window tiles", 0, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
+	ppu->debug_bgwin = SDL_CreateWindow("gbem background tiles", SCREEN_WIDTH * SCALE, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
+	ppu->debug_wwin = SDL_CreateWindow("gbem window tiles", SCREEN_WIDTH * SCALE, 8 * WINDOW_HEIGHT_TILES, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
+	ppu->debug_owin = SDL_CreateWindow("gbem object tiles", SCREEN_WIDTH * SCALE + WINDOW_WIDTH_TILES * 8, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
 
 	if (ppu->win == NULL) {
 		fprintf(stderr, "unable to create sdl win: %s\n", SDL_GetError());
@@ -260,14 +276,21 @@ graphics_init(struct PPU *ppu)
 		return 1;
 	}
 
+	if (ppu->debug_owin == NULL) {
+		fprintf(stderr, "unable to create sdl debug object win: %s\n", SDL_GetError());
+		return 1;
+	}
+
 	ppu->fb = SDL_GetWindowSurface(ppu->win)->pixels;
 	ppu->debug_bgfb = SDL_GetWindowSurface(ppu->debug_bgwin)->pixels;
 	ppu->debug_wfb = SDL_GetWindowSurface(ppu->debug_wwin)->pixels;
+	ppu->debug_ofb = SDL_GetWindowSurface(ppu->debug_owin)->pixels;
 	memset(ppu->fb, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT * SCALE * SCALE * sizeof(uint32_t));
 
 	SDL_UpdateWindowSurface(ppu->win);
 	SDL_UpdateWindowSurface(ppu->debug_bgwin);
 	SDL_UpdateWindowSurface(ppu->debug_wwin);
+	SDL_UpdateWindowSurface(ppu->debug_owin);
 
 	return 0;
 }

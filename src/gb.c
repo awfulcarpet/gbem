@@ -63,6 +63,7 @@ gb_run(struct GB *gb)
 		SDL_UpdateWindowSurface(gb->ppu->win);
 		SDL_UpdateWindowSurface(gb->ppu->debug_bgwin);
 		SDL_UpdateWindowSurface(gb->ppu->debug_wwin);
+		SDL_UpdateWindowSurface(gb->ppu->debug_owin);
 
 		time = getmsec();
 	}
