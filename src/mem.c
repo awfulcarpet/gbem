@@ -45,7 +45,7 @@ uint8_t
 mem_read(uint8_t *mem, uint16_t adr) {
 #ifndef TEST
 	if (adr == JOYP)
-		return get_input(mem[JOYP]);
+		return read_input(mem[JOYP]);
 #endif
 	return mem[adr];
 }

@@ -18,4 +18,5 @@ enum Buttons {
 	DPAD_RIGHT = 1 << 0,
 };
 
-uint8_t get_input(uint8_t joypad);
+uint8_t read_input(uint8_t joypad);
+void get_input(struct GB *gb);

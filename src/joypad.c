@@ -8,7 +8,22 @@ static uint8_t buttons = ~0;
 static uint8_t dpad = ~0;
 
 uint8_t
-get_input(uint8_t joypad)
+read_input(uint8_t joypad)
+{
+
+	if ((joypad & SSBA) == 0) {
+		return (joypad & 0xf0) | (buttons & 0xf);
+	}
+
+	if ((joypad & DPAD) == 0) {
+		return (joypad & 0xf0) | (dpad & 0xf);
+	}
+
+	return (joypad & 0xf0) | 0xf;
+}
+
+void
+get_input(struct GB *gb)
 {
 	SDL_Event e;
 	SDL_PollEvent(&e);
@@ -18,10 +33,19 @@ get_input(uint8_t joypad)
 		{
 				switch (e.key.keysym.sym) {
 					case SDLK_ESCAPE:
-						exit(0);
+						gb->running = 0;
 						break;
 					case SDLK_RETURN:
 						buttons &= ~BUTTON_START;
+						break;
+					case SDLK_SPACE:
+						buttons &= ~BUTTON_SELECT;
+						break;
+					case SDLK_z:
+						buttons &= ~BUTTON_A;
+						break;
+					case SDLK_x:
+						buttons &= ~BUTTON_B;
 						break;
 
 					case SDLK_UP:
@@ -45,6 +69,15 @@ get_input(uint8_t joypad)
 					case SDLK_RETURN:
 						buttons |= BUTTON_START;
 						break;
+					case SDLK_SPACE:
+						buttons |= BUTTON_SELECT;
+						break;
+					case SDLK_z:
+						buttons |= BUTTON_A;
+						break;
+					case SDLK_x:
+						buttons |= BUTTON_B;
+						break;
 
 					case SDLK_UP:
 						dpad |= DPAD_UP;
@@ -62,19 +95,8 @@ get_input(uint8_t joypad)
 				break;
 		}
 		case SDL_QUIT:
-			exit(0);
+			gb->running = 0;
 		break;
 	}
-
-	if ((joypad & SSBA) == 0) {
-		return (joypad & 0xf0) | (buttons & 0xf);
-	}
-
-	if ((joypad & DPAD) == 0) {
-		return (joypad & 0xf0) | (dpad & 0xf);
-	}
-
-
-	return (joypad & 0xf0) | 0xf;
 }
 

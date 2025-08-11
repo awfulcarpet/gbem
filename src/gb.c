@@ -48,7 +48,7 @@ gb_run(struct GB *gb)
 
 		int cyc = mcyc_hz * delta/1000.0;
 
-		get_input(gb->mem[JOYP]);
+		get_input(gb);
 		for (int i = 0; i < cyc; i += cycles) {
 			cycles = execute(gb->cpu);
 			ppu_run(gb->ppu, cycles);
