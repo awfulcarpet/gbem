@@ -20,6 +20,8 @@ enum {
 static uint8_t wly = 0;
 static uint8_t statline = 0;
 
+struct Sprite **list = NULL;
+
 static double time = 0;
 static double cur = 0;
 
@@ -561,7 +563,74 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 	free(list);
 }
 
-struct Sprite **list = NULL;
+void
+ppu_run_cycle(struct PPU *ppu)
+{
+	uint8_t ly = mem_read(ppu->mem, LY);
+	uint8_t lyc = mem_read(ppu->mem, LYC);
+	ppu->lcdc = read_lcdc(ppu);
+
+	set_ppu_mode(ppu, ppu->mode.mode);
+	switch (ppu->mode.mode) {
+		case OAM_SCAN:
+			if (ppu->tcycles >= 80) {
+				list = oam_scan(ppu, ly);
+				set_ppu_mode(ppu, DRAW);
+				ppu->lcdc = read_lcdc(ppu);
+			}
+			break;
+		case DRAW:
+			if (ppu->tcycles >= 80 + 289) {
+				ppu_draw(ppu, list);
+				debug_draw(ppu);
+				set_ppu_mode(ppu, HBLANK);
+			}
+			break;
+		case HBLANK:
+			if (ppu->tcycles < 456) {
+				break;
+			}
+
+			if (ly >= 143) {
+				cur = getmsec();
+				fprintf(stderr, "ms: %f\n", cur - time);
+				time = getmsec();
+				set_ppu_mode(ppu, VBLANK);
+				request_interrupt(ppu->mem, INTERRUPT_VBLANK);
+				SDL_UpdateWindowSurface(ppu->win);
+			} else {
+				set_ppu_mode(ppu, OAM_SCAN);
+				mem_write(ppu->mem, LY, ly + 1);
+			}
+
+			ppu->tcycles = 0;
+			break;
+		case VBLANK:
+			wly = 0;
+			if (ppu->tcycles < 456)
+				break;
+
+			ppu->tcycles = 0;
+			if (ly >= 153) {
+				ppu->tcycles = 0;
+				ly = 0;
+				mem_write(ppu->mem, LY, 0);
+				set_ppu_mode(ppu, OAM_SCAN);
+			} else {
+				mem_write(ppu->mem, LY, ly + 1);
+			}
+			break;
+	}
+
+	request_stat(ppu);
+
+	if (ly == lyc) {
+		mem_write(ppu->mem, STAT, mem_read(ppu->mem, STAT) | LYC_LC);
+	} else {
+		mem_write(ppu->mem, STAT, mem_read(ppu->mem, STAT) & ~LYC_LC);
+	}
+}
+
 void
 ppu_run(struct PPU *ppu, int cycles)
 {
@@ -572,67 +641,8 @@ ppu_run(struct PPU *ppu, int cycles)
 	if (!ppu->lcdc.enable)
 		return;
 
-	ppu->tcycles += cycles * 4;
 	for (int i = 0; i < cycles * 4; i++, ppu->tcycles++) {
-		set_ppu_mode(ppu, ppu->mode.mode);
-		switch (ppu->mode.mode) {
-			case OAM_SCAN:
-				if (ppu->tcycles >= 80) {
-					list = oam_scan(ppu, ly);
-					set_ppu_mode(ppu, DRAW);
-					ppu->lcdc = read_lcdc(ppu);
-				}
-				break;
-			case DRAW:
-				if (ppu->tcycles >= 80 + 289) {
-					ppu_draw(ppu, list);
-					debug_draw(ppu);
-					set_ppu_mode(ppu, HBLANK);
-				}
-				break;
-			case HBLANK:
-				if (ppu->tcycles < 456) {
-					break;
-				}
-
-				if (ly >= 143) {
-					cur = getmsec();
-					fprintf(stderr, "ms: %f\n", cur - time);
-					time = getmsec();
-					set_ppu_mode(ppu, VBLANK);
-					request_interrupt(ppu->mem, INTERRUPT_VBLANK);
-					SDL_UpdateWindowSurface(ppu->win);
-	 			} else {
-					set_ppu_mode(ppu, OAM_SCAN);
-					mem_write(ppu->mem, LY, ly + 1);
-				}
-
-				ppu->tcycles = 0;
-				break;
-			case VBLANK:
-				wly = 0;
-				if (ppu->tcycles < 456)
-					break;
-
-				ppu->tcycles = 0;
-				if (ly >= 153) {
-					ppu->tcycles = 0;
-					ly = 0;
-					mem_write(ppu->mem, LY, 0);
-					set_ppu_mode(ppu, OAM_SCAN);
-				} else {
-					mem_write(ppu->mem, LY, ly + 1);
-				}
-				break;
-		}
-
-		request_stat(ppu);
-
-		if (ly == lyc) {
-			mem_write(ppu->mem, STAT, mem_read(ppu->mem, STAT) | LYC_LC);
-		} else {
-			mem_write(ppu->mem, STAT, mem_read(ppu->mem, STAT) & ~LYC_LC);
-		}
+		ppu_run_cycle(ppu);
 	}
 }
 
