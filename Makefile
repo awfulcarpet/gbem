@@ -26,10 +26,10 @@ tests: sm83 blargg acid
 	$(OUTDIR)/blargg 1 &
 
 blargg: $(OBJ) tests/blargg.c
-	$(CC) -o $(OUTDIR)/blargg $^ -D$(TESTS) $(LDLIBS)
+	$(CC) -o $(OUTDIR)/blargg $^ $(LDLIBS)
 
 acid: $(OBJ) tests/acid.c
-	$(CC) -o $(OUTDIR)/acid $^ -D$(TESTS) $(LDLIBS)
+	$(CC) -o $(OUTDIR)/acid $^ $(LDLIBS)
 	$(OUTDIR)/acid
 
 $(OUTDIR)/%.o: src/%.c

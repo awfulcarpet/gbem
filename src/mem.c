@@ -43,8 +43,10 @@ request_interrupt(uint8_t *mem, enum INTERRUPT interrupt)
 
 uint8_t
 mem_read(uint8_t *mem, uint16_t adr) {
+#ifndef TEST
 	if (adr == JOYP)
 		return 0xcf;
+#endif
 	return mem[adr];
 }
 

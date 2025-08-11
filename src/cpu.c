@@ -907,7 +907,7 @@ ld_sp_hl(struct CPU *cpu)
 static int
 pop_r16stk(struct CPU *cpu, uint8_t opcode)
 {
-	set_regs_r16stk(0x0011000, 4);
+	set_regs_r16stk(0b00110000, 4);
 	(void)reg;
 
 	pop(cpu, high, low);
@@ -920,7 +920,7 @@ pop_r16stk(struct CPU *cpu, uint8_t opcode)
 static int
 push_r16stk(struct CPU *cpu, uint8_t opcode)
 {
-	set_regs_r16stk(0b0011000, 4);
+	set_regs_r16stk(0b00110000, 4);
 	(void)reg;
 
 	mem_write(cpu->memory, --cpu->sp, *high);
