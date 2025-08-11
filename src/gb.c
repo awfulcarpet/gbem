@@ -1,3 +1,4 @@
+#include <SDL2/SDL_video.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -37,19 +38,33 @@ void
 gb_run(struct GB *gb)
 {
 	int cycles = 0;
+	double time = getmsec();
+	double delta = 0;
+
+	double mcyc_hz = 4194304.0 / 4.0;
+
 	while (gb->running) {
-		print_cpu_state(gb->cpu);
-		ppu_log(gb->ppu);
+		delta = getmsec() - time;
+
+		int cyc = mcyc_hz * delta/1000.0;
+
+		for (int i = 0; i < cyc; i += cycles) {
+			cycles = execute(gb->cpu);
+			ppu_run(gb->ppu, cycles);
+		}
+
+
+		if (delta < 16.74) {
+			continue;
+		}
 
 		get_input(gb);
-		ppu_run(gb->ppu, cycles);
-		cycles = execute(gb->cpu);
-		if (gb->mem[gb->cpu->pc] == 0x40) {
-			break;
-		}
+		debug_draw(gb->ppu);
+		SDL_UpdateWindowSurface(gb->ppu->win);
+		SDL_UpdateWindowSurface(gb->ppu->debug_bgwin);
+		SDL_UpdateWindowSurface(gb->ppu->debug_wwin);
+		fprintf(stderr, "fps: %f\n", 1000.0/delta);
+
+		time = getmsec();
 	}
-	debug_draw(gb->ppu);
-	SDL_UpdateWindowSurface(gb->ppu->debug_wwin);
-	SDL_UpdateWindowSurface(gb->ppu->debug_bgwin);
-	getchar();
 }

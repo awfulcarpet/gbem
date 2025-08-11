@@ -22,9 +22,6 @@ static uint8_t statline = 0;
 
 struct Sprite **list = NULL;
 
-static double time = 0;
-static double cur = 0;
-
 static uint8_t * get_tile_row(struct PPU *ppu, uint8_t id, uint8_t row, enum TILE_TYPE type);
 void draw_tile_row(struct PPU *ppu, uint8_t *row, int16_t xpix, enum Pallete pallete, uint8_t ly);
 uint8_t get_color(struct PPU *ppu, uint8_t id, enum Pallete pallete);
@@ -582,7 +579,6 @@ ppu_run_cycle(struct PPU *ppu)
 		case DRAW:
 			if (ppu->tcycles >= 80 + 289) {
 				ppu_draw(ppu, list);
-				debug_draw(ppu);
 				set_ppu_mode(ppu, HBLANK);
 			}
 			break;
@@ -592,12 +588,8 @@ ppu_run_cycle(struct PPU *ppu)
 			}
 
 			if (ly >= 143) {
-				cur = getmsec();
-				fprintf(stderr, "fps: %f\n", 1000/(cur - time));
-				time = getmsec();
 				set_ppu_mode(ppu, VBLANK);
 				request_interrupt(ppu->mem, INTERRUPT_VBLANK);
-				SDL_UpdateWindowSurface(ppu->win);
 			} else {
 				set_ppu_mode(ppu, OAM_SCAN);
 				mem_write(ppu->mem, LY, ly + 1);
