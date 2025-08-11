@@ -6,6 +6,7 @@
 #include "cpu.h"
 #include "mem.h"
 #include "timer.h"
+#include "joypad.h"
 
 static FILE *f = NULL;
 
@@ -42,6 +43,8 @@ request_interrupt(uint8_t *mem, enum INTERRUPT interrupt)
 
 uint8_t
 mem_read(uint8_t *mem, uint16_t adr) {
+	if (adr == JOYP)
+		return 0xcf;
 	return mem[adr];
 }
 

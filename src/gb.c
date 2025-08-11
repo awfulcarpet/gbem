@@ -58,12 +58,10 @@ gb_run(struct GB *gb)
 			continue;
 		}
 
-		get_input(gb);
 		debug_draw(gb->ppu);
 		SDL_UpdateWindowSurface(gb->ppu->win);
 		SDL_UpdateWindowSurface(gb->ppu->debug_bgwin);
 		SDL_UpdateWindowSurface(gb->ppu->debug_wwin);
-		fprintf(stderr, "fps: %f\n", 1000.0/delta);
 
 		time = getmsec();
 	}

@@ -28,13 +28,9 @@ main(int argc, char **argv) {
 		return 1;
 	}
 
-	// if (load_rom(gb->mem, argv[1])) {
-	// 	return 1;
-	// }
-
-	// if (load_rom(gb->mem, "dmg_boot.bin")) {
-	// 	return 1;
-	// }
+	if (load_rom(gb->mem, argv[1])) {
+		return 1;
+	}
 
 	gb_run(gb);
 	return 0;
