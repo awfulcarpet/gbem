@@ -9,7 +9,7 @@ unimlemented_opcode(uint8_t opcode) {
 	exit(1);
 }
 
-static char *
+static const char *
 get_prefix(uint8_t opcode)
 {
 	if ((opcode & 0b11111000) == 0) {

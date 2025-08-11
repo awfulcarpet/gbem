@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "cpu.h"
 
 void mem_init(struct CPU *cpu);
 int load_rom(uint8_t *mem, char *path);

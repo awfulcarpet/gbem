@@ -1,3 +1,5 @@
+#ifndef CPU_H
+#define CPU_H
 #include <stdint.h>
 #include <stdio.h>
 
@@ -154,3 +156,4 @@ int cpu_execute(struct CPU *cpu);
 int execute_opcode(struct CPU *cpu);
 void cpu_log(struct CPU *cpu);
 void print_cpu_state(struct CPU *cpu);
+#endif

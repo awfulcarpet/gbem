@@ -36,9 +36,6 @@ get_tile(struct PPU *ppu, uint8_t id)
 		pix[i] = get_tile_row(ppu, id, i, WINDOW);
 	}
 
-	uint8_t h = 0, l = 0;
-	uint16_t adr = VRAM + id * BYTES_PER_TILE;
-
 	return pix;
 }
 
@@ -123,8 +120,6 @@ debug_draw(struct PPU *ppu)
 void
 request_stat(struct PPU *ppu)
 {
-	uint8_t ly = mem_read(ppu->mem, LY);
-	uint8_t lyc = mem_read(ppu->mem, LYC);
 	uint8_t stat = mem_read(ppu->mem, STAT);
 
 	uint8_t line = 0;
@@ -203,11 +198,9 @@ get_bg_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
 
 /* returns 20 tile ids for the window/bg */
 uint8_t *
-get_window_row(struct PPU *ppu, uint16_t adr, uint8_t ly)
+get_window_row(struct PPU *ppu, uint16_t adr)
 {
 	uint8_t *row = calloc(WINDOW_WIDTH_TILES, sizeof(uint8_t *));
-	uint8_t wy = mem_read(ppu->mem, WY);
-	uint8_t wx = mem_read(ppu->mem, WX);
 
 	for (int i = 0; i < WINDOW_WIDTH_TILES; i++) {
 		row[i] = mem_read(ppu->mem, adr + (wly)/8 * WINDOW_WIDTH_TILES + i);
@@ -473,7 +466,7 @@ render_window_row(struct PPU *ppu, uint8_t *row, uint8_t ly)
 
 	if (wy > ly)
 		return;
-	if (wx - 7> SCREEN_WIDTH) return;
+	if (wx - 7 > SCREEN_WIDTH) return;
 
 	for (int i = 0; i < LCD_WIDTH_TILES; i++) {
 		uint8_t *pix = get_tile_row(ppu, row[i], (ly - wy) % 8, WINDOW);
@@ -542,7 +535,7 @@ ppu_draw(struct PPU *ppu, struct Sprite **list)
 	if (ppu->lcdc.w_tmap)
 		adr = 0x9C00;
 	if (ppu->lcdc.wenable) {
-		uint8_t *row = get_window_row(ppu, adr, ly);
+		uint8_t *row = get_window_row(ppu, adr);
 		render_window_row(ppu, row, ly);
 		if (row != NULL)
 			free(row);
@@ -626,8 +619,6 @@ ppu_run_cycle(struct PPU *ppu)
 void
 ppu_run(struct PPU *ppu, int cycles)
 {
-	uint8_t ly = mem_read(ppu->mem, LY);
-	uint8_t lyc = mem_read(ppu->mem, LYC);
 	ppu->lcdc = read_lcdc(ppu);
 
 	if (!ppu->lcdc.enable)

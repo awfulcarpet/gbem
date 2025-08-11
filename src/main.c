@@ -15,9 +15,6 @@
 
 int
 main(int argc, char **argv) {
-	// unused for now
-	(void)argc;
-	(void)argv;
 	struct GB * gb = gb_init();
 	gb->cpu->pc = 0;
 
