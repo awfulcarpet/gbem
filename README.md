@@ -15,4 +15,4 @@ Usage:
 $ gbem <game.gb> # replace game.gb with a user-provided rom
 ```
 you may find a few roms here:
-- ![snake](https://hh3.gbdev.io/static/database-gb/entries/snake-gb/snake.gb)
+- [snake](https://hh3.gbdev.io/static/database-gb/entries/snake-gb/snake.gb)
