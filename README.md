@@ -16,6 +16,18 @@ $ gbem <game.gb> # replace game.gb with a user-provided rom
 $ gbem rom/snake.gb # run snake demo from (https://donaldhays.com/projects/snake/)
 ```
 
+## Controls
+| Mapping | Key   |
+| :------ | :---- |
+| START   | ENTER |
+| SELECT  | SPACE |
+| A       | Z     |
+| B       | X     |
+| UP      | UP    |
+| DOWN    | DOWN  |
+| LEFT    | LEFT  |
+| RIGHT   | RIGHT |
+
 ## Features
 1. full sm83 cpu core emulation passing all sm83 tests and blargg cpu_instrs tests
 2. somewhat functional ppu emulation passing all but 1 dmg-acid2 tests
