@@ -59,11 +59,13 @@ gb_run(struct GB *gb)
 			continue;
 		}
 
-		debug_draw(gb->ppu);
 		SDL_UpdateWindowSurface(gb->ppu->win);
+#ifdef DEBUG
+		debug_draw(gb->ppu);
 		SDL_UpdateWindowSurface(gb->ppu->debug_bgwin);
 		SDL_UpdateWindowSurface(gb->ppu->debug_wwin);
 		SDL_UpdateWindowSurface(gb->ppu->debug_owin);
+#endif /* DEBUG */
 
 		time = getmsec();
 	}

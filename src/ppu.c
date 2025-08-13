@@ -257,15 +257,18 @@ graphics_init(struct PPU *ppu)
 
 	/* TODO: SCALE */
 	ppu->win = SDL_CreateWindow("gbem", 0, 0, SCREEN_WIDTH * SCALE, SCREEN_HEIGHT * SCALE, SDL_WINDOW_SHOWN);
+#ifdef DEBUG
 	ppu->debug_bgwin = SDL_CreateWindow("gbem background tiles", SCREEN_WIDTH * SCALE, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
 	ppu->debug_wwin = SDL_CreateWindow("gbem window tiles", SCREEN_WIDTH * SCALE, 8 * WINDOW_HEIGHT_TILES, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
 	ppu->debug_owin = SDL_CreateWindow("gbem object tiles", SCREEN_WIDTH * SCALE + WINDOW_WIDTH_TILES * 8, 0, 8 * WINDOW_WIDTH_TILES, 8 * WINDOW_HEIGHT_TILES, SDL_WINDOW_SHOWN | SDL_WINDOW_UTILITY);
+#endif /* DEBUG */
 
 	if (ppu->win == NULL) {
 		fprintf(stderr, "unable to create sdl win: %s\n", SDL_GetError());
 		return 1;
 	}
 
+#ifdef DEBUG
 	if (ppu->debug_bgwin == NULL) {
 		fprintf(stderr, "unable to create sdl debug bg win: %s\n", SDL_GetError());
 		return 1;
@@ -280,17 +283,22 @@ graphics_init(struct PPU *ppu)
 		fprintf(stderr, "unable to create sdl debug object win: %s\n", SDL_GetError());
 		return 1;
 	}
+#endif /* DEBUG */
 
 	ppu->fb = SDL_GetWindowSurface(ppu->win)->pixels;
+#ifdef DEBUG
 	ppu->debug_bgfb = SDL_GetWindowSurface(ppu->debug_bgwin)->pixels;
 	ppu->debug_wfb = SDL_GetWindowSurface(ppu->debug_wwin)->pixels;
 	ppu->debug_ofb = SDL_GetWindowSurface(ppu->debug_owin)->pixels;
+#endif /* DEBUG */
 	memset(ppu->fb, 0xff, SCREEN_WIDTH * SCREEN_HEIGHT * SCALE * SCALE * sizeof(uint32_t));
 
+#ifdef DEBUG
 	SDL_UpdateWindowSurface(ppu->win);
 	SDL_UpdateWindowSurface(ppu->debug_bgwin);
 	SDL_UpdateWindowSurface(ppu->debug_wwin);
 	SDL_UpdateWindowSurface(ppu->debug_owin);
+#endif /* DEBUG */
 
 	return 0;
 }
