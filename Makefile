@@ -17,7 +17,7 @@ OBJ = \
 all: $(NAME)
 
 run: $(NAME)
-	$(OUTDIR)/$(NAME) tetris.gb
+	$(OUTDIR)/$(NAME) rom/tetris.gb
 
 blargg: $(OBJ) tests/blargg.c
 	$(CC) -o $(OUTDIR)/blargg $^ $(LDLIBS)
