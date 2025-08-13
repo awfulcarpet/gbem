@@ -37,5 +37,8 @@ sm83: $(OBJ) tests/instr.c tests/cJSON.o
 	$(CC) -o $(OUTDIR)/instr $^ $(LDLIBS) $(TESTS)
 	$(OUTDIR)/instr
 
+release: $(NAME)
+	strip $(OUTDIR)/$(NAME)
+
 clean:
 	rm -rf $(OUTDIR) core
